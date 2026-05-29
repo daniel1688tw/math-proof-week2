@@ -1,26 +1,16 @@
-# Virtual environment
+# 虛擬環境（體積大，不納入版控）
 env/
 
-# Claude Code internal files
-.claude/
-
-# Project-specific instructions (local only)
+# 本機開發指令（僅限本機使用）
 CLAUDE.md
 
-# Original notebook (large, not needed in repo)
+# 原始 Notebook（已重構為獨立模組）
 week2_graph_model_pipeline_cells(3).ipynb
 
-# Python cache
+# Python 編譯快取
 __pycache__/
 *.pyc
 *.pyo
-
-# Generated outputs (runtime artifacts)
-week2_outputs/
-
-# Hugging Face model cache
-*.safetensors
-*.bin
 
 # OS
 .DS_Store
