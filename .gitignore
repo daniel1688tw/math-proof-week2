@@ -1,0 +1,27 @@
+# Virtual environment
+env/
+
+# Claude Code internal files
+.claude/
+
+# Project-specific instructions (local only)
+CLAUDE.md
+
+# Original notebook (large, not needed in repo)
+week2_graph_model_pipeline_cells(3).ipynb
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated outputs (runtime artifacts)
+week2_outputs/
+
+# Hugging Face model cache
+*.safetensors
+*.bin
+
+# OS
+.DS_Store
+Thumbs.db
