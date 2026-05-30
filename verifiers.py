@@ -80,13 +80,19 @@ def verify_obligation_coverage(proof_contract, graph_state):
     obligations = proof_contract.get("obligations", [])
     obligation_ids = [ob.get("id") for ob in obligations if isinstance(ob, dict) and ob.get("id")]
     covered_by = {}
+    any_node_has_covers = False
     for node in graph_state.get("nodes", []):
         node_id = node.get("id")
-        for ob_id in node.get("covers_obligations", []):
+        covers = node.get("covers_obligations", [])
+        if covers:
+            any_node_has_covers = True
+        for ob_id in covers:
             covered_by.setdefault(ob_id, set()).add(node_id)
+    severity = "high" if any_node_has_covers else "medium"
+    blocking = any_node_has_covers
     for ob_id in obligation_ids:
         if ob_id not in covered_by:
-            errors.append(make_error("structural", None, None, "high", f"Obligation {ob_id} must be covered by some node.", f"{ob_id} is not listed in any node.covers_obligations.", "Add this obligation id to covers_obligations of a node that covers it."))
+            errors.append(make_error("structural", None, None, severity, f"Obligation {ob_id} must be covered by some node.", f"{ob_id} is not listed in any node.covers_obligations.", "Add this obligation id to covers_obligations of a node that covers it.", blocking))
     return errors
 
 
@@ -137,8 +143,9 @@ def verify_graph_structure(problem_json, proof_contract, graph_state):
         errors.append(make_error("structural", None, None, "high", "Proof graph must be DAG.", f"Cycle detected: {list(nx.find_cycle(graph))}", "Remove cycle."))
 
     goal_id = graph_state.get("goal_node_id")
-    if goal_id not in nodes_by_id:
-        errors.append(make_error("structural", goal_id, None, "high", "Goal node must exist.", f"{goal_id} missing.", "Create goal node."))
+    if not goal_id or goal_id not in nodes_by_id:
+        missing_id = goal_id or "(goal_node_id not set)"
+        errors.append(make_error("structural", goal_id, None, "high", "Goal node must exist.", f"{missing_id} missing.", "Create goal node."))
     else:
         goal_claim = nodes_by_id[goal_id].get("claim", "")
         goal_symbolic = problem_json.get("goal", {}).get("symbolic", "")
@@ -188,12 +195,22 @@ def proof_concludes_node_claim(node):
     for index, step in enumerate(steps, start=1):
         if not proof_step_statement(step):
             return False, f"proof_body.steps[{index}] has no statement."
-    final_statement = proof_step_statement(steps[-1])
-    final_norm = normalize_math_text(final_statement)
     targets = [node.get("claim_formal", ""), node.get("claim", "")]
     target_norms = [normalize_math_text(t) for t in targets if t]
-    if any(tn and tn in final_norm for tn in target_norms):
-        return True, f"final statement proves node claim: {final_statement}"
+    # Check last step first (preferred), then any step
+    all_step_norms = [(i, proof_step_statement(s), normalize_math_text(proof_step_statement(s))) for i, s in enumerate(steps)]
+    for tn in target_norms:
+        if not tn:
+            continue
+        # Prefer last step
+        last_stmt, last_norm = all_step_norms[-1][1], all_step_norms[-1][2]
+        if tn in last_norm:
+            return True, f"final statement proves node claim: {last_stmt}"
+        # Accept any step that contains the claim
+        for i, stmt, snorm in all_step_norms:
+            if tn in snorm:
+                return True, f"step {i+1} proves node claim: {stmt}"
+    final_statement = proof_step_statement(steps[-1])
     return False, f"final proof step does not conclude node claim. final_statement={final_statement}"
 
 

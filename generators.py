@@ -80,6 +80,7 @@ _gen_cache = {}
 
 def _normalize_problem_json(data):
     """Convert string items in assumptions/variables/hidden_conditions to required object format."""
+    data = _strip_dict_keys(data)
     goal = data.get("goal")
     if isinstance(goal, str):
         data["goal"] = {"text": goal, "symbolic": goal}
@@ -97,6 +98,7 @@ def _normalize_problem_json(data):
 
 def _normalize_proof_contract(data):
     """Unwrap nested wrapper, fix obligations format, ensure required fields exist."""
+    data = _strip_dict_keys(data)
     for wrapper in ["problem", "proof_contract", "contract"]:
         if wrapper in data and isinstance(data[wrapper], dict):
             nested = data[wrapper]
@@ -136,16 +138,29 @@ def _normalize_proof_contract(data):
     # Ensure obligations exists
     if not data.get("obligations"):
         data["obligations"] = [{"id": "O1", "description": "Prove the stated goal", "status": "pending"}]
-    # Ensure allowed_references exists
+    # Ensure allowed_references exists (also handle "allowed references" with space from model output)
     if not data.get("allowed_references"):
-        data["allowed_references"] = data.get("allowed_theorems", [])
-    if not data.get("allowed_references"):
-        data["allowed_references"] = []
+        data["allowed_references"] = (
+            data.get("allowed references")  # model sometimes outputs key with space
+            or data.get("allowed_theorems")
+            or []
+        )
+    return data
+
+
+def _strip_dict_keys(data):
+    """Recursively strip leading/trailing whitespace from all dict keys."""
+    if isinstance(data, dict):
+        return {k.strip(): _strip_dict_keys(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [_strip_dict_keys(item) for item in data]
     return data
 
 
 def _normalize_graph_state(data):
     """Fix graph state: strip status spaces, extract inferences from nodes, add required fields."""
+    data = _strip_dict_keys(data)
+
     # Ensure proof_id exists
     if "proof_id" not in data:
         data["proof_id"] = data.get("id", "generated_proof")
@@ -206,7 +221,7 @@ def generate_problem_json(raw_problem):
             "problem_json",
             compact_prompt=prompt_problem_json_compact(raw_problem),
         )
-        _normalize_problem_json(result)
+        result = _normalize_problem_json(result)
         _gen_cache[raw_problem] = result
     return _gen_cache[raw_problem]
 

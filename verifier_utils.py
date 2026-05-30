@@ -62,8 +62,30 @@ def declared_variable_symbols(problem_json):
     return declared
 
 
+_MATH_BUILTINS = {
+    # Calculus shorthand notation
+    "d", "dx", "dy", "dz", "dt", "df",
+    # Trig and elementary functions
+    "sin", "cos", "tan", "sec", "csc", "cot",
+    "arcsin", "arccos", "arctan", "asin", "acos", "atan",
+    "sinh", "cosh", "tanh",
+    "exp", "log", "ln", "sqrt", "abs",
+    # SymPy names
+    "Eq", "Ne", "Lt", "Le", "Gt", "Ge",
+    "Derivative", "Integral", "Limit", "Sum", "Product",
+    "Function", "Symbol", "Integer", "Float", "Rational",
+    "diff", "integrate", "limit", "simplify",
+    # Common math keywords
+    "lim", "sup", "inf", "max", "min",
+    "forall", "exists",
+    # Logic keywords
+    "true", "false", "implies", "iff",
+}
+
+
 def extract_symbol_names(text):
-    return set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", str(text)))
+    raw = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", str(text)))
+    return raw - _MATH_BUILTINS
 
 
 PROOF_DECLARATION_FIELD = "declarations"

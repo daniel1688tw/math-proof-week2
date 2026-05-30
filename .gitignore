@@ -1,6 +1,12 @@
 # 虛擬環境（體積大，不納入版控）
 env/
 
+# Claude Code 本機設定（不納入版控）
+.claude/
+
+# pytest 快取
+.pytest_cache/
+
 # 本機開發指令（僅限本機使用）
 CLAUDE.md
 

@@ -1,0 +1,366 @@
+{
+  "raw_problem": "Prove the chain rule and use it to prove that d/dx sin(x^2) = 2*x*cos(x^2).",
+  "problem_json": {
+    "problem_id": "chain_rule_and_sin",
+    "raw_problem": "Prove the chain rule and use it to prove that d/dx sin(x^2) = 2*x*cos(x^2)",
+    "goal": {
+      "text": "The derivative of sin(x^2) equals 2*x*cos(x^2)",
+      "symbolic": "Eq(Derivative(sin(x**2),x),2*x*cos(x**2))"
+    },
+    "assumptions": [
+      "f is differentiable at x",
+      "g is differentiable at x",
+      "x is a real number"
+    ],
+    "variables": [
+      "x",
+      "f",
+      "g"
+    ],
+    "domain": {
+      "x": "all real numbers"
+    },
+    "technical_terms": [
+      "derivative",
+      "chain rule",
+      "sin",
+      "cos"
+    ],
+    "hidden_conditions": [],
+    "_generation_source": "hf",
+    "_generation_attempts": 1
+  },
+  "proof_contract": {
+    "goal": {
+      "text": "The derivative of sin(x^2) equals 2*x*cos(x^2)",
+      "symbolic": "Eq(Derivative(sin(x**2),x),2*x*cos(x**2))"
+    },
+    "assumptions": [
+      "f is differentiable at x",
+      "g is differentiable at x",
+      "x is a real number"
+    ],
+    "allowed_references": [
+      "chain rule",
+      "derivative rule",
+      "sin",
+      "cos"
+    ],
+    "forbidden_moves": [
+      "assuming the result",
+      "circular reasoning"
+    ],
+    "obligations": [
+      {
+        "id": "O1",
+        "description": "Show the chain rule holds for f(g(x)) = sin(x^2)",
+        "status": "pending"
+      },
+      {
+        "id": "O2",
+        "description": "Show the derivative of sin(x) is cos(x)",
+        "status": "pending"
+      },
+      {
+        "id": "O3",
+        "description": "Show the derivative of x^2 is 2x",
+        "status": "pending"
+      }
+    ],
+    "acceptance_rubric": [
+      " Must use chain rule",
+      " Must use derivative rules for sin and cos",
+      " Must not assume d/dx sin(x^2) = 2*x*cos(x^2)"
+    ],
+    "_generation_source": "hf",
+    "_generation_attempts": 1
+  },
+  "proof_graph_state": {
+    "id": "A1",
+    "node_type": "assumption",
+    "claim": "f is differentiable at x",
+    "status": " source",
+    "proof_id": "A1",
+    "nodes": [],
+    "inferences": [],
+    "_generation_source": "hf",
+    "_generation_attempts": 1,
+    "obligation_status": [
+      {
+        "id": "O1",
+        "description": "Show the chain rule holds for f(g(x)) = sin(x^2)",
+        "status": "fail"
+      },
+      {
+        "id": "O2",
+        "description": "Show the derivative of sin(x) is cos(x)",
+        "status": "fail"
+      },
+      {
+        "id": "O3",
+        "description": "Show the derivative of x^2 is 2x",
+        "status": "fail"
+      }
+    ],
+    "errors": [
+      {
+        "source": "structural",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "medium",
+        "claim": "Obligation O1 must be covered by some node.",
+        "evidence": "O1 is not listed in any node.covers_obligations.",
+        "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+        "blocking_acceptance": false,
+        "error_id": "E1"
+      },
+      {
+        "source": "structural",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "medium",
+        "claim": "Obligation O2 must be covered by some node.",
+        "evidence": "O2 is not listed in any node.covers_obligations.",
+        "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+        "blocking_acceptance": false,
+        "error_id": "E2"
+      },
+      {
+        "source": "structural",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "medium",
+        "claim": "Obligation O3 must be covered by some node.",
+        "evidence": "O3 is not listed in any node.covers_obligations.",
+        "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+        "blocking_acceptance": false,
+        "error_id": "E3"
+      },
+      {
+        "source": "structural",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "high",
+        "claim": "Goal node must exist.",
+        "evidence": "(goal_node_id not set) missing.",
+        "required_fix": "Create goal node.",
+        "blocking_acceptance": true,
+        "error_id": "E4"
+      },
+      {
+        "source": "critic",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "low",
+        "claim": "Case coverage critic could not be parsed.",
+        "evidence": "ValueError('no complete JSON object found')",
+        "required_fix": "Return valid JSON with pass and issues fields from the case critic model.",
+        "blocking_acceptance": false,
+        "error_id": "E5"
+      },
+      {
+        "source": "critic",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "medium",
+        "claim": "Assumption may be unused.",
+        "evidence": "assumption g is differentiable at x is not cited or reflected in proof.",
+        "required_fix": "Cite the assumption in a source node, premise_nodes, or proof_body.",
+        "blocking_acceptance": false,
+        "error_id": "E6"
+      },
+      {
+        "source": "critic",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "medium",
+        "claim": "Assumption may be unused.",
+        "evidence": "assumption x is a real number is not cited or reflected in proof.",
+        "required_fix": "Cite the assumption in a source node, premise_nodes, or proof_body.",
+        "blocking_acceptance": false,
+        "error_id": "E7"
+      },
+      {
+        "source": "critic",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "medium",
+        "claim": "Domain constraint may be unchecked.",
+        "evidence": "domain constraint for x: all real numbers is not clearly addressed.",
+        "required_fix": "Mention or cite the domain constraint in source nodes, side_condition_nodes, or proof_body.",
+        "blocking_acceptance": false,
+        "error_id": "E8"
+      }
+    ]
+  },
+  "current_errors": [
+    {
+      "source": "structural",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Obligation O1 must be covered by some node.",
+      "evidence": "O1 is not listed in any node.covers_obligations.",
+      "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+      "blocking_acceptance": false,
+      "error_id": "E1"
+    },
+    {
+      "source": "structural",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Obligation O2 must be covered by some node.",
+      "evidence": "O2 is not listed in any node.covers_obligations.",
+      "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+      "blocking_acceptance": false,
+      "error_id": "E2"
+    },
+    {
+      "source": "structural",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Obligation O3 must be covered by some node.",
+      "evidence": "O3 is not listed in any node.covers_obligations.",
+      "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+      "blocking_acceptance": false,
+      "error_id": "E3"
+    },
+    {
+      "source": "structural",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "high",
+      "claim": "Goal node must exist.",
+      "evidence": "(goal_node_id not set) missing.",
+      "required_fix": "Create goal node.",
+      "blocking_acceptance": true,
+      "error_id": "E4"
+    },
+    {
+      "source": "critic",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "low",
+      "claim": "Case coverage critic could not be parsed.",
+      "evidence": "ValueError('no complete JSON object found')",
+      "required_fix": "Return valid JSON with pass and issues fields from the case critic model.",
+      "blocking_acceptance": false,
+      "error_id": "E5"
+    },
+    {
+      "source": "critic",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Assumption may be unused.",
+      "evidence": "assumption g is differentiable at x is not cited or reflected in proof.",
+      "required_fix": "Cite the assumption in a source node, premise_nodes, or proof_body.",
+      "blocking_acceptance": false,
+      "error_id": "E6"
+    },
+    {
+      "source": "critic",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Assumption may be unused.",
+      "evidence": "assumption x is a real number is not cited or reflected in proof.",
+      "required_fix": "Cite the assumption in a source node, premise_nodes, or proof_body.",
+      "blocking_acceptance": false,
+      "error_id": "E7"
+    },
+    {
+      "source": "critic",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Domain constraint may be unchecked.",
+      "evidence": "domain constraint for x: all real numbers is not clearly addressed.",
+      "required_fix": "Mention or cite the domain constraint in source nodes, side_condition_nodes, or proof_body.",
+      "blocking_acceptance": false,
+      "error_id": "E8"
+    }
+  ],
+  "aggregator_result": {
+    "all_required_pass": false,
+    "blocking_errors": [
+      {
+        "source": "structural",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "high",
+        "claim": "Goal node must exist.",
+        "evidence": "(goal_node_id not set) missing.",
+        "required_fix": "Create goal node.",
+        "blocking_acceptance": true,
+        "error_id": "E4"
+      }
+    ],
+    "failed_nodes": [],
+    "failed_inferences": [],
+    "failed_obligations": [
+      {
+        "id": "O1",
+        "description": "Show the chain rule holds for f(g(x)) = sin(x^2)",
+        "status": "fail"
+      },
+      {
+        "id": "O2",
+        "description": "Show the derivative of sin(x) is cos(x)",
+        "status": "fail"
+      },
+      {
+        "id": "O3",
+        "description": "Show the derivative of x^2 is 2x",
+        "status": "fail"
+      }
+    ],
+    "accepted_proof": null
+  },
+  "accepted": false,
+  "trace": [
+    {
+      "node": "problem_parser",
+      "source": "hf"
+    },
+    {
+      "node": "contract_builder",
+      "source": "hf"
+    },
+    {
+      "node": "graph_planner",
+      "source": "hf"
+    },
+    {
+      "node": "graph_prover"
+    },
+    {
+      "node": "run_verifiers",
+      "accepted": false,
+      "error_count": 8
+    },
+    {
+      "node": "export_trace",
+      "accepted": false
+    }
+  ]
+}

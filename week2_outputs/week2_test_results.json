@@ -1,0 +1,7 @@
+[
+  "test_model_loaded_or_declared passed with backend=hf",
+  "test_problem_and_contract_generation passed with 3/3",
+  "test_graph_generation_schema passed with 3/3",
+  "test_node_proof_generation FAILED: node_proof G1: exceeded 3 repair attempts. Last error: ValueError('proof_body has no steps')",
+  "test_week2_langgraph_pipeline passed with 3/3"
+]

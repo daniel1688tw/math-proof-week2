@@ -1,0 +1,95 @@
+[
+  {
+    "problem_id": "chain_rule_sin_x2",
+    "accepted": false,
+    "errors": 8,
+    "sources": [
+      {
+        "node": "problem_parser",
+        "source": "hf"
+      },
+      {
+        "node": "contract_builder",
+        "source": "hf"
+      },
+      {
+        "node": "graph_planner",
+        "source": "hf"
+      },
+      {
+        "node": "graph_prover"
+      },
+      {
+        "node": "run_verifiers",
+        "accepted": false,
+        "error_count": 8
+      },
+      {
+        "node": "export_trace",
+        "accepted": false
+      }
+    ]
+  },
+  {
+    "problem_id": "mean_value_theorem_general",
+    "accepted": false,
+    "errors": 7,
+    "sources": [
+      {
+        "node": "problem_parser",
+        "source": "hf"
+      },
+      {
+        "node": "contract_builder",
+        "source": "hf"
+      },
+      {
+        "node": "graph_planner",
+        "source": "hf"
+      },
+      {
+        "node": "graph_prover"
+      },
+      {
+        "node": "run_verifiers",
+        "accepted": false,
+        "error_count": 7
+      },
+      {
+        "node": "export_trace",
+        "accepted": false
+      }
+    ]
+  },
+  {
+    "problem_id": "ivt_general",
+    "accepted": false,
+    "errors": 19,
+    "sources": [
+      {
+        "node": "problem_parser",
+        "source": "hf"
+      },
+      {
+        "node": "contract_builder",
+        "source": "hf"
+      },
+      {
+        "node": "graph_planner",
+        "source": "hf"
+      },
+      {
+        "node": "graph_prover"
+      },
+      {
+        "node": "run_verifiers",
+        "accepted": false,
+        "error_count": 19
+      },
+      {
+        "node": "export_trace",
+        "accepted": false
+      }
+    ]
+  }
+]
