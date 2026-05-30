@@ -21,8 +21,17 @@ def graph_prover(problem_json, proof_contract, graph_state):
         if is_source_node(node, problem_json, proof_contract):
             continue
         if not node.get("proof_body", {}).get("steps"):
-            node["proof_body"] = generate_node_proof(problem_json, proof_contract, graph_state, node)
-        node["status"] = "proven"
+            try:
+                node["proof_body"] = generate_node_proof(
+                    problem_json, proof_contract, graph_state, node
+                )
+                node["status"] = "proven"
+            except Exception as exc:
+                print(f"  [graph_prover] node {node.get('id')} failed: {exc!r:.120}")
+                node["proof_body"] = {"steps": [], "_generation_error": str(exc)}
+                node["status"] = "proof_failed"
+        else:
+            node["status"] = "proven"
     return graph_state
 
 

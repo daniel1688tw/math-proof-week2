@@ -175,6 +175,13 @@ def _fix_close_parens(text):
     return ''.join(result)
 
 
+def _fix_invalid_json_escapes(text):
+    # JSON allows: \" \\ \/ \b \f \n \r \t \u (+ 4 hex digits)
+    # LaTeX outputs \( \) \[ \] \{ \} \frac etc. which are invalid JSON escapes.
+    # Drop the backslash before any char not in the valid-escape set.
+    return re.sub(r'\\([^"\\\/bfnrtu])', r'\1', text)
+
+
 def extract_json_object(text):
     if not isinstance(text, str):
         raise ValueError("model output is not a string")
@@ -185,6 +192,7 @@ def extract_json_object(text):
     if text.find("{") < 0:
         raise ValueError("no JSON object start found")
 
+    text = _fix_invalid_json_escapes(text)
     text = _fix_unclosed_simple_strings(text)
     text = _fix_close_parens(text)
     complete = _find_best_complete_json(text)

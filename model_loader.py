@@ -84,13 +84,22 @@ def load_small_model():
         tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
         kwargs = {"trust_remote_code": True}
         if can_use_cuda():
-            kwargs["device_map"] = "auto"
             if USE_4BIT_IF_AVAILABLE and BitsAndBytesConfig is not None:
                 try:
-                    kwargs["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
+                    # device_map={"":0} forces all layers onto GPU 0; "auto" may
+                    # dispatch layers to CPU which bitsandbytes 4-bit does not support.
+                    kwargs["device_map"] = {"": 0}
+                    kwargs["quantization_config"] = BitsAndBytesConfig(
+                        load_in_4bit=True,
+                        bnb_4bit_compute_dtype=torch.float16,
+                        bnb_4bit_quant_type="nf4",
+                        bnb_4bit_use_double_quant=True,
+                    )
                 except Exception:
+                    kwargs["device_map"] = "auto"
                     kwargs["torch_dtype"] = torch.float16
             else:
+                kwargs["device_map"] = "auto"
                 kwargs["torch_dtype"] = torch.float16
         model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, **kwargs)
         model.eval()

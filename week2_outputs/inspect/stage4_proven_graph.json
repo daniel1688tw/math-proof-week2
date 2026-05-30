@@ -1,0 +1,176 @@
+{
+  "proof_id": "chain_rule_and_sin_x2",
+  "based_on_graph_id": "HF",
+  "current_graph_version": 1,
+  "goal_node_id": "G1",
+  "nodes": [
+    {
+      "id": "A1",
+      "node_type": "assumption",
+      "claim": "f is differentiable at x",
+      "status": "source"
+    },
+    {
+      "id": "A2",
+      "node_type": "assumption",
+      "claim": "g is differentiable at x",
+      "status": "source"
+    },
+    {
+      "id": "G1",
+      "node_type": "goal",
+      "claim": "d/dx sin(x^2) = 2*x*cos(x^2)",
+      "status": "proven",
+      "proof_body": {
+        "format": "structured_derivation",
+        "steps": [
+          {
+            "statement": "d/dx sin(u) = cos(u) * du/dx",
+            "reason": "Lemma L1",
+            "refs": [
+              "L1"
+            ]
+          },
+          {
+            "statement": "Let u = x^2",
+            "reason": "Substitution",
+            "refs": [
+              "A1"
+            ]
+          },
+          {
+            "statement": "d/dx x^2 = 2x",
+            "reason": "Power rule",
+            "refs": [
+              "A1"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = cos(x^2) * d/dx x^2",
+            "reason": " Chain rule",
+            "refs": [
+              "D1",
+              "D2"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = cos(x^2) * 2x",
+            "reason": "Substitution",
+            "refs": [
+              "D3"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = 2x * cos(x^2)",
+            "reason": "Commutativity of multiplication",
+            "refs": [
+              "D4"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = 2x * cos(x^2)",
+            "reason": "Conclusion",
+            "refs": [
+              "D5"
+            ]
+          }
+        ],
+        "_generation_source": "hf",
+        "_generation_attempts": 1
+      }
+    },
+    {
+      "id": "L1",
+      "node_type": "lemma",
+      "claim": "d/dx sin(u) = cos(u) * du/dx",
+      "status": "proven",
+      "proof_body": {
+        "format": "structured_derivation",
+        "steps": [
+          {
+            "statement": "d/dx sin(u) = cos(u) * du/dx",
+            "reason": "Chain Rule",
+            "refs": [
+              "S1"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = cos(x^2) * d/dx(x^2)",
+            "reason": "Substitution of u = x^2 into the chain rule",
+            "refs": [
+              "S1"
+            ]
+          },
+          {
+            "statement": "d/dx(x^2) = 2x",
+            "reason": "Power Rule",
+            "refs": [
+              "A1"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = cos(x^2) * 2x",
+            "reason": "Multiplication of derivatives",
+            "refs": [
+              "S1",
+              "A1"
+            ]
+          },
+          {
+            "statement": "d/dx sin(x^2) = 2x * cos(x^2)",
+            "reason": "Commutativity of multiplication",
+            "refs": [
+              "S1",
+              "A1"
+            ]
+          }
+        ],
+        "_generation_source": "hf",
+        "_generation_attempts": 1
+      }
+    },
+    {
+      "id": "S1",
+      "node_type": "side_condition",
+      "claim": "u = x^2",
+      "status": "planned"
+    }
+  ],
+  "inferences": [
+    {
+      "id": "I1",
+      "premise_nodes": [
+        "A1",
+        "S1"
+      ],
+      "conclusion_node": "L1",
+      "rule_refs": [
+        "R1"
+      ],
+      "side_condition_nodes": [],
+      "relation": "implies",
+      "status": "planned"
+    },
+    {
+      "id": "I2",
+      "premise_nodes": [
+        "L1",
+        "A2"
+      ],
+      "conclusion_node": "G1",
+      "rule_refs": [
+        "R2"
+      ],
+      "side_condition_nodes": [],
+      "relation": "implies",
+      "status": "planned"
+    }
+  ],
+  "errors": [],
+  "obligation_status": [
+    "planned"
+  ],
+  "graph_patches": [],
+  "_generation_source": "hf",
+  "_generation_attempts": 1
+}

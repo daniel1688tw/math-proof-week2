@@ -23,6 +23,13 @@ import json
 import argparse
 from pathlib import Path
 
+# Force UTF-8 stdout/stderr so all Unicode (Chinese, math symbols) prints correctly
+# on Windows terminals that default to cp950/cp1252.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # Add week2 root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -119,7 +126,7 @@ def run_stage1(raw_problem):
         f"- **變數**: {syms}\n\n"
     )
 
-    print("\n  ✅ Stage 1 完成。請檢查以上內容是否正確解析了題意。\n")
+    print("\n  [OK] Stage 1 完成。請檢查以上內容是否正確解析了題意。\n")
     return result
 
 
@@ -164,7 +171,7 @@ def run_stage2(problem_json):
         f"\n**允許引用**: {', '.join(allowed)}\n\n"
     )
 
-    print("\n  ✅ Stage 2 完成。請檢查義務是否完整涵蓋了證明所需步驟。\n")
+    print("\n  [OK] Stage 2 完成。請檢查義務是否完整涵蓋了證明所需步驟。\n")
     return result
 
 
@@ -221,7 +228,7 @@ def run_stage3(problem_json, proof_contract):
         f"**推理**:\n{inf_lines}\n"
     )
 
-    print("\n  ✅ Stage 3 完成。請檢查：\n"
+    print("\n  [OK] Stage 3 完成。請檢查：\n"
           "    • 節點數量是否合理？\n"
           "    • 推理鏈能否從假設節點到達 goal 節點？\n"
           "    • goal_node_id 是否正確指向終點？\n")
@@ -246,7 +253,7 @@ def run_stage4(problem_json, proof_contract, graph_state):
         steps = node.get("proof_body", {}).get("steps", [])
         print(f"\n  [{node['id']}] ({ntype}) claim: \"{node.get('claim')}\"")
         if not steps:
-            print("    ⚠ 無 steps（生成失敗或為空）")
+            print("    [!] 無 steps（生成失敗或為空）")
         else:
             for i, step in enumerate(steps, 1):
                 stmt   = step.get("statement", "")
@@ -276,7 +283,7 @@ def run_stage4(problem_json, proof_contract, graph_state):
         f"## Stage 4 — Graph Prover\n\n" + "\n".join(node_sections) + "\n"
     )
 
-    print("\n  ✅ Stage 4 完成。請檢查：\n"
+    print("\n  [OK] Stage 4 完成。請檢查：\n"
           "    • 每個步驟的邏輯是否正確？\n"
           "    • 理由（reason）是否引用了合法的定理？\n"
           "    • 最後一步是否確實推出了該節點的 claim？\n")
@@ -297,7 +304,7 @@ def run_stage5(problem_json, proof_contract, proven_graph):
 
     section("Verifier 結果")
     accepted = agg.get("all_required_pass", False)
-    print(f"  最終判定：{'✅ 通過 (accepted=True)' if accepted else '❌ 未通過 (accepted=False)'}")
+    print(f"  最終判定：{'[PASS] 通過 (accepted=True)' if accepted else '[FAIL] 未通過 (accepted=False)'}")
     print(f"  錯誤總數：{len(errors)}")
 
     # Group by severity
@@ -305,7 +312,7 @@ def run_stage5(problem_json, proof_contract, proven_graph):
         sev_errors = [e for e in errors if e.get("severity") == sev]
         if not sev_errors:
             continue
-        label = {"high": "🔴 HIGH（阻斷）", "medium": "🟡 MEDIUM（非阻斷）", "low": "⚪ LOW"}.get(sev, sev)
+        label = {"high": "[HIGH] HIGH（阻斷）", "medium": "[MED] MEDIUM（非阻斷）", "low": "[ - ] LOW"}.get(sev, sev)
         print(f"\n  {label} — {len(sev_errors)} 個：")
         for e in sev_errors:
             nid = e.get("node_id", "—")
@@ -318,7 +325,7 @@ def run_stage5(problem_json, proof_contract, proven_graph):
     section("Obligation 狀態")
     obs = result["annotated_graph_state"].get("obligation_status", [])
     for ob in obs:
-        status_icon = "✅" if ob.get("status") == "pass" else "❌"
+        status_icon = "[pass]" if ob.get("status") == "pass" else "[FAIL]"
         print(f"  {status_icon} [{ob.get('id')}] {ob.get('description')}  → {ob.get('status')}")
 
     save_stage("stage5_verifier_result", {
@@ -345,7 +352,7 @@ def run_stage5(problem_json, proof_contract, proven_graph):
         f"**Obligation 狀態**:\n{ob_lines}\n"
     )
 
-    print(f"\n  ✅ Stage 5 完成。請檢查：\n"
+    print(f"\n  [OK] Stage 5 完成。請檢查：\n"
           f"    • HIGH 錯誤是否是真正的邏輯問題？還是 verifier 誤判？\n"
           f"    • Obligation 是否都被對應節點的 proof_body 覆蓋？\n")
     return result
@@ -371,7 +378,7 @@ def run_stage6(state_so_far):
         print(f"  → {node}{extra_str}")
 
     accepted = partial_state.get("accepted", False)
-    print(f"\n  最終 accepted：{'✅ True' if accepted else '❌ False'}")
+    print(f"\n  最終 accepted：{'[PASS] True' if accepted else '[FAIL] False'}")
 
     save_stage("stage6_trace", result)
     append_report(
@@ -380,7 +387,7 @@ def run_stage6(state_so_far):
         f"**trace entries**: {len(result.get('trace', []))}\n\n"
     )
 
-    print("\n  ✅ Stage 6 完成。\n")
+    print("\n  [OK] Stage 6 完成。\n")
     return result
 
 

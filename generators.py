@@ -264,7 +264,7 @@ def generate_node_proof(problem_json, proof_contract, graph_state, node):
     while True:
         attempt += 1
         try:
-            raw = model.generate(current_prompt, max_new_tokens=512, json_prefix=True)
+            raw = model.generate(current_prompt, max_new_tokens=1024, json_prefix=True)
         except RuntimeError as gen_err:
             if "prompt_too_long" in str(gen_err) and not compact_tried:
                 print(f"  [node_proof {node.get('id')}] prompt too long — retrying with compact prompt")

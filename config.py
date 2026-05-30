@@ -14,6 +14,7 @@ ARTIFACT_DIR.mkdir(exist_ok=True)
 SOURCE_NODE_TYPES = {
     "assumption",
     "allowed_reference",
+    "side_condition",   # definitional/notational — e.g. "let u = x^2"; no proof needed
 }
 
 VAGUE_TERMS = ["obvious", "clearly", "some theorem", "顯然", "容易看出"]

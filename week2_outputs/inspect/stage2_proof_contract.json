@@ -1,0 +1,22 @@
+{
+  "goal": {
+    "text": "d/dx sin(x^2) = 2*x*cos(x^2)",
+    "symbolic": "Eq(Derivative(sin(x**2),x),2*x*cos(x**2))"
+  },
+  "technical_terms": [
+    "derivative",
+    "chain rule",
+    "differentiability"
+  ],
+  "problem_id": "chain_rule_and_sin_x2",
+  "obligations": [
+    {
+      "id": "O1",
+      "description": "Prove the stated goal",
+      "status": "pending"
+    }
+  ],
+  "allowed_references": [],
+  "_generation_source": "hf",
+  "_generation_attempts": 1
+}

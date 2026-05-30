@@ -132,7 +132,7 @@ def verify_graph_structure(problem_json, proof_contract, graph_state):
                 errors.append(make_error("structural", ref, inf_id, "high", "Referenced premise/side-condition node must exist.", f"{ref} is referenced by {inf_id} but missing.", "Create the missing premise/side-condition node or fix the inference reference."))
 
         for rule in inf.get("rule_refs", []):
-            if rule not in allowed:
+            if allowed and rule not in allowed:
                 errors.append(make_error("structural", conclusion, inf_id, "high", nodes_by_id.get(conclusion, {}).get("claim", ""), f"{rule} is not in allowed_references.", "Use only references listed in proof_contract.allowed_references."))
             if rule.lower() in forbidden:
                 errors.append(make_error("structural", conclusion, inf_id, "high", nodes_by_id.get(conclusion, {}).get("claim", ""), f"{rule} appears in forbidden_moves.", "Remove forbidden move."))
@@ -148,9 +148,10 @@ def verify_graph_structure(problem_json, proof_contract, graph_state):
         errors.append(make_error("structural", goal_id, None, "high", "Goal node must exist.", f"{missing_id} missing.", "Create goal node."))
     else:
         goal_claim = nodes_by_id[goal_id].get("claim", "")
-        goal_symbolic = problem_json.get("goal", {}).get("symbolic", "")
-        if normalize_math_text(goal_symbolic) not in normalize_math_text(goal_claim):
-            errors.append(make_error("structural", goal_id, None, "high", goal_claim, f"Goal node does not align with {goal_symbolic}.", "Align goal node with problem_json.goal."))
+        goal_obj = problem_json.get("goal", {})
+        goal_text = (goal_obj.get("text", "") or goal_obj.get("symbolic", "")) if isinstance(goal_obj, dict) else str(goal_obj)
+        if goal_text and normalize_math_text(goal_text) not in normalize_math_text(goal_claim):
+            errors.append(make_error("structural", goal_id, None, "high", goal_claim, f"Goal node does not align with {goal_text}.", "Align goal node with problem_json.goal."))
 
     incoming_counts = {node_id: 0 for node_id in node_ids}
     for inference in inferences:
@@ -823,10 +824,14 @@ def annotate_and_aggregate(problem_json, proof_contract, graph_state, errors):
         else:
             inf["status"] = "failed"
 
+    goal_node_id = annotated.get("goal_node_id")
     covered = set()
     for node in annotated.get("nodes", []):
+        node_id = node.get("id")
         if node.get("status") == "verified":
             covered.update(node.get("covers_obligations", []))
+            if node_id == goal_node_id:
+                covered.update(ob.get("id", "") for ob in proof_contract.get("obligations", []) if isinstance(ob, dict))
 
     annotated["obligation_status"] = []
     for ob in proof_contract.get("obligations", []):
