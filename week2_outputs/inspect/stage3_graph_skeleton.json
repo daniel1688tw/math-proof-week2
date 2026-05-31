@@ -1,37 +1,43 @@
 {
-  "proof_id": "chain_rule_and_sin_x2",
+  "proof_id": "intermediate_value_theorem",
   "based_on_graph_id": "HF",
   "current_graph_version": 1,
-  "goal_node_id": "G1",
+  "goal_node_id": "N",
   "nodes": [
     {
       "id": "A1",
       "node_type": "assumption",
-      "claim": "f is differentiable at x",
+      "claim": "f is continuous on [a, b]",
       "status": "source"
     },
     {
       "id": "A2",
       "node_type": "assumption",
-      "claim": "g is differentiable at x",
+      "claim": "N lies between f(a) and f(b)",
       "status": "source"
     },
     {
-      "id": "G1",
+      "id": "O1",
       "node_type": "goal",
-      "claim": "d/dx sin(x^2) = 2*x*cos(x^2)",
+      "claim": "There exists c in [a, b] such that f(c) = N",
       "status": "planned"
     },
     {
       "id": "L1",
       "node_type": "lemma",
-      "claim": "d/dx sin(u) = cos(u) * du/dx",
+      "claim": "f is continuous on [a, b] implies f is continuous on [a, b] (redundant)",
       "status": "planned"
     },
     {
-      "id": "S1",
-      "node_type": "side_condition",
-      "claim": "u = x^2",
+      "id": "L2",
+      "node_type": "lemma",
+      "claim": "N lies between f(a) and f(b) implies N lies between f(a) and f(b) (redundant)",
+      "status": "planned"
+    },
+    {
+      "id": "L3",
+      "node_type": "lemma",
+      "claim": "If f is continuous on [a, b] and N lies between f(a) and f(b), then there exists c in [a, b] such that f(c) = N",
       "status": "planned"
     }
   ],
@@ -40,11 +46,13 @@
       "id": "I1",
       "premise_nodes": [
         "A1",
-        "S1"
+        "A2"
       ],
-      "conclusion_node": "L1",
+      "conclusion_node": "L3",
       "rule_refs": [
-        "R1"
+        "R1",
+        "R2",
+        "R3"
       ],
       "side_condition_nodes": [],
       "relation": "implies",
@@ -54,11 +62,13 @@
       "id": "I2",
       "premise_nodes": [
         "L1",
-        "A2"
+        "L2"
       ],
-      "conclusion_node": "G1",
+      "conclusion_node": "L3",
       "rule_refs": [
-        "R2"
+        "R1",
+        "R2",
+        "R3"
       ],
       "side_condition_nodes": [],
       "relation": "implies",

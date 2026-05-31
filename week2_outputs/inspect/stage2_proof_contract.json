@@ -1,14 +1,30 @@
 {
+  "problem_id": "intermediate_value_theorem",
+  "raw_problem": "Prove the Intermediate Value Theorem: if f is continuous on [a, b] and N lies between f(a) and f(b), then there exists c in [a, b] such that f(c) = N",
   "goal": {
-    "text": "d/dx sin(x^2) = 2*x*cos(x^2)",
-    "symbolic": "Eq(Derivative(sin(x**2),x),2*x*cos(x**2))"
+    "text": "There exists c in [a, b] such that f(c) = N",
+    "symbolic": "Eq(f(c), N)"
   },
-  "technical_terms": [
-    "derivative",
-    "chain rule",
-    "differentiability"
+  "assumptions": [
+    "f is continuous on [a, b]"
   ],
-  "problem_id": "chain_rule_and_sin_x2",
+  "variables": [
+    "c",
+    "a",
+    "b",
+    "N",
+    "f"
+  ],
+  "domain": {
+    "c": [
+      "a",
+      "b"
+    ],
+    "a": "real number",
+    "b": "real number",
+    "n": "real number",
+    "f": "function"
+  },
   "obligations": [
     {
       "id": "O1",

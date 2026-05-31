@@ -80,12 +80,12 @@ def init_report(problem_id):
 
 # ── Stage 1: Problem Parser ──────────────────────────────────────────────────
 
-def run_stage1(raw_problem):
+def run_stage1(raw_problem, hint=None):
     banner("Stage 1 — Problem Parser（問題解析）")
     print("  正在呼叫 LLM 解析題目結構...")
 
     import generators
-    result = generators.generate_problem_json(raw_problem)
+    result = generators.generate_problem_json(raw_problem, hint=hint)
 
     section("LLM 生成的 problem_json")
     goal = result.get("goal", {})
@@ -427,7 +427,7 @@ def main():
 
     # 執行選定的 stage 範圍
     if args.start_from <= 1 <= args.stop_after:
-        problem_json = run_stage1(raw_problem)
+        problem_json = run_stage1(raw_problem, hint=prob)
 
     if args.start_from <= 2 <= args.stop_after:
         if problem_json is None:

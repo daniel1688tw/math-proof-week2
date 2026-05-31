@@ -5,243 +5,178 @@
       "node_id": null,
       "inference_id": null,
       "step_id": null,
+      "severity": "high",
+      "claim": "Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)=N.",
+      "evidence": "problem_json.goal.symbolic uses undeclared variable/function(s): Intermediate, N, Prove, Theorem, Value, a, and, b, between, c, continuous, f, if, in, is, lies, on, such, that, the, then, there.",
+      "required_fix": "Declare the variable/function in problem_json.variables/domain before using it.",
+      "blocking_acceptance": true,
+      "error_id": "E1"
+    },
+    {
+      "source": "structural",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
       "severity": "medium",
       "claim": "Obligation O1 must be covered by some node.",
       "evidence": "O1 is not listed in any node.covers_obligations.",
       "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
       "blocking_acceptance": false,
-      "error_id": "E1"
+      "error_id": "E2"
+    },
+    {
+      "source": "structural",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "medium",
+      "claim": "Obligation O2 must be covered by some node.",
+      "evidence": "O2 is not listed in any node.covers_obligations.",
+      "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
+      "blocking_acceptance": false,
+      "error_id": "E3"
+    },
+    {
+      "source": "node_proof",
+      "node_id": "G1",
+      "inference_id": null,
+      "step_id": null,
+      "severity": "high",
+      "claim": "Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)=N.",
+      "evidence": "final proof step does not conclude node claim. final_statement=Therefore, there exists ( c ) in ([a, b]) such that ( f(c) = N ).",
+      "required_fix": "Make the final proof_body.steps statement conclude this node's claim.",
+      "blocking_acceptance": true,
+      "error_id": "E4"
+    },
+    {
+      "source": "symbolic",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "high",
+      "claim": "{'type': 'equation', 'lhs': 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)', 'rhs': 'N.'}",
+      "evidence": "symbolic item raised SympifyError(\"could not parse 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)'\", SyntaxError('invalid syntax', ('<string>', 1, 18, \"Symbol ('Prove' )Symbol ('the' )Symbol ('Intermediate' )Symbol ('Value' )Symbol ('Theorem' ):if Symbol ('f' )is Symbol ('continuous' )Symbol ('on' )[a ,b ]and N Symbol ('lies' )Symbol ('between' )Function ('f' )(a )and Function ('f' )(b ),Symbol ('then' )Symbol ('there' )Symbol ('exists' )c in [a ,b ]Symbol ('such' )Symbol ('that' )Function ('f' )(c )\", 1, 24)))",
+      "required_fix": "Fix the symbolic claim or computation.",
+      "blocking_acceptance": true,
+      "error_id": "E5"
+    },
+    {
+      "source": "symbolic",
+      "node_id": null,
+      "inference_id": null,
+      "step_id": null,
+      "severity": "high",
+      "claim": "{'type': 'equation', 'lhs': 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)', 'rhs': 'N.'}",
+      "evidence": "sample substitution parse failed: SympifyError(\"could not parse 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)'\", SyntaxError('invalid syntax', ('<string>', 1, 18, \"Symbol ('Prove' )Symbol ('the' )Symbol ('Intermediate' )Symbol ('Value' )Symbol ('Theorem' ):if Symbol ('f' )is Symbol ('continuous' )Symbol ('on' )[a ,b ]and N Symbol ('lies' )Symbol ('between' )Function ('f' )(a )and Function ('f' )(b ),Symbol ('then' )Symbol ('there' )Symbol ('exists' )c in [a ,b ]Symbol ('such' )Symbol ('that' )Function ('f' )(c )\", 1, 24)))",
+      "required_fix": "Fix the claim; a sample satisfying assumptions/domain produced a counterexample.",
+      "blocking_acceptance": true,
+      "error_id": "E6"
     },
     {
       "source": "critic",
       "node_id": null,
       "inference_id": null,
       "step_id": null,
-      "severity": "medium",
-      "claim": "Domain constraint may be unchecked.",
-      "evidence": "domain constraint for x: all real numbers is not clearly addressed.",
-      "required_fix": "Mention or cite the domain constraint in source nodes, side_condition_nodes, or proof_body.",
+      "severity": "low",
+      "claim": "Case coverage critic could not be parsed.",
+      "evidence": "ValueError('no complete JSON object found')",
+      "required_fix": "Return valid JSON with pass and issues fields from the case critic model.",
       "blocking_acceptance": false,
-      "error_id": "E2"
+      "error_id": "E7"
+    },
+    {
+      "source": "critic",
+      "node_id": "G1",
+      "inference_id": "I1",
+      "step_id": null,
+      "severity": "low",
+      "claim": "Theorem applicability critic could not be parsed.",
+      "evidence": "ValueError('no complete JSON object found')",
+      "required_fix": "Return valid JSON with pass and issues fields from the theorem applicability critic model.",
+      "blocking_acceptance": false,
+      "error_id": "E8"
     }
   ],
   "aggregator": {
-    "all_required_pass": true,
-    "blocking_errors": [],
-    "failed_nodes": [],
+    "all_required_pass": false,
+    "blocking_errors": [
+      {
+        "source": "structural",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "high",
+        "claim": "Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)=N.",
+        "evidence": "problem_json.goal.symbolic uses undeclared variable/function(s): Intermediate, N, Prove, Theorem, Value, a, and, b, between, c, continuous, f, if, in, is, lies, on, such, that, the, then, there.",
+        "required_fix": "Declare the variable/function in problem_json.variables/domain before using it.",
+        "blocking_acceptance": true,
+        "error_id": "E1"
+      },
+      {
+        "source": "node_proof",
+        "node_id": "G1",
+        "inference_id": null,
+        "step_id": null,
+        "severity": "high",
+        "claim": "Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)=N.",
+        "evidence": "final proof step does not conclude node claim. final_statement=Therefore, there exists ( c ) in ([a, b]) such that ( f(c) = N ).",
+        "required_fix": "Make the final proof_body.steps statement conclude this node's claim.",
+        "blocking_acceptance": true,
+        "error_id": "E4"
+      },
+      {
+        "source": "symbolic",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "high",
+        "claim": "{'type': 'equation', 'lhs': 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)', 'rhs': 'N.'}",
+        "evidence": "symbolic item raised SympifyError(\"could not parse 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)'\", SyntaxError('invalid syntax', ('<string>', 1, 18, \"Symbol ('Prove' )Symbol ('the' )Symbol ('Intermediate' )Symbol ('Value' )Symbol ('Theorem' ):if Symbol ('f' )is Symbol ('continuous' )Symbol ('on' )[a ,b ]and N Symbol ('lies' )Symbol ('between' )Function ('f' )(a )and Function ('f' )(b ),Symbol ('then' )Symbol ('there' )Symbol ('exists' )c in [a ,b ]Symbol ('such' )Symbol ('that' )Function ('f' )(c )\", 1, 24)))",
+        "required_fix": "Fix the symbolic claim or computation.",
+        "blocking_acceptance": true,
+        "error_id": "E5"
+      },
+      {
+        "source": "symbolic",
+        "node_id": null,
+        "inference_id": null,
+        "step_id": null,
+        "severity": "high",
+        "claim": "{'type': 'equation', 'lhs': 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)', 'rhs': 'N.'}",
+        "evidence": "sample substitution parse failed: SympifyError(\"could not parse 'Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)'\", SyntaxError('invalid syntax', ('<string>', 1, 18, \"Symbol ('Prove' )Symbol ('the' )Symbol ('Intermediate' )Symbol ('Value' )Symbol ('Theorem' ):if Symbol ('f' )is Symbol ('continuous' )Symbol ('on' )[a ,b ]and N Symbol ('lies' )Symbol ('between' )Function ('f' )(a )and Function ('f' )(b ),Symbol ('then' )Symbol ('there' )Symbol ('exists' )c in [a ,b ]Symbol ('such' )Symbol ('that' )Function ('f' )(c )\", 1, 24)))",
+        "required_fix": "Fix the claim; a sample satisfying assumptions/domain produced a counterexample.",
+        "blocking_acceptance": true,
+        "error_id": "E6"
+      }
+    ],
+    "failed_nodes": [
+      "G1"
+    ],
     "failed_inferences": [],
-    "failed_obligations": [],
-    "accepted_proof": {
-      "proof_id": "chain_rule_and_sin_x2",
-      "based_on_graph_id": "HF",
-      "current_graph_version": 1,
-      "goal_node_id": "G1",
-      "nodes": [
-        {
-          "id": "A1",
-          "node_type": "assumption",
-          "claim": "f is differentiable at x",
-          "status": "verified"
-        },
-        {
-          "id": "A2",
-          "node_type": "assumption",
-          "claim": "g is differentiable at x",
-          "status": "verified"
-        },
-        {
-          "id": "G1",
-          "node_type": "goal",
-          "claim": "d/dx sin(x^2) = 2*x*cos(x^2)",
-          "status": "verified",
-          "proof_body": {
-            "format": "structured_derivation",
-            "steps": [
-              {
-                "statement": "d/dx sin(u) = cos(u) * du/dx",
-                "reason": "Lemma L1",
-                "refs": [
-                  "L1"
-                ]
-              },
-              {
-                "statement": "Let u = x^2",
-                "reason": "Substitution",
-                "refs": [
-                  "A1"
-                ]
-              },
-              {
-                "statement": "d/dx x^2 = 2x",
-                "reason": "Power rule",
-                "refs": [
-                  "A1"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = cos(x^2) * d/dx x^2",
-                "reason": " Chain rule",
-                "refs": [
-                  "D1",
-                  "D2"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = cos(x^2) * 2x",
-                "reason": "Substitution",
-                "refs": [
-                  "D3"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = 2x * cos(x^2)",
-                "reason": "Commutativity of multiplication",
-                "refs": [
-                  "D4"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = 2x * cos(x^2)",
-                "reason": "Conclusion",
-                "refs": [
-                  "D5"
-                ]
-              }
-            ],
-            "_generation_source": "hf",
-            "_generation_attempts": 1
-          }
-        },
-        {
-          "id": "L1",
-          "node_type": "lemma",
-          "claim": "d/dx sin(u) = cos(u) * du/dx",
-          "status": "verified",
-          "proof_body": {
-            "format": "structured_derivation",
-            "steps": [
-              {
-                "statement": "d/dx sin(u) = cos(u) * du/dx",
-                "reason": "Chain Rule",
-                "refs": [
-                  "S1"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = cos(x^2) * d/dx(x^2)",
-                "reason": "Substitution of u = x^2 into the chain rule",
-                "refs": [
-                  "S1"
-                ]
-              },
-              {
-                "statement": "d/dx(x^2) = 2x",
-                "reason": "Power Rule",
-                "refs": [
-                  "A1"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = cos(x^2) * 2x",
-                "reason": "Multiplication of derivatives",
-                "refs": [
-                  "S1",
-                  "A1"
-                ]
-              },
-              {
-                "statement": "d/dx sin(x^2) = 2x * cos(x^2)",
-                "reason": "Commutativity of multiplication",
-                "refs": [
-                  "S1",
-                  "A1"
-                ]
-              }
-            ],
-            "_generation_source": "hf",
-            "_generation_attempts": 1
-          }
-        },
-        {
-          "id": "S1",
-          "node_type": "side_condition",
-          "claim": "u = x^2",
-          "status": "verified"
-        }
-      ],
-      "inferences": [
-        {
-          "id": "I1",
-          "premise_nodes": [
-            "A1",
-            "S1"
-          ],
-          "conclusion_node": "L1",
-          "rule_refs": [
-            "R1"
-          ],
-          "side_condition_nodes": [],
-          "relation": "implies",
-          "status": "verified"
-        },
-        {
-          "id": "I2",
-          "premise_nodes": [
-            "L1",
-            "A2"
-          ],
-          "conclusion_node": "G1",
-          "rule_refs": [
-            "R2"
-          ],
-          "side_condition_nodes": [],
-          "relation": "implies",
-          "status": "verified"
-        }
-      ],
-      "errors": [
-        {
-          "source": "structural",
-          "node_id": null,
-          "inference_id": null,
-          "step_id": null,
-          "severity": "medium",
-          "claim": "Obligation O1 must be covered by some node.",
-          "evidence": "O1 is not listed in any node.covers_obligations.",
-          "required_fix": "Add this obligation id to covers_obligations of a node that covers it.",
-          "blocking_acceptance": false,
-          "error_id": "E1"
-        },
-        {
-          "source": "critic",
-          "node_id": null,
-          "inference_id": null,
-          "step_id": null,
-          "severity": "medium",
-          "claim": "Domain constraint may be unchecked.",
-          "evidence": "domain constraint for x: all real numbers is not clearly addressed.",
-          "required_fix": "Mention or cite the domain constraint in source nodes, side_condition_nodes, or proof_body.",
-          "blocking_acceptance": false,
-          "error_id": "E2"
-        }
-      ],
-      "obligation_status": [
-        {
-          "id": "O1",
-          "description": "Prove the stated goal",
-          "status": "pass"
-        }
-      ],
-      "graph_patches": [],
-      "_generation_source": "hf",
-      "_generation_attempts": 1
-    }
+    "failed_obligations": [
+      {
+        "id": "O1",
+        "description": "Show f is continuous on [a, b] and N lies between f(a) and f(b) using the definition of continuity and the Intermediate Value Theorem",
+        "status": "fail"
+      },
+      {
+        "id": "O2",
+        "description": "Show there exists c in [a, b] such that f(c) = N using the Intermediate Value Theorem and the definition of continuity",
+        "status": "fail"
+      }
+    ],
+    "accepted_proof": null
   },
   "obligation_status": [
     {
       "id": "O1",
-      "description": "Prove the stated goal",
-      "status": "pass"
+      "description": "Show f is continuous on [a, b] and N lies between f(a) and f(b) using the definition of continuity and the Intermediate Value Theorem",
+      "status": "fail"
+    },
+    {
+      "id": "O2",
+      "description": "Show there exists c in [a, b] such that f(c) = N using the Intermediate Value Theorem and the definition of continuity",
+      "status": "fail"
     }
   ]
 }

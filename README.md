@@ -49,6 +49,9 @@ pip install sentencepiece huggingface_hub safetensors
 ```bash
 # 執行完整流程（Demo + 五項測試）
 python main.py
+
+# 逐 Stage 檢查特定題目（支援 --problem 0/1/2）
+python tests/inspect_pipeline.py --problem 2
 ```
 
 執行完後會在 `week2_outputs/` 產生：
@@ -57,7 +60,15 @@ python main.py
 week2_outputs/
 ├── week2_demo_result.json          # Demo 題目的完整 trace
 ├── week2_test_results.json         # 五項測試通過/失敗
-└── week2_pipeline_summaries.json   # 三道基準題的管線摘要
+├── week2_pipeline_summaries.json   # 三道基準題的管線摘要
+└── inspect/                        # inspect_pipeline.py 逐 Stage 輸出
+    ├── stage1_problem_json.json
+    ├── stage2_proof_contract.json
+    ├── stage3_graph_skeleton.json
+    ├── stage4_proven_graph.json
+    ├── stage5_verifier_result.json
+    ├── stage6_trace.json
+    └── report.md
 ```
 
 ---
@@ -78,7 +89,15 @@ week2/
 ├── langgraph_nodes.py   # LangGraph StateGraph 定義
 ├── verifiers.py         # 多層驗證器
 ├── verifier_utils.py    # 驗證工具函數
-└── week2_outputs/       # 執行結果輸出目錄
+└── tests/
+    ├── inspect_pipeline.py          # 逐 Stage 互動式檢查工具
+    ├── test_01_problem_parser.py
+    ├── test_02_contract_builder.py
+    ├── test_03_graph_planner_stage.py
+    ├── test_04_graph_prover_stage.py
+    ├── test_05_verifiers.py
+    ├── test_06_export_trace.py
+    └── test_07_pipeline_integration.py
 ```
 
 ---
@@ -107,6 +126,30 @@ run_all_verifiers
 ├── 推導邊驗證（rule_refs 非空、前提節點存在）
 └── 傳播閉包驗證（從來源節點能否推導至目標節點）
 ```
+
+---
+
+## JSON 自動修復機制（json_utils.py）
+
+Qwen2.5-Math 模型的輸出常帶有特殊格式問題，`json_utils.py` 實作了一套修復流水線：
+
+| 修復函數 | 處理的問題 |
+|---|---|
+| `_fix_invalid_json_escapes` | 修復 LaTeX 反斜線（`\frac`、`\[` 等） |
+| `_fix_quoted_object_start` | 修復 `"{ key"` → `{ "key"`（引號錯位） |
+| `_fix_unclosed_strings_with_parens` | 修復未閉合字串（以括號深度判斷 `)` 是否為結構符號） |
+| `_fix_unclosed_simple_strings` | 修復 `"word)` → `"word")`（簡單單詞未閉合） |
+| `_fix_close_parens` | 將 `)` 替換為對應的 `}` 或 `]`；丟棄多餘的 `}` / `]` |
+| `_auto_close` + `_try_parse_closed` | 截斷輸出的自動補全與啟發式修復 |
+
+---
+
+## 確定性 Fallback 機制
+
+當 LLM 所有修復嘗試均失敗時，各 Stage 使用 `_make_fallback_*` 函數產生高品質預設值：
+
+- **Stage 1**：從 benchmark hint 取得正確的 `goal.symbolic`（如 `Eq(f(c), N)`）、變數清單與 `problem_id`，確保後續 Stage 能正常解析
+- **Stage 3**（Graph Planner）：從 `proof_contract.obligations` 直接生成節點，不依賴 LLM
 
 ---
 

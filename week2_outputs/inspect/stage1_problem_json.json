@@ -1,23 +1,38 @@
 {
-  "problem_id": "chain_rule_and_sin_x2",
-  "raw_problem": "Prove the chain rule and use it to prove that d/dx sin(x^2) = 2*x*cos(x^2)",
+  "problem_id": "intermediate_value_theorem",
+  "raw_problem": "Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)=N",
   "goal": {
-    "text": "d/dx sin(x^2) = 2*x*cos(x^2)",
-    "symbolic": "Eq(Derivative(sin(x**2),x),2*x*cos(x**2))"
+    "text": "There exists c in [a, b] such that f(c) = N",
+    "symbolic": "Eq(f(c), N)"
   },
   "assumptions": [
     {
       "id": "A1",
-      "statement": "f is differentiable at x"
+      "statement": "f is continuous on [a, b]"
     },
     {
       "id": "A2",
-      "statement": "g is differentiable at x"
+      "statement": "N lies between f(a) and f(b)"
     }
   ],
   "variables": [
     {
-      "symbol": "x",
+      "symbol": "c",
+      "type": "real",
+      "role": "variable"
+    },
+    {
+      "symbol": "a",
+      "type": "real",
+      "role": "variable"
+    },
+    {
+      "symbol": "b",
+      "type": "real",
+      "role": "variable"
+    },
+    {
+      "symbol": "N",
       "type": "real",
       "role": "variable"
     },
@@ -25,22 +40,18 @@
       "symbol": "f",
       "type": "real",
       "role": "variable"
-    },
-    {
-      "symbol": "g",
-      "type": "real",
-      "role": "variable"
     }
   ],
   "domain": {
-    "x": "all real numbers"
+    "c": [
+      "a",
+      "b"
+    ],
+    "a": "real number",
+    "b": "real number",
+    "n": "real number",
+    "f": "function"
   },
-  "technical_terms": [
-    "derivative",
-    "chain rule",
-    "differentiability"
-  ],
-  "hidden_conditions": [],
   "_generation_source": "hf",
   "_generation_attempts": 1
 }

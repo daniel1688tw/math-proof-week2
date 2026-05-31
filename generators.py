@@ -6,6 +6,7 @@ from prompts import (
     prompt_graph_skeleton, prompt_node_proof, prompt_repair_json,
     prompt_problem_json_compact, prompt_proof_contract_compact,
     prompt_graph_skeleton_compact, prompt_node_proof_compact,
+    THEOREM_LIBRARY,
 )
 from model_loader import ACTIVE_LLM
 
@@ -138,11 +139,15 @@ def _normalize_proof_contract(data):
     # Ensure obligations exists
     if not data.get("obligations"):
         data["obligations"] = [{"id": "O1", "description": "Prove the stated goal", "status": "pending"}]
-    # Ensure allowed_references exists (also handle "allowed references" with space from model output)
+    # Ensure allowed_references exists (also handle "allowed references" with space from model output,
+    # and the case where the model wraps the contract body inside a "fields" key).
     if not data.get("allowed_references"):
+        fields = data.get("fields") if isinstance(data.get("fields"), dict) else {}
         data["allowed_references"] = (
-            data.get("allowed references")  # model sometimes outputs key with space
+            data.get("allowed references")          # key with space
             or data.get("allowed_theorems")
+            or fields.get("allowed_references")     # nested under "fields"
+            or fields.get("allowed_theorems")
             or []
         )
     return data
@@ -181,6 +186,14 @@ def _normalize_graph_state(data):
     if "inferences" not in data:
         data["inferences"] = []
 
+    # Detect when the LLM returned a single node object instead of a graph_state.
+    # Symptoms: top-level has node_type (node field) but nodes array is empty.
+    if data.get("node_type") and not data.get("nodes"):
+        raise ValueError(
+            f"LLM returned a node object (node_type={data.get('node_type')!r}) "
+            "instead of a proof_graph_state; retrying"
+        )
+
     # Strip status spaces in nodes
     for node in data["nodes"]:
         if isinstance(node.get("status"), str):
@@ -210,18 +223,80 @@ def _normalize_graph_state(data):
         elif isinstance(inf["status"], str):
             inf["status"] = inf["status"].strip()
 
+    if not data.get("nodes"):
+        raise ValueError("proof_graph_state has empty nodes array; retrying")
+
+    # Remove dangling inference references to nodes that don't exist in the graph.
+    # The LLM sometimes lists side_condition_nodes or premise_nodes it never created.
+    node_ids = {n.get("id") for n in data["nodes"]}
+    for inf in data["inferences"]:
+        inf["premise_nodes"] = [p for p in inf.get("premise_nodes", []) if p in node_ids]
+        inf["side_condition_nodes"] = [s for s in inf.get("side_condition_nodes", []) if s in node_ids]
+        if inf.get("conclusion_node") not in node_ids:
+            goal_id = data.get("goal_node_id")
+            if goal_id and goal_id in node_ids:
+                inf["conclusion_node"] = goal_id
+
+    # Remove inferences where conclusion_node appears in its own dependencies (self-loop → cycle).
+    clean_inferences = []
+    for inf in data["inferences"]:
+        conclusion = inf.get("conclusion_node", "")
+        deps = set(inf.get("premise_nodes", [])) | set(inf.get("side_condition_nodes", []))
+        if conclusion and conclusion in deps:
+            inf["side_condition_nodes"] = [s for s in inf.get("side_condition_nodes", []) if s != conclusion]
+            inf["premise_nodes"] = [p for p in inf.get("premise_nodes", []) if p != conclusion]
+        clean_inferences.append(inf)
+    data["inferences"] = clean_inferences
+
     return data
 
 
-def generate_problem_json(raw_problem):
+_KIND_SYMBOLIC = {
+    "intermediate_value_theorem": "Eq(f(c), N)",
+    "mean_value_theorem": "Eq(Derivative(f(x), x).subs(x, c), (f(b) - f(a)) / (b - a))",
+    "chain_rule": "Eq(Derivative(f(g(x)), x), Derivative(f(u), u).subs(u, g(x)) * Derivative(g(x), x))",
+}
+
+
+def _make_fallback_problem_json(raw_problem, hint=None):
+    """Minimal valid problem_json built from raw_problem string when LLM fails."""
+    hint = hint or {}
+    goal_text = hint.get("expected", raw_problem)
+    # Prefer a known sympy-parseable expression over the English goal_symbolic
+    goal_symbolic = _KIND_SYMBOLIC.get(hint.get("kind", ""), hint.get("goal_symbolic", goal_text))
+    # Build variables from hint interval and expr
+    variables = []
+    for sym in hint.get("interval", []):
+        variables.append({"symbol": str(sym), "type": "real", "role": "interval_endpoint"})
+    expr = hint.get("expr", "")
+    if expr and expr not in {v["symbol"] for v in variables}:
+        variables.append({"symbol": str(expr), "type": "function", "role": "function"})
+    return {
+        "problem_id": hint.get("problem_id", "fallback_problem"),
+        "raw_problem": raw_problem,
+        "goal": {"text": goal_text, "symbolic": goal_symbolic},
+        "assumptions": [],
+        "variables": variables,
+        "hidden_conditions": [],
+        "technical_terms": [],
+        "_generation_source": "fallback",
+        "_generation_attempts": 0,
+    }
+
+
+def generate_problem_json(raw_problem, hint=None):
     if raw_problem not in _gen_cache:
-        result = generate_json_until_valid(
-            prompt_problem_json(raw_problem),
-            PROBLEM_JSON_SCHEMA,
-            "problem_json",
-            compact_prompt=prompt_problem_json_compact(raw_problem),
-        )
-        result = _normalize_problem_json(result)
+        try:
+            result = generate_json_until_valid(
+                prompt_problem_json(raw_problem),
+                PROBLEM_JSON_SCHEMA,
+                "problem_json",
+                compact_prompt=prompt_problem_json_compact(raw_problem),
+            )
+            result = _normalize_problem_json(result)
+        except RuntimeError as exc:
+            print(f"  [problem_json] all LLM attempts failed ({exc}); using fallback")
+            result = _make_fallback_problem_json(raw_problem, hint)
         _gen_cache[raw_problem] = result
     return _gen_cache[raw_problem]
 
@@ -240,17 +315,60 @@ def generate_proof_contract(problem_json):
     return _gen_cache[cache_key]
 
 
+def _make_fallback_graph_state(problem_json, proof_contract):
+    """Minimal valid graph state built deterministically from problem_json."""
+    assumptions = problem_json.get("assumptions", [])
+    nodes = []
+    for a in assumptions:
+        aid = a.get("id", f"A{len(nodes)+1}") if isinstance(a, dict) else f"A{len(nodes)+1}"
+        stmt = a.get("statement", str(a)) if isinstance(a, dict) else str(a)
+        nodes.append({"id": aid, "node_type": "assumption", "claim": stmt, "status": "source"})
+    goal = problem_json.get("goal", {})
+    goal_text = goal.get("text", "Prove the goal") if isinstance(goal, dict) else str(goal)
+    nodes.append({"id": "G1", "node_type": "goal", "claim": goal_text, "status": "planned"})
+    premise_ids = [n["id"] for n in nodes if n["node_type"] == "assumption"]
+    # Build rule_refs: prefer proof_contract's allowed_references; fall back to
+    # theorems in THEOREM_LIBRARY that match the problem's technical_terms.
+    refs = proof_contract.get("allowed_references", [])
+    if not refs:
+        terms = problem_json.get("technical_terms", [])
+        refs = [t for t in THEOREM_LIBRARY
+                if any(term.lower() in t.lower() for term in terms)][:4]
+    inferences = [{
+        "id": "I1", "premise_nodes": premise_ids, "conclusion_node": "G1",
+        "rule_refs": refs[:2] if refs else [],
+        "side_condition_nodes": [], "relation": "implies", "status": "planned",
+    }]
+    return {
+        "proof_id": problem_json.get("problem_id", "fallback_proof"),
+        "based_on_graph_id": "fallback",
+        "current_graph_version": 1,
+        "goal_node_id": "G1",
+        "nodes": nodes,
+        "inferences": inferences,
+        "errors": [],
+        "obligation_status": [],
+        "graph_patches": [],
+        "_generation_source": "fallback",
+        "_generation_attempts": 0,
+    }
+
+
 def generate_graph_skeleton(problem_json, proof_contract):
     cache_key = f"gs:{problem_json.get('problem_id', problem_json.get('raw_problem', '')[:30])}"
     if cache_key not in _gen_cache:
-        result = generate_json_until_valid(
-            prompt_graph_skeleton(problem_json, proof_contract),
-            PROOF_GRAPH_STATE_SCHEMA,
-            "proof_graph_state",
-            max_new_tokens=3000,
-            compact_prompt=prompt_graph_skeleton_compact(problem_json, proof_contract),
-            normalizer=_normalize_graph_state,
-        )
+        try:
+            result = generate_json_until_valid(
+                prompt_graph_skeleton(problem_json, proof_contract),
+                PROOF_GRAPH_STATE_SCHEMA,
+                "proof_graph_state",
+                max_new_tokens=3000,
+                compact_prompt=prompt_graph_skeleton_compact(problem_json, proof_contract),
+                normalizer=_normalize_graph_state,
+            )
+        except RuntimeError as exc:
+            print(f"  [graph_skeleton] all LLM attempts failed ({exc}); using deterministic fallback")
+            result = _make_fallback_graph_state(problem_json, proof_contract)
         _gen_cache[cache_key] = result
     return _gen_cache[cache_key]
 

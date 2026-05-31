@@ -4,6 +4,20 @@ import re
 
 from jsonschema import Draft202012Validator
 
+# Full-width Unicode characters that Qwen2.5 sometimes emits instead of ASCII punctuation.
+_FULLWIDTH_MAP = str.maketrans({
+    '，': ',', '。': '.', '：': ':', '；': ';',
+    '（': '(', '）': ')',
+    '｛': '{', '｝': '}',
+    '「': '"', '」': '"',
+    '、': ',',  # ideographic comma
+})
+
+
+def _normalize_fullwidth(text: str) -> str:
+    """Replace full-width/CJK punctuation with ASCII equivalents."""
+    return text.translate(_FULLWIDTH_MAP)
+
 
 def normalize_json_keys(d):
     if isinstance(d, dict):
@@ -121,8 +135,71 @@ def _try_parse_closed(closed):
 
 
 def _fix_unclosed_simple_strings(text):
-    """Fix "word) → "word") — model omits closing quote before ) for simple word-like values."""
-    return re.sub(r'"(\w[\w\s]*)\)', r'"\1")', text)
+    """Fix "word) → "word") — model omits closing quote before ) for simple word-like values.
+    Also handles leading spaces and apostrophes, e.g. " Rolle's Theorem).
+    """
+    # Allow optional leading whitespace, a required word-start, then word chars / spaces / apostrophes.
+    return re.sub(r'"(\s*\w[\w\s\']*)\)', r'"\1")', text)
+
+
+def _fix_quoted_object_start(text):
+    """Fix "{key" → {"key — model sometimes prepends a quote before an object-opening brace.
+    Only matches when a letter/underscore follows optional whitespace after "{".
+    """
+    return re.sub(r'"\{(\s*)([a-zA-Z_])', r'{\1"\2', text)
+
+
+def _fix_unclosed_strings_with_parens(text):
+    """Fix unclosed string values that end with ) used as object-closer.
+    Uses paren-depth counting: a ) with no matching ( in the current string
+    is structural (closes the object/array), not part of the string value.
+    This correctly handles math like "Eq(f(c), N)" — all ) there have matching (.
+    """
+    result = []
+    in_string = False
+    escape = False
+    paren_depth = 0  # ( ) balance inside current string
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if escape:
+            escape = False
+            result.append(ch)
+            i += 1
+            continue
+        if ch == '\\' and in_string:
+            escape = True
+            result.append(ch)
+            i += 1
+            continue
+        if ch == '"':
+            if not in_string:
+                in_string = True
+                paren_depth = 0
+            else:
+                in_string = False
+                paren_depth = 0
+            result.append(ch)
+            i += 1
+            continue
+        if in_string:
+            if ch == '(':
+                paren_depth += 1
+            elif ch == ')':
+                if paren_depth > 0:
+                    # Matched ( inside string — keep in string
+                    paren_depth -= 1
+                else:
+                    # No matching ( → structural closer, insert " to close string
+                    result.append('"')
+                    result.append(')')
+                    in_string = False
+                    paren_depth = 0
+                    i += 1
+                    continue
+        result.append(ch)
+        i += 1
+    return ''.join(result)
 
 
 def _fix_close_parens(text):
@@ -155,11 +232,13 @@ def _fix_close_parens(text):
             elif ch == '}':
                 if stack and stack[-1] == '{':
                     stack.pop()
-                result.append(ch)
+                    result.append(ch)
+                # else: drop spurious } with no matching {
             elif ch == ']':
                 if stack and stack[-1] == '[':
                     stack.pop()
-                result.append(ch)
+                    result.append(ch)
+                # else: drop spurious ] with no matching [
             elif ch == ')':
                 if stack and stack[-1] == '{':
                     result.append('}')
@@ -189,10 +268,15 @@ def extract_json_object(text):
     if text.startswith("```"):
         text = re.sub(r"^```[a-zA-Z0-9_+-]*", "", text).strip()
         text = re.sub(r"```$", "", text).strip()
+    # Normalize full-width Unicode punctuation before any structural parsing.
+    # Qwen2.5-Math sometimes emits ）、， etc. as JSON structural characters.
+    text = _normalize_fullwidth(text)
     if text.find("{") < 0:
         raise ValueError("no JSON object start found")
 
     text = _fix_invalid_json_escapes(text)
+    text = _fix_quoted_object_start(text)
+    text = _fix_unclosed_strings_with_parens(text)
     text = _fix_unclosed_simple_strings(text)
     text = _fix_close_parens(text)
     complete = _find_best_complete_json(text)
