@@ -1,8 +1,8 @@
 {
-  "proof_id": "intermediate_value_theorem",
-  "based_on_graph_id": "HF",
+  "proof_id": "P1",
+  "based_on_graph_id": "G1",
   "current_graph_version": 1,
-  "goal_node_id": "N",
+  "goal_node_id": "G",
   "nodes": [
     {
       "id": "A1",
@@ -13,32 +13,14 @@
     {
       "id": "A2",
       "node_type": "assumption",
-      "claim": "N lies between f(a) and f(b)",
+      "claim": "f(a) < N < f(b)",
       "status": "source"
     },
     {
-      "id": "O1",
+      "id": "G",
       "node_type": "goal",
       "claim": "There exists c in [a, b] such that f(c) = N",
-      "status": "planned"
-    },
-    {
-      "id": "L1",
-      "node_type": "lemma",
-      "claim": "f is continuous on [a, b] implies f is continuous on [a, b] (redundant)",
-      "status": "planned"
-    },
-    {
-      "id": "L2",
-      "node_type": "lemma",
-      "claim": "N lies between f(a) and f(b) implies N lies between f(a) and f(b) (redundant)",
-      "status": "planned"
-    },
-    {
-      "id": "L3",
-      "node_type": "lemma",
-      "claim": "If f is continuous on [a, b] and N lies between f(a) and f(b), then there exists c in [a, b] such that f(c) = N",
-      "status": "planned"
+      "status": "source"
     }
   ],
   "inferences": [
@@ -48,27 +30,10 @@
         "A1",
         "A2"
       ],
-      "conclusion_node": "L3",
+      "conclusion_node": "G",
       "rule_refs": [
-        "R1",
-        "R2",
-        "R3"
-      ],
-      "side_condition_nodes": [],
-      "relation": "implies",
-      "status": "planned"
-    },
-    {
-      "id": "I2",
-      "premise_nodes": [
-        "L1",
-        "L2"
-      ],
-      "conclusion_node": "L3",
-      "rule_refs": [
-        "R1",
-        "R2",
-        "R3"
+        "continuity",
+        "intermediate_value_theorem"
       ],
       "side_condition_nodes": [],
       "relation": "implies",
@@ -77,7 +42,7 @@
   ],
   "errors": [],
   "obligation_status": [
-    "planned"
+    "O1"
   ],
   "graph_patches": [],
   "_generation_source": "hf",

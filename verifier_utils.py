@@ -38,7 +38,7 @@ def normalize_math_text(text):
 
 def allowed_references(contract):
     refs = contract.get("allowed_references", [])
-    return set(refs)
+    return {r.strip() for r in refs if isinstance(r, str) and r.strip()}
 
 
 def is_source_node(node, problem_json=None, proof_contract=None):
@@ -63,6 +63,8 @@ def declared_variable_symbols(problem_json):
 
 
 _MATH_BUILTINS = {
+    # Conventional single-letter function/sequence names
+    "f", "g", "h",
     # Calculus shorthand notation
     "d", "dx", "dy", "dz", "dt", "df",
     # Trig and elementary functions

@@ -1,36 +1,43 @@
 {
-  "proof_id": "fallback_problem",
-  "based_on_graph_id": "fallback",
+  "proof_id": "P1",
+  "based_on_graph_id": "G1",
   "current_graph_version": 1,
-  "goal_node_id": "G1",
+  "goal_node_id": "G",
   "nodes": [
     {
-      "id": "G1",
+      "id": "A1",
+      "node_type": "assumption",
+      "claim": "f is continuous on [a, b]",
+      "status": "source"
+    },
+    {
+      "id": "A2",
+      "node_type": "assumption",
+      "claim": "f(a) < N < f(b)",
+      "status": "source"
+    },
+    {
+      "id": "G",
       "node_type": "goal",
-      "claim": "Prove the Intermediate Value Theorem: if f is continuous on [a,b] and N lies between f(a) and f(b), then there exists c in [a,b] such that f(c)=N.",
+      "claim": "There exists c in [a, b] such that f(c) = N",
       "status": "proven",
       "proof_body": {
         "format": "structured_derivation",
         "steps": [
           {
-            "statement": "Let ( f ) be continuous on ([a, b]) and ( N ) lie between ( f(a) ) and ( f(b) ).",
+            "statement": "f is continuous on [a, b] and f(a) < N < f(b)",
             "reason": "Given",
             "refs": [
-              " Intermediate Value Theorem"
+              "A1",
+              "A2"
             ]
           },
           {
-            "statement": "By the Intermediate Value Theorem, there exists ( c ) in ([a, b]) such that ( f(c) = N ).",
-            "reason": " Intermediate Value Theorem",
+            "statement": "There exists c in [a, b] such that f(c) = N",
+            "reason": "Intermediate Value Theorem",
             "refs": [
-              " Intermediate Value Theorem"
-            ]
-          },
-          {
-            "statement": "Therefore, there exists ( c ) in ([a, b]) such that ( f(c) = N ).",
-            "reason": "Conclusion from the Intermediate Value Theorem",
-            "refs": [
-              " Intermediate Value Theorem"
+              "A1",
+              "A2"
             ]
           }
         ],
@@ -42,11 +49,14 @@
   "inferences": [
     {
       "id": "I1",
-      "premise_nodes": [],
-      "conclusion_node": "G1",
+      "premise_nodes": [
+        "A1",
+        "A2"
+      ],
+      "conclusion_node": "G",
       "rule_refs": [
         "continuity",
-        "differentiability"
+        "intermediate_value_theorem"
       ],
       "side_condition_nodes": [],
       "relation": "implies",
@@ -54,8 +64,10 @@
     }
   ],
   "errors": [],
-  "obligation_status": [],
+  "obligation_status": [
+    "O1"
+  ],
   "graph_patches": [],
-  "_generation_source": "fallback",
-  "_generation_attempts": 0
+  "_generation_source": "hf",
+  "_generation_attempts": 1
 }

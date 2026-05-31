@@ -12,7 +12,7 @@
     },
     {
       "id": "A2",
-      "statement": "N lies between f(a) and f(b)"
+      "statement": "N is between f(a) and f(b)"
     }
   ],
   "variables": [
@@ -35,23 +35,19 @@
       "symbol": "N",
       "type": "real",
       "role": "variable"
-    },
-    {
-      "symbol": "f",
-      "type": "real",
-      "role": "variable"
     }
   ],
   "domain": {
     "c": [
       "a",
       "b"
-    ],
-    "a": "real number",
-    "b": "real number",
-    "n": "real number",
-    "f": "function"
+    ]
   },
+  "technical_terms": [
+    "continuous function",
+    "intermediate value theorem"
+  ],
+  "hidden_conditions": [],
   "_generation_source": "hf",
   "_generation_attempts": 1
 }

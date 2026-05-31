@@ -132,7 +132,7 @@ def verify_graph_structure(problem_json, proof_contract, graph_state):
                 errors.append(make_error("structural", ref, inf_id, "high", "Referenced premise/side-condition node must exist.", f"{ref} is referenced by {inf_id} but missing.", "Create the missing premise/side-condition node or fix the inference reference."))
 
         for rule in inf.get("rule_refs", []):
-            if allowed and rule not in allowed:
+            if allowed and rule.strip() not in allowed:
                 errors.append(make_error("structural", conclusion, inf_id, "high", nodes_by_id.get(conclusion, {}).get("claim", ""), f"{rule} is not in allowed_references.", "Use only references listed in proof_contract.allowed_references."))
             if rule.lower() in forbidden:
                 errors.append(make_error("structural", conclusion, inf_id, "high", nodes_by_id.get(conclusion, {}).get("claim", ""), f"{rule} appears in forbidden_moves.", "Remove forbidden move."))

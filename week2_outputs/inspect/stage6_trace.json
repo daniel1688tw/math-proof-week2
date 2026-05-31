@@ -2,7 +2,7 @@
   "trace": [
     {
       "node": "export_trace",
-      "accepted": false
+      "accepted": true
     }
   ]
 }

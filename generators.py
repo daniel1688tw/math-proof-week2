@@ -1,4 +1,4 @@
-from config import MAX_NEW_TOKENS, MAX_REPAIR_ATTEMPTS
+from config import MAX_NEW_TOKENS, MAX_REPAIR_ATTEMPTS, SOURCE_NODE_TYPES
 from schemas import PROBLEM_JSON_SCHEMA, PROOF_CONTRACT_SCHEMA, PROOF_GRAPH_STATE_SCHEMA
 from json_utils import parse_json_from_text, validate_or_raise
 from prompts import (
@@ -229,6 +229,17 @@ def _normalize_graph_state(data):
     # Remove dangling inference references to nodes that don't exist in the graph.
     # The LLM sometimes lists side_condition_nodes or premise_nodes it never created.
     node_ids = {n.get("id") for n in data["nodes"]}
+
+    # Fix 1: goal_node_id points to a non-existent node (e.g. LLM writes the math
+    # variable "N" instead of an actual node ID like "O1").  Scan for the node whose
+    # node_type is "goal" and use its ID instead.
+    goal_id = data.get("goal_node_id")
+    if goal_id not in node_ids:
+        goal_type_nodes = [n["id"] for n in data["nodes"] if n.get("node_type") == "goal"]
+        if goal_type_nodes:
+            print(f"  [normalize_graph_state] fixed goal_node_id: {goal_id!r} → {goal_type_nodes[0]!r}")
+            data["goal_node_id"] = goal_type_nodes[0]
+
     for inf in data["inferences"]:
         inf["premise_nodes"] = [p for p in inf.get("premise_nodes", []) if p in node_ids]
         inf["side_condition_nodes"] = [s for s in inf.get("side_condition_nodes", []) if s in node_ids]
@@ -329,14 +340,20 @@ def _make_fallback_graph_state(problem_json, proof_contract):
     premise_ids = [n["id"] for n in nodes if n["node_type"] == "assumption"]
     # Build rule_refs: prefer proof_contract's allowed_references; fall back to
     # theorems in THEOREM_LIBRARY that match the problem's technical_terms.
-    refs = proof_contract.get("allowed_references", [])
+    refs = [r.strip() for r in proof_contract.get("allowed_references", []) if isinstance(r, str) and r.strip()]
     if not refs:
         terms = problem_json.get("technical_terms", [])
         refs = [t for t in THEOREM_LIBRARY
                 if any(term.lower() in t.lower() for term in terms)][:4]
+    if not refs:
+        pid = problem_json.get("problem_id", "").lower()
+        refs = [t for t in THEOREM_LIBRARY
+                if t.lower() in pid or pid in t.lower()][:2]
+    if not refs:
+        refs = ["assumption_use"]
     inferences = [{
         "id": "I1", "premise_nodes": premise_ids, "conclusion_node": "G1",
-        "rule_refs": refs[:2] if refs else [],
+        "rule_refs": refs[:2],
         "side_condition_nodes": [], "relation": "implies", "status": "planned",
     }]
     return {
@@ -366,6 +383,21 @@ def generate_graph_skeleton(problem_json, proof_contract):
                 compact_prompt=prompt_graph_skeleton_compact(problem_json, proof_contract),
                 normalizer=_normalize_graph_state,
             )
+            # Fix 2: if any non-source node has no incoming inference it can never
+            # be verified by inference_closure.  Fall back to the deterministic
+            # skeleton which always wires assumption nodes directly to the goal.
+            incoming = {inf.get("conclusion_node") for inf in result.get("inferences", [])}
+            orphan_non_source = [
+                n["id"] for n in result.get("nodes", [])
+                if n.get("node_type") not in SOURCE_NODE_TYPES
+                and n["id"] not in incoming
+            ]
+            if orphan_non_source:
+                print(
+                    f"  [graph_skeleton] orphan non-source nodes {orphan_non_source} "
+                    "have no incoming inferences — using fallback"
+                )
+                result = _make_fallback_graph_state(problem_json, proof_contract)
         except RuntimeError as exc:
             print(f"  [graph_skeleton] all LLM attempts failed ({exc}); using deterministic fallback")
             result = _make_fallback_graph_state(problem_json, proof_contract)
