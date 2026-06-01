@@ -278,19 +278,39 @@ def _find_json_object(text: str) -> Optional[str]:
 def _repair_json(raw: str) -> str:
     """Apply light heuristic repairs to a truncated / malformed JSON string."""
     # Fix ) used as array-close instead of ] (common Qwen output artifact).
-    # Covers both string-element close ("value") and object-element close (}):
-    # ["a", "b")  →  ["a", "b"]
-    # [{...}, {...})  →  [{...}, {...}]
     repaired = re.sub(r'(["\}])\s*\)', lambda m: m.group(1) + ']', raw)
     # Strip trailing commas before ] or }
     repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
-    # Balance braces / brackets
-    opens = repaired.count("{") - repaired.count("}")
-    closes = repaired.count("[") - repaired.count("]")
-    if opens > 0:
-        repaired += "}" * opens
-    if closes > 0:
-        repaired += "]" * closes
+    # Scan to find unmatched { / [ and whether we ended inside an unclosed
+    # string — all while ignoring brace characters inside string values
+    # (e.g. LaTeX \frac{1}{n} must not skew the depth count).
+    depth_c = depth_s = 0
+    in_str = esc = False
+    for ch in repaired:
+        if esc:
+            esc = False; continue
+        if ch == '\\' and in_str:
+            esc = True; continue
+        if ch == '"':
+            in_str = not in_str; continue
+        if in_str:
+            continue
+        if ch == '{':
+            depth_c += 1
+        elif ch == '}':
+            depth_c -= 1
+        elif ch == '[':
+            depth_s += 1
+        elif ch == ']':
+            depth_s -= 1
+    # Close an unclosed string value *before* appending structural tokens,
+    # otherwise the closing } / ] would land inside the string.
+    if in_str:
+        repaired += '"'
+    if depth_c > 0:
+        repaired += '}' * depth_c
+    if depth_s > 0:
+        repaired += ']' * depth_s
     return repaired
 
 
@@ -302,8 +322,16 @@ def extract_json(text: str) -> Optional[dict]:
     except json.JSONDecodeError:
         pass
 
-    # 2. Find balanced {...} block
+    # 2. Find balanced {...} block.
+    #    If the output is truncated (no closing }), _find_json_object returns
+    #    None — fall back to everything from the first { onward so the repair
+    #    step can still close the object.
     candidate = _find_json_object(text)
+    if candidate is None:
+        start = text.find("{")
+        if start != -1:
+            candidate = text[start:]
+
     if candidate:
         try:
             return json.loads(candidate)
@@ -315,10 +343,17 @@ def extract_json(text: str) -> Optional[dict]:
             return json.loads(repaired)
         except json.JSONDecodeError:
             pass
-        # 4. Fix invalid JSON escape sequences produced by LaTeX-style output:
-        #    \( \) \cdot \sin \cos → \\( \\) etc.  JSON only allows
-        #    \" \\ \/ \b \f \n \r \t \uXXXX after a backslash.
-        escaped = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', repaired)
+        # 4. Fix LaTeX escape sequences that collide with JSON escape chars.
+        #    \right, \rho  → \r is valid JSON (CR) but wrong here
+        #    \nabla, \nu   → \n is valid JSON (LF) but wrong here
+        #    \theta, \tau  → \t is valid JSON (tab) but wrong here
+        #    \beta         → \b is valid JSON (backspace) but wrong here
+        #    \frac, \forall → \f is valid JSON (form-feed) but wrong here
+        #    Rule: if \x is followed by more letters it's a LaTeX command.
+        pre = re.sub(r'\\([nrtbf])(?=[a-zA-Z])', r'\\\\\1', repaired)
+        # 5. Fix all remaining invalid JSON escape sequences
+        #    (\( \) \cdot \sin \cos etc.)
+        escaped = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', pre)
         try:
             return json.loads(escaped)
         except json.JSONDecodeError:
@@ -696,6 +731,11 @@ def run_baseline(
 # CLI Entry Point
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _safe(s: str) -> str:
+    """Strip control characters that corrupt terminal output (e.g. CR from \\r in LaTeX)."""
+    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', s).replace('\r', '')
+
+
 def _print_result(result: BaselineResult) -> None:
     sep = "─" * 64
     print(f"\n{sep}")
@@ -703,15 +743,15 @@ def _print_result(result: BaselineResult) -> None:
     print(f"Accepted: {result.accepted}  |  Attempts: {result.attempts}  |  Time: {result.elapsed_sec:.1f}s")
     print(f"\nPremises ({len(result.premises)}):")
     for p in result.premises:
-        print(f"  • {p}")
-    print(f"\nGoal: {result.goal}")
+        print(f"  • {_safe(p)}")
+    print(f"\nGoal: {_safe(result.goal)}")
     if result.proof:
         print(f"\nProof ({len(result.proof.steps)} steps):")
         for s in result.proof.steps:
             refs = f"  [refs: {', '.join(s.refs)}]" if s.refs else ""
-            print(f"  {s.step_id}: {s.statement}")
-            print(f"       ↳ {s.justification}{refs}")
-        print(f"\nConclusion: {result.proof.conclusion}")
+            print(f"  {s.step_id}: {_safe(s.statement)}")
+            print(f"       ↳ {_safe(s.justification)}{refs}")
+        print(f"\nConclusion: {_safe(result.proof.conclusion)}")
     blocking = [e for e in result.errors if e.blocking]
     nonblocking = [e for e in result.errors if not e.blocking]
     if blocking:
