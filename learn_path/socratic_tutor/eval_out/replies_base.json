@@ -1,0 +1,379 @@
+{
+  "backend": "base",
+  "results": [
+    {
+      "id": "held_epsilon_delta_square",
+      "split": "held",
+      "problem": "Using the ε-δ definition of a limit, prove that lim_{x -> 2} x^2 = 4.",
+      "reply": "To use the ε-δ definition, we need to show that for every ε > 0, there exists a δ > 0 such that if 0 < |x - 2| < δ, then |x² - 4| < ε.  \n\nWhat is a suitable expression for |x² - 4| in terms of |x - 2|?",
+      "elapsed": 6.267503261566162,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 52,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_squeeze_sin_over_n",
+      "split": "held",
+      "problem": "Prove that the sequence a_n = sin(n)/n converges, and find its limit.",
+      "reply": "What is the limit of sin(n)/n as n approaches infinity? Consider the boundedness of sin(n) and how it behaves compared to 1/n.",
+      "elapsed": 2.5478053092956543,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 22,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_nested_radical_sequence",
+      "split": "held",
+      "problem": "Define a sequence by a_1 = sqrt(2) and a_{n+1} = sqrt(2 + a_n) for n >= 1. Prove that (a_n) converges, and find its limit.",
+      "reply": "We are given a recursively defined sequence: $ a_1 = \\sqrt{2} $, and $ a_{n+1} = \\sqrt{2 + a_n} $.  \n\nFirst, consider whether the sequence is bounded and monotonic. What can you say about the values of $ a_n $ after the first few terms? Try computing $ a_2 $ and $ a_3 $ to get a sense of the behavior. Then think: does the sequence appear to be increasing or decreasing? What would it mean for it to converge?",
+      "elapsed": 8.112267017364502,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 80,
+        "question_count": 3
+      }
+    },
+    {
+      "id": "held_ivt_cubic_root",
+      "split": "held",
+      "problem": "Prove that the equation x^3 - x - 1 = 0 has at least one real root in the open interval (1, 2).",
+      "reply": "Consider the function $ f(x) = x^3 - x - 1 $. What property of continuous functions guarantees that if $ f(a) $ and $ f(b) $ have opposite signs, then there exists a root between $ a $ and $ b $? Apply this idea to the interval $ (1, 2) $.",
+      "elapsed": 5.058241128921509,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 53,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_rolle_zero_derivative",
+      "split": "held",
+      "problem": "Let f be continuous on [0, 2] and differentiable on (0, 2), with f(0) = f(2) = 0. Prove that there exists c in (0, 2) such that f'(c) = 0.",
+      "reply": "The function is continuous on [0, 2] and differentiable on (0, 2), with f(0) = f(2) = 0. What can you say about the behavior of f on this interval given that it starts and ends at zero? Consider what happens if f is not identically zero — how might its values behave in between?",
+      "elapsed": 5.579837322235107,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 55,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "held_heine_cantor_uniform",
+      "split": "held",
+      "problem": "Prove that every continuous function f: [0, 1] -> R is uniformly continuous on [0, 1].",
+      "reply": "What is the definition of uniform continuity for a function f: [0, 1] → ℝ?",
+      "elapsed": 1.705939531326294,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 15,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_basel_p_series_converges",
+      "split": "held",
+      "problem": "Prove that the series sum_{n=1}^{infinity} 1/n^2 converges. (You may use that the partial sums are increasing and bounded.)",
+      "reply": "What does it mean for the partial sums of the series to be increasing and bounded?",
+      "elapsed": 1.4781341552734375,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 16,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_diff_implies_continuous",
+      "split": "held",
+      "problem": "Prove that if a function f: R -> R is differentiable at a point a, then f is continuous at a.",
+      "reply": "To prove this, start with the definition of differentiability at a point. What does it mean for $ f $ to be differentiable at $ a $? Specifically, what expression must hold for $ h \\to 0 $? Then, use that expression to analyze the difference $ f(a+h) - f(a) $. How can you relate this to continuity?",
+      "elapsed": 5.199939012527466,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 58,
+        "question_count": 3
+      }
+    },
+    {
+      "id": "held_mvt_lipschitz_bound",
+      "split": "held",
+      "problem": "Let f: R -> R be differentiable with |f'(x)| <= 1 for all real x. Prove that |f(x) - f(y)| <= |x - y| for all real x and y.",
+      "reply": "What does the Mean Value Theorem say about a differentiable function f between two points x and y?",
+      "elapsed": 1.7093195915222168,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 18,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_integral_mvt",
+      "split": "held",
+      "problem": "Let f: [a, b] -> R be continuous. Prove that there exists a point c in [a, b] such that the integral from a to b of f(x) dx equals f(c) * (b - a).",
+      "reply": "What does the Mean Value Theorem for integrals state about a continuous function and its average value over an interval?",
+      "elapsed": 1.8192260265350342,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 20,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_nth_root_n_limit",
+      "split": "held",
+      "problem": "Prove that lim_{n -> infinity} n^(1/n) = 1.",
+      "reply": "What is the value of $ \\lim_{n \\to \\infty} n^{1/n} $ if you rewrite $ n^{1/n} $ as $ e^{\\ln(n)/n} $? How does the behavior of $ \\frac{\\ln n}{n} $ as $ n \\to \\infty $ affect the exponent?",
+      "elapsed": 5.169252634048462,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 39,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "held_convergent_implies_cauchy",
+      "split": "held",
+      "problem": "Prove that every convergent sequence of real numbers is a Cauchy sequence.",
+      "reply": "To prove that every convergent sequence is Cauchy, start with the definition of convergence: a sequence $(a_n)$ converges to a limit $L$ if for every $\\varepsilon > 0$, there exists an $N$ such that for all $n, m > N$, $|a_n - a_m| < \\varepsilon$.  \n\nNow, consider the definition of a Cauchy sequence: for every $\\varepsilon > 0$, there exists $N$ such that for all $m, n > N$, $|a_m - a_n| < \\varepsilon$.  \n\nWhat does convergence tell you about the terms of the sequence beyond just approaching a limit?",
+      "elapsed": 10.312739372253418,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 90,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_cauchy_summable_differences",
+      "split": "seed",
+      "problem": "Let (a_n) be a sequence of real numbers such that |a_{n+1} - a_n| <= 1/2^n for every n >= 1. Prove that the sequence (a_n) converges.",
+      "reply": "We are given that the absolute difference between consecutive terms is bounded by $ \\frac{1}{2^n} $. What can we say about the total variation of the sequence? Try to bound the sum of $ |a_{n+1} - a_n| $ over all $ n $—what does this imply about the sequence’s behavior?",
+      "elapsed": 5.07023811340332,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 50,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "seed_iterated_map_to_zero",
+      "split": "seed",
+      "problem": "Let f: [0,1] -> [0,1] be continuous, with f(0) = 0 and f(x) < x for all x in (0,1]. Define a sequence by x_0 in [0,1] and x_{n+1} = f(x_n) for n >= 0. Prove that x_n -> 0 as n -> infinity, for any choice of x_0 in [0,1].",
+      "reply": "What can you say about the behavior of the sequence $ x_n $ if $ x_n > 0 $ and $ x_{n+1} = f(x_n) < x_n $? Consider whether the sequence is decreasing and bounded below. What does this imply about its limit?",
+      "elapsed": 4.245152711868286,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 43,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "seed_periodic_two_critical_points",
+      "split": "seed",
+      "problem": "Suppose f: R -> R is differentiable everywhere, periodic with period 1 (that is, f(x+1) = f(x) for all real x), and f is not a constant function. Prove that f' has at least two distinct zeros in the interval [0,1).",
+      "reply": "We are told that $ f $ is differentiable, periodic with period 1, and not constant. Since $ f $ is periodic, its derivative $ f' $ must also be periodic with period 1. What can we say about the behavior of $ f' $ over $[0,1)$? Consider the integral of $ f' $ over one period. How does this relate to the fact that $ f $ is not constant?",
+      "elapsed": 6.487199783325195,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 71,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "seed_nonneg_zero_integral",
+      "split": "seed",
+      "problem": "Let f: [0,1] -> R be continuous, with f(x) >= 0 for all x in [0,1]. Suppose that the integral from 0 to 1 of f(x) dx equals 0. Prove that f(x) = 0 for all x in [0,1].",
+      "reply": "We are given that f is continuous on [0,1], non-negative, and its integral over [0,1] is zero. What does the continuity of f imply about the behavior of f near any point where f(x) > 0?",
+      "elapsed": 3.798647880554199,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 36,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_cauchy_functional_equation",
+      "split": "seed",
+      "problem": "Let f: R -> R be a continuous function such that f(x+y) = f(x) + f(y) for all real numbers x and y. Prove that there exists a constant c such that f(x) = c*x for all x in R.",
+      "reply": "We are given that $ f: \\mathbb{R} \\to \\mathbb{R} $ is continuous and satisfies $ f(x+y) = f(x) + f(y) $ for all $ x, y $. What property of continuous functions does this functional equation imply about the behavior of $ f $ near zero?",
+      "elapsed": 4.85342001914978,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 46,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_recursive_sequence_limit",
+      "split": "seed",
+      "problem": "Define a sequence (a_n) by a_1 = 1 and a_{n+1} = 1/(2 + a_n) for n >= 1. Prove that the sequence (a_n) converges, and find its limit.",
+      "reply": "We are given a recursive sequence defined by $ a_1 = 1 $ and $ a_{n+1} = \\frac{1}{2 + a_n} $. To prove convergence, we should first show that the sequence is bounded and monotonic. What can you say about whether $ a_n $ is increasing or decreasing? Try computing the first few terms to get a sense of its behavior.",
+      "elapsed": 5.935922622680664,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 61,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_uniform_limit_continuous",
+      "split": "seed",
+      "problem": "Let (f_n) be a sequence of continuous functions on [a,b], and suppose f_n converges uniformly to f on [a,b]. Prove that f is continuous on [a,b].",
+      "reply": "We want to show that the limit function $ f $ is continuous. To do this, we need to verify that for any $ x_0 \\in [a,b] $ and any $ \\varepsilon > 0 $, there exists a $ \\delta > 0 $ such that if $ |x - x_0| < \\delta $, then $ |f(x) - f(x_0)| < \\varepsilon $.  \n\nHow can we relate $ |f(x) - f(x_0)| $ to the uniform convergence of $ f_n $ to $ f $?",
+      "elapsed": 8.677342176437378,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 82,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_derivative_limit_average",
+      "split": "seed",
+      "problem": "Let f: [0, infinity) -> R be differentiable, and suppose that lim_{x -> infinity} f'(x) = L for some finite real number L. Prove that lim_{x -> infinity} f(x)/x = L.",
+      "reply": "We are given that $ \\lim_{x \\to \\infty} f'(x) = L $, a finite real number. We want to show $ \\lim_{x \\to \\infty} \\frac{f(x)}{x} = L $.  \n\nWhat does the limit of the derivative being $ L $ tell us about the behavior of $ f(x) $ as $ x \\to \\infty $?  \n\nTry applying the Mean Value Theorem to $ f $ on intervals $[a, x]$ for large $ a $. What does MVT say about $ f(x) - f(a) $?",
+      "elapsed": 9.020697355270386,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 83,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "seed_contraction_unique_fixed_point",
+      "split": "seed",
+      "problem": "Let f: R -> R be a function such that there exists a constant k with 0 < k < 1 satisfying |f(x) - f(y)| <= k|x - y| for all real numbers x and y. Prove that f has exactly one fixed point, i.e., there exists a unique real number p such that f(p) = p.",
+      "reply": "What does the condition |f(x) − f(y)| ≤ k|x − y| with 0 < k < 1 tell you about the behavior of f? Specifically, how does this relate to the function being \"contractive\"?",
+      "elapsed": 3.6168158054351807,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 34,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "seed_gronwall_zero_function",
+      "split": "seed",
+      "problem": "Let f: [0,1] -> R be continuous on [0,1] and differentiable on (0,1), with f(0) = 0. Suppose that |f'(x)| <= |f(x)| for all x in (0,1). Prove that f(x) = 0 for all x in [0,1].",
+      "reply": "We are given that |f'(x)| ≤ |f(x)| for all x in (0,1), and f(0) = 0. What can you say about the behavior of f near x = 0 using this inequality? Consider how the derivative is bounded in terms of the function value itself.",
+      "elapsed": 4.679555416107178,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 45,
+        "question_count": 1
+      }
+    }
+  ]
+}

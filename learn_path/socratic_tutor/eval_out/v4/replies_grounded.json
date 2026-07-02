@@ -1,0 +1,175 @@
+{
+  "backend": "grounded",
+  "results": [
+    {
+      "id": "v4_quotient_monotone",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be differentiable with f(0) = 0, and suppose that f'(x) is (weakly) increasing on (0, infinity). Prove that the function g(x) = f(x) / x is (weakly) increasing on (0, infinity).",
+      "reply": "If you apply the Mean Value Theorem on [0, x] for x > 0, what expression do you get for f(x)?",
+      "elapsed": 36.690659046173096,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 21,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_landau_derivative_bound",
+      "split": "v4",
+      "problem": "Let f: R -> R be twice differentiable, and suppose |f(x)| <= 1 and |f''(x)| <= 1 for all real x. Prove that |f'(x)| <= sqrt(2) for all real x.",
+      "reply": "If you expand $ f(x + h) $ and $ f(x - h) $ using Taylor’s Theorem around $ x $ up to the second order, what terms will cancel when you subtract these expansions?",
+      "elapsed": 87.44688677787781,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 35,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_unif_cont_integrable_to_zero",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be uniformly continuous, and suppose that the improper integral from 0 to infinity of f(x) dx converges to a finite value. Prove that lim_{x -> infinity} f(x) = 0.",
+      "reply": "Given that the improper integral converges, what must hold for $ \\left| \\int_x^{x+\\delta} f(t)\\,dt \\right| $ as $ x \\to \\infty $ with fixed $ \\delta > 0 $?",
+      "elapsed": 102.04337859153748,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 29,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_vanishing_moments_zero",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous, and suppose that the integral from 0 to 1 of x^n * f(x) dx equals 0 for every integer n >= 0. Prove that f(x) = 0 for all x in [0, 1].",
+      "reply": "Given that ∫₀¹ xⁿ f(x) dx = 0 for all integers n ≥ 0, what does linearity of integration imply about ∫₀¹ p(x) f(x) dx when p is any polynomial?",
+      "elapsed": 71.27651166915894,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 30,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_weighted_integral_limit",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous. Prove that lim_{n -> infinity} n * (integral from 0 to 1 of x^n * f(x) dx) = f(1).",
+      "reply": "Given $f$ is continuous at $x=1$, what inequality holds for $|f(x) - f(1)|$ when $x \\in [1-\\delta, 1]$ for some small $\\delta > 0$?",
+      "elapsed": 24.718397617340088,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 24,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_poincare_inequality",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuously differentiable with f(0) = 0. Prove that the integral from 0 to 1 of f(x)^2 dx is at most (1/2) times the integral from 0 to 1 of f'(x)^2 dx.",
+      "reply": "Given $ f(0) = 0 $ and continuous differentiability on $[0,1]$, what expression for $ f(x) $ can you derive using the Fundamental Theorem of Calculus?",
+      "elapsed": 35.23577666282654,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 26,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_series_sqrt_over_n",
+      "split": "v4",
+      "problem": "Let (a_n) be a sequence of nonnegative real numbers such that the series sum_{n=1}^{infinity} a_n converges. Prove that the series sum_{n=1}^{infinity} sqrt(a_n) / n also converges.",
+      "reply": "What inequality relates the square of a finite sum of products $u_n v_n$ to the product of sums $u_n^2$ and $v_n^2$?",
+      "elapsed": 67.83101487159729,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 0,
+        "total": 3,
+        "word_count": 21,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_f_plus_fprime_limit",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be differentiable, and suppose that lim_{x -> infinity} ( f(x) + f'(x) ) = L for some finite real number L. Prove that lim_{x -> infinity} f(x) = L.",
+      "reply": "If you set $ g(x) = f(x) - L $, what does the limit condition $ \\lim_{x \\to \\infty} (g(x) + g'(x)) $ become?",
+      "elapsed": 114.92890119552612,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 24,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_second_derivative_l1_bound",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be twice continuously differentiable with f(0) = f(1) = 0. Prove that the integral from 0 to 1 of |f''(x)| dx is at least 4 times the maximum value of |f(x)| over x in [0, 1].",
+      "reply": "Given that $ f(0) = f(1) = 0 $ and $ |f| $ is continuous on $[0,1]$, where does its positive maximum value $ M $ necessarily occur?",
+      "elapsed": 54.49129056930542,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 28,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_double_index_sum_vanishes",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous with f(0) = 0, and suppose f is differentiable at 0 with f'(0) = 0. Prove that lim_{n -> infinity} sum_{k=1}^{n} f(k / n^2) = 0.",
+      "reply": "Given f'(0) = 0, what inequality must hold for |f(h)| when h > 0 is sufficiently small (for any given ε > 0)?",
+      "elapsed": 104.38096308708191,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 0,
+        "total": 3,
+        "word_count": 23,
+        "question_count": 1
+      }
+    }
+  ]
+}

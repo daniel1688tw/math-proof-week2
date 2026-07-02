@@ -1,0 +1,175 @@
+{
+  "backend": "finetuned",
+  "results": [
+    {
+      "id": "v4_quotient_monotone",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be differentiable with f(0) = 0, and suppose that f'(x) is (weakly) increasing on (0, infinity). Prove that the function g(x) = f(x) / x is (weakly) increasing on (0, infinity).",
+      "reply": "Consider the derivative of g, g'(x) = [x f'(x) - f(x)] / x^2. Since f' is increasing, what does that tell you about the numerator?",
+      "elapsed": 5.19525933265686,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 25,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_landau_derivative_bound",
+      "split": "v4",
+      "problem": "Let f: R -> R be twice differentiable, and suppose |f(x)| <= 1 and |f''(x)| <= 1 for all real x. Prove that |f'(x)| <= sqrt(2) for all real x.",
+      "reply": "Suppose for contradiction that |f'(c)| > sqrt(2) for some c. Since f'' exists everywhere, what does the Mean Value Theorem applied to f' on an interval around c guarantee about how much f can change over that interval, and why does that contradict |f(x)| <= 1?",
+      "elapsed": 8.074448108673096,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 46,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_unif_cont_integrable_to_zero",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be uniformly continuous, and suppose that the improper integral from 0 to infinity of f(x) dx converges to a finite value. Prove that lim_{x -> infinity} f(x) = 0.",
+      "reply": "Fix ε > 0. Uniform continuity lets you choose δ > 0 so that |f(t) - f(s)| < ε/3 whenever |t - s| < δ. How does that let you control how close f(x) must be to 0 as x → ∞?",
+      "elapsed": 7.321197509765625,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 42,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_vanishing_moments_zero",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous, and suppose that the integral from 0 to 1 of x^n * f(x) dx equals 0 for every integer n >= 0. Prove that f(x) = 0 for all x in [0, 1].",
+      "reply": "Suppose for contradiction that f(c) ≠ 0 for some c in [0, 1]. Since f is continuous at c, what does the ε-δ definition guarantee about the values of f on a small open interval around c, and how does that contradict the integral condition?",
+      "elapsed": 7.113085985183716,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 45,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_weighted_integral_limit",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous. Prove that lim_{n -> infinity} n * (integral from 0 to 1 of x^n * f(x) dx) = f(1).",
+      "reply": "Since f is continuous on [0, 1] it is bounded, so |f(x)| ≤ M for all x in [0, 1]. Can you bound the integral ∫₀¹ xⁿ f(x) dx by M/(n+1) and then compute the limit of n times that bound?",
+      "elapsed": 7.881201505661011,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 41,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_poincare_inequality",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuously differentiable with f(0) = 0. Prove that the integral from 0 to 1 of f(x)^2 dx is at most (1/2) times the integral from 0 to 1 of f'(x)^2 dx.",
+      "reply": "Consider the auxiliary function g(x) = f(x)^2. Compute g'(x) using the chain rule, then integrate g' from 0 to 1. What does the Fundamental Theorem of Calculus guarantee about the integral of g'?",
+      "elapsed": 5.865185022354126,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 33,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_series_sqrt_over_n",
+      "split": "v4",
+      "problem": "Let (a_n) be a sequence of nonnegative real numbers such that the series sum_{n=1}^{infinity} a_n converges. Prove that the series sum_{n=1}^{infinity} sqrt(a_n) / n also converges.",
+      "reply": "Since sum a_n converges, what does the limit superior of a_n have to be?",
+      "elapsed": 2.367180347442627,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 14,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_f_plus_fprime_limit",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be differentiable, and suppose that lim_{x -> infinity} ( f(x) + f'(x) ) = L for some finite real number L. Prove that lim_{x -> infinity} f(x) = L.",
+      "reply": "A standard strategy is to show that (f(x) - L) -> 0. Since f'(x) appears in the limit expression, can you first consider the auxiliary function g(x) = f(x) - L, and then show g'(x) -> 0? Does that help?",
+      "elapsed": 7.2148284912109375,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 40,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "v4_second_derivative_l1_bound",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be twice continuously differentiable with f(0) = f(1) = 0. Prove that the integral from 0 to 1 of |f''(x)| dx is at least 4 times the maximum value of |f(x)| over x in [0, 1].",
+      "reply": "Since f(0) = f(1) = 0, the auxiliary function g(x) = f(x) - kx(1-x) might be useful, where k is chosen so that g achieves its maximum absolute value at some interior point. What does that suggest about how to bound |f(x)| in terms of f''?",
+      "elapsed": 8.101228475570679,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 46,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_double_index_sum_vanishes",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous with f(0) = 0, and suppose f is differentiable at 0 with f'(0) = 0. Prove that lim_{n -> infinity} sum_{k=1}^{n} f(k / n^2) = 0.",
+      "reply": "Since f is differentiable at 0 with f'(0) = 0, what does the limit definition of the derivative tell you about f(k/n^2) when k is small compared to n?",
+      "elapsed": 4.914330720901489,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 29,
+        "question_count": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,379 @@
+{
+  "backend": "finetuned",
+  "results": [
+    {
+      "id": "held_epsilon_delta_square",
+      "split": "held",
+      "problem": "Using the ε-δ definition of a limit, prove that lim_{x -> 2} x^2 = 4.",
+      "reply": "To apply the ε-δ definition, we need to show that for every ε > 0, there exists δ > 0 such that |x^2 - 4| < ε whenever 0 < |x - 2| < δ. Can you work out |x^2 - 4| in terms of |x - 2|?",
+      "elapsed": 8.74724817276001,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 48,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_squeeze_sin_over_n",
+      "split": "held",
+      "problem": "Prove that the sequence a_n = sin(n)/n converges, and find its limit.",
+      "reply": "To apply the Squeeze Theorem we need to find two sequences that bound sin(n)/n and converge to the same limit. Can you bound |sin(n)| and then divide by n?",
+      "elapsed": 4.609480142593384,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 29,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_nested_radical_sequence",
+      "split": "held",
+      "problem": "Define a sequence by a_1 = sqrt(2) and a_{n+1} = sqrt(2 + a_n) for n >= 1. Prove that (a_n) converges, and find its limit.",
+      "reply": "To apply the Monotone Convergence Theorem we need the sequence to be bounded and monotone. Can you first show by induction that 0 < a_n <= 2 for all n >= 1?",
+      "elapsed": 5.049024820327759,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 32,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_ivt_cubic_root",
+      "split": "held",
+      "problem": "Prove that the equation x^3 - x - 1 = 0 has at least one real root in the open interval (1, 2).",
+      "reply": "To apply the Intermediate Value Theorem we need the function to be continuous on the closed interval [1, 2] and have opposite signs at the endpoints. Let f(x) = x^3 - x - 1. Compute f(1) and f(2).",
+      "elapsed": 6.5155580043792725,
+      "form": {
+        "has_question": 0,
+        "no_direct_answer": 1,
+        "focused_question": 0,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 3,
+        "word_count": 38,
+        "question_count": 0
+      }
+    },
+    {
+      "id": "held_rolle_zero_derivative",
+      "split": "held",
+      "problem": "Let f be continuous on [0, 2] and differentiable on (0, 2), with f(0) = f(2) = 0. Prove that there exists c in (0, 2) such that f'(c) = 0.",
+      "reply": "Since f(0) = f(2) = 0, the function satisfies the conditions of Rolle's Theorem on the interval [0, 2]. What does Rolle's Theorem guarantee about f' on (0, 2)?",
+      "elapsed": 6.050242185592651,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 29,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_heine_cantor_uniform",
+      "split": "held",
+      "problem": "Prove that every continuous function f: [0, 1] -> R is uniformly continuous on [0, 1].",
+      "reply": "Fix x in [0, 1] and ε > 0. Since f is continuous at x, what does the ε-δ definition guarantee about δ?",
+      "elapsed": 3.8658447265625,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 23,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_basel_p_series_converges",
+      "split": "held",
+      "problem": "Prove that the series sum_{n=1}^{infinity} 1/n^2 converges. (You may use that the partial sums are increasing and bounded.)",
+      "reply": "Since the terms are positive, the sequence of partial sums is increasing. If you can show it's bounded above, that would suffice. For n >= 2, 1/n^2 < 1/n(n-1) = 1/(n-1) - 1/n, so the series telescopes. Does that help?",
+      "elapsed": 7.970580339431763,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 40,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_diff_implies_continuous",
+      "split": "held",
+      "problem": "Prove that if a function f: R -> R is differentiable at a point a, then f is continuous at a.",
+      "reply": "A function f is differentiable at a if the limit lim(h->0) [f(a+h) - f(a)] / h exists. What does this limit represent?",
+      "elapsed": 4.111001253128052,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 22,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_mvt_lipschitz_bound",
+      "split": "held",
+      "problem": "Let f: R -> R be differentiable with |f'(x)| <= 1 for all real x. Prove that |f(x) - f(y)| <= |x - y| for all real x and y.",
+      "reply": "Fix x and y with x < y, and consider the Mean Value Theorem applied to f on the interval [x, y]. What does the Mean Value Theorem guarantee about the value of f'(c) for some c in (x, y), and how does that bound |f(x) - f(y)|?",
+      "elapsed": 7.678949356079102,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 48,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_integral_mvt",
+      "split": "held",
+      "problem": "Let f: [a, b] -> R be continuous. Prove that there exists a point c in [a, b] such that the integral from a to b of f(x) dx equals f(c) * (b - a).",
+      "reply": "Since f is continuous on the closed interval [a, b], the Extreme Value Theorem guarantees that f attains its minimum and maximum values on [a, b]. What are those values?",
+      "elapsed": 4.630218267440796,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 30,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_nth_root_n_limit",
+      "split": "held",
+      "problem": "Prove that lim_{n -> infinity} n^(1/n) = 1.",
+      "reply": "A standard approach is to show \\lim_{n \\to \\infty} \\ln(n^{1/n}) = 0, since \\ln is continuous at 1. What does \\ln(n^{1/n}) equal?",
+      "elapsed": 5.517564058303833,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 22,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "held_convergent_implies_cauchy",
+      "split": "held",
+      "problem": "Prove that every convergent sequence of real numbers is a Cauchy sequence.",
+      "reply": "Fix ε > 0. Since (a_n) converges to L, what does the ε-δ definition guarantee about |a_n - L| for large n?",
+      "elapsed": 4.078772306442261,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 22,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_cauchy_summable_differences",
+      "split": "seed",
+      "problem": "Let (a_n) be a sequence of real numbers such that |a_{n+1} - a_n| <= 1/2^n for every n >= 1. Prove that the sequence (a_n) converges.",
+      "reply": "A standard strategy is to show (a_n) is a Cauchy sequence. For m > n, can you bound |a_m - a_n| by summing the telescoping differences |a_{k+1} - a_k| from k = n to m-1, and then estimate that sum using the geometric series formula?",
+      "elapsed": 8.143842458724976,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 45,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_iterated_map_to_zero",
+      "split": "seed",
+      "problem": "Let f: [0,1] -> [0,1] be continuous, with f(0) = 0 and f(x) < x for all x in (0,1]. Define a sequence by x_0 in [0,1] and x_{n+1} = f(x_n) for n >= 0. Prove that x_n -> 0 as n -> infinity, for any choice of x_0 in [0,1].",
+      "reply": "Since f(x) < x for x in (0,1], the sequence (x_n) is strictly decreasing (when x_0 > 0) and bounded below by 0, so it converges to some limit L. What equation must L satisfy, and why does that force L = 0?",
+      "elapsed": 8.707106113433838,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 43,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_periodic_two_critical_points",
+      "split": "seed",
+      "problem": "Suppose f: R -> R is differentiable everywhere, periodic with period 1 (that is, f(x+1) = f(x) for all real x), and f is not a constant function. Prove that f' has at least two distinct zeros in the interval [0,1).",
+      "reply": "Periodicity gives f(0) = f(1). What does the Mean Value Theorem applied to f on [0, 1] guarantee about f' on (0, 1)?",
+      "elapsed": 5.9618048667907715,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 23,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_nonneg_zero_integral",
+      "split": "seed",
+      "problem": "Let f: [0,1] -> R be continuous, with f(x) >= 0 for all x in [0,1]. Suppose that the integral from 0 to 1 of f(x) dx equals 0. Prove that f(x) = 0 for all x in [0,1].",
+      "reply": "Suppose for contradiction that f(c) > 0 for some c in [0,1]. Since f is continuous at c, what does the ε-δ definition guarantee about the values of f on a small open interval around c, and how does that contradict the integral being zero?",
+      "elapsed": 8.079728841781616,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 45,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_cauchy_functional_equation",
+      "split": "seed",
+      "problem": "Let f: R -> R be a continuous function such that f(x+y) = f(x) + f(y) for all real numbers x and y. Prove that there exists a constant c such that f(x) = c*x for all x in R.",
+      "reply": "Let's build up from the simplest case. Setting x = y = 0 in the functional equation f(x+y) = f(x) + f(y), what does f(0) equal?",
+      "elapsed": 5.622835874557495,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 0,
+        "total": 3,
+        "word_count": 26,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_recursive_sequence_limit",
+      "split": "seed",
+      "problem": "Define a sequence (a_n) by a_1 = 1 and a_{n+1} = 1/(2 + a_n) for n >= 1. Prove that the sequence (a_n) converges, and find its limit.",
+      "reply": "To apply the Monotone Convergence Theorem we need the sequence to be bounded and monotone. Can you first show by induction that 0 < a_n <= 1 for all n >= 1?",
+      "elapsed": 5.656855583190918,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 32,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_uniform_limit_continuous",
+      "split": "seed",
+      "problem": "Let (f_n) be a sequence of continuous functions on [a,b], and suppose f_n converges uniformly to f on [a,b]. Prove that f is continuous on [a,b].",
+      "reply": "Fix x_0 in [a,b] and ε > 0. Uniform convergence lets you choose N so that |f_N(x) - f(x)| < ε/3 for every x in [a,b]. How does the continuity of f_N at x_0 let you complete an ε/3 argument to show |f(x) - f(x_0)| < ε?",
+      "elapsed": 9.15120244026184,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 47,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_derivative_limit_average",
+      "split": "seed",
+      "problem": "Let f: [0, infinity) -> R be differentiable, and suppose that lim_{x -> infinity} f'(x) = L for some finite real number L. Prove that lim_{x -> infinity} f(x)/x = L.",
+      "reply": "Since lim f'(x) = L, for any ε > 0 there is M such that |f'(t) - L| < ε for all t > M. If you apply the Mean Value Theorem to f on the interval [M, x] — rather than [0, x] — what expression do you get for f(x) - f(M), and why does this choice of M matter?",
+      "elapsed": 9.97901725769043,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 62,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_contraction_unique_fixed_point",
+      "split": "seed",
+      "problem": "Let f: R -> R be a function such that there exists a constant k with 0 < k < 1 satisfying |f(x) - f(y)| <= k|x - y| for all real numbers x and y. Prove that f has exactly one fixed point, i.e., there exists a unique real number p such that f(p) = p.",
+      "reply": "Let's first prove uniqueness, since it only takes one line. Suppose f(p) = p and f(q) = q with p ≠ q. What does the contraction condition |f(p) - f(q)| <= k|p - q| say about |p - q|, and why is that a contradiction?",
+      "elapsed": 7.921522855758667,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 45,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "seed_gronwall_zero_function",
+      "split": "seed",
+      "problem": "Let f: [0,1] -> R be continuous on [0,1] and differentiable on (0,1), with f(0) = 0. Suppose that |f'(x)| <= |f(x)| for all x in (0,1). Prove that f(x) = 0 for all x in [0,1].",
+      "reply": "Consider the auxiliary function g(x) = e^{-x} f(x). Compute g'(x) using the product rule, then use |f'(x)| <= |f(x)| to bound |g'(x)|. What does that bound tell you about how g can change?",
+      "elapsed": 7.86392068862915,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 33,
+        "question_count": 1
+      }
+    }
+  ]
+}

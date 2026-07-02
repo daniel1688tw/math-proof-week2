@@ -1,0 +1,175 @@
+{
+  "backend": "finetuned_grounded",
+  "results": [
+    {
+      "id": "v4_quotient_monotone",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be differentiable with f(0) = 0, and suppose that f'(x) is (weakly) increasing on (0, infinity). Prove that the function g(x) = f(x) / x is (weakly) increasing on (0, infinity).",
+      "reply": "To prove that \\( g(x) = \\frac{f(x)}{x} \\) is weakly increasing on \\( (0, \\infty) \\), we can compute its derivative and show that \\( g'(x) \\geq 0 \\) for all \\( x > 0 \\). Since \\( f \\) is differentiable and \\( f(0) = 0 \\), the quotient rule applies. Compute \\( g'(x) \\) and then use the fact that \\( f' \\) is weakly increasing to show \\( g'(x) \\geq 0 \\). Does that make sense?",
+      "elapsed": 17.4178729057312,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 79,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_landau_derivative_bound",
+      "split": "v4",
+      "problem": "Let f: R -> R be twice differentiable, and suppose |f(x)| <= 1 and |f''(x)| <= 1 for all real x. Prove that |f'(x)| <= sqrt(2) for all real x.",
+      "reply": "Let's build up from the simplest case. Suppose f is constant, so f' = 0 everywhere. Does that satisfy the hypotheses? And what does that tell you about |f'(x)|?",
+      "elapsed": 6.007570743560791,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 29,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "v4_unif_cont_integrable_to_zero",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be uniformly continuous, and suppose that the improper integral from 0 to infinity of f(x) dx converges to a finite value. Prove that lim_{x -> infinity} f(x) = 0.",
+      "reply": "Fix ε > 0. Uniform continuity lets you choose δ so that |f(x) - f(y)| < ε/3 when |x - y| < δ. How does that let you control how much f can oscillate as x → ∞?",
+      "elapsed": 7.096715450286865,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 38,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_vanishing_moments_zero",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous, and suppose that the integral from 0 to 1 of x^n * f(x) dx equals 0 for every integer n >= 0. Prove that f(x) = 0 for all x in [0, 1].",
+      "reply": "Since the integral of x^n f(x) dx is zero for all n >= 0, the function f is orthogonal to every monomial x^n on [0, 1]. Can you use the Weierstrass Approximation Theorem — which guarantees that the polynomials are dense in the space of continuous functions on [0, 1] under the uniform norm — to show that the integral of f squared must be zero?",
+      "elapsed": 10.94489049911499,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 66,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_weighted_integral_limit",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous. Prove that lim_{n -> infinity} n * (integral from 0 to 1 of x^n * f(x) dx) = f(1).",
+      "reply": "Fix ε > 0. Since f is continuous at x = 1, there is δ ∈ (0, 1) such that |f(x) - f(1)| < ε/3 for all x ∈ [1 - δ, 1]. How does the behavior of x^n change as n increases, and why does that matter?",
+      "elapsed": 10.985635995864868,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 48,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_poincare_inequality",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuously differentiable with f(0) = 0. Prove that the integral from 0 to 1 of f(x)^2 dx is at most (1/2) times the integral from 0 to 1 of f'(x)^2 dx.",
+      "reply": "Since f(0) = 0, the Fundamental Theorem of Calculus gives f(x) = ∫₀ˣ f'(t) dt. Does that help?",
+      "elapsed": 5.047957897186279,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 0,
+        "total": 3,
+        "word_count": 18,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_series_sqrt_over_n",
+      "split": "v4",
+      "problem": "Let (a_n) be a sequence of nonnegative real numbers such that the series sum_{n=1}^{infinity} a_n converges. Prove that the series sum_{n=1}^{infinity} sqrt(a_n) / n also converges.",
+      "reply": "Since sum a_n converges, what does the limit comparison test tell you about the behavior of a_n?",
+      "elapsed": 4.1524577140808105,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 17,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_f_plus_fprime_limit",
+      "split": "v4",
+      "problem": "Let f: [0, infinity) -> R be differentiable, and suppose that lim_{x -> infinity} ( f(x) + f'(x) ) = L for some finite real number L. Prove that lim_{x -> infinity} f(x) = L.",
+      "reply": "A standard strategy is to consider the auxiliary function g(x) = e^x f(x). Compute g'(x) using the product rule, then use lim g'(x) = ? to analyze how g(x) behaves as x → ∞. What does g'(x) equal?",
+      "elapsed": 8.72420358657837,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 0,
+        "concise": 1,
+        "total": 4,
+        "word_count": 38,
+        "question_count": 2
+      }
+    },
+    {
+      "id": "v4_second_derivative_l1_bound",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be twice continuously differentiable with f(0) = f(1) = 0. Prove that the integral from 0 to 1 of |f''(x)| dx is at least 4 times the maximum value of |f(x)| over x in [0, 1].",
+      "reply": "Since f(0) = f(1) = 0 and f is twice continuously differentiable, the maximum of |f| on [0, 1] must occur at some interior point c ∈ (0, 1). Can you use the Mean Value Theorem for derivatives — applied to f' — to bound f(c) in terms of f''?",
+      "elapsed": 10.484935760498047,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 1,
+        "total": 5,
+        "word_count": 50,
+        "question_count": 1
+      }
+    },
+    {
+      "id": "v4_double_index_sum_vanishes",
+      "split": "v4",
+      "problem": "Let f: [0, 1] -> R be continuous with f(0) = 0, and suppose f is differentiable at 0 with f'(0) = 0. Prove that lim_{n -> infinity} sum_{k=1}^{n} f(k / n^2) = 0.",
+      "reply": "Since f is differentiable at 0 with f'(0) = 0, what does the definition of the derivative limit tell you about how f(h) behaves as h -> 0+?",
+      "elapsed": 6.2436723709106445,
+      "form": {
+        "has_question": 1,
+        "no_direct_answer": 1,
+        "focused_question": 1,
+        "uses_math_terms": 1,
+        "concise": 0,
+        "total": 4,
+        "word_count": 28,
+        "question_count": 1
+      }
+    }
+  ]
+}

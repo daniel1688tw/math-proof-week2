@@ -1,0 +1,16 @@
+# 大型模型權重與量化檔（不進 repo，本機/HF Hub 管理）
+learn_path/socratic_tutor/qwen3_4b/
+gguf/
+*.gguf
+
+# LoRA adapter 權重（>100MB，超過 GitHub 單檔硬限制；程式碼與資料集已足夠重現訓練）
+qlora_adapter/
+qlora_adapter_v2/
+qlora_adapter_v3/
+*.safetensors
+
+# Python
+__pycache__/
+*.pyc
+
+# 訓練/評估 log（體積小可留，但中途產生的可忽略）
