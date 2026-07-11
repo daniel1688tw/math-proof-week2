@@ -30,8 +30,8 @@ sys.path.insert(0, str(HERE))
 from build import SYSTEM_TEMPLATE  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / "qlora_adapter_v3"
-OUT_DIR = HERE / "eval_out_v3"
+ADAPTER_DIR = HERE / os.environ.get("HELDOUT_ADAPTER", "qlora_adapter_v3")
+OUT_DIR = HERE / os.environ.get("HELDOUT_OUT", "eval_out_v3")
 
 SCENARIOS = {
     "S1_first": lambda p, a: f"題目：{p['statement']}\n\n我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？",

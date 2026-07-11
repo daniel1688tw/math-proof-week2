@@ -4,13 +4,18 @@ gguf/
 *.gguf
 
 # LoRA adapter 權重（>100MB，超過 GitHub 單檔硬限制；程式碼與資料集已足夠重現訓練）
+# 用萬用字元涵蓋所有版本（v2、v3、v4、v5…），避免每次新版本都要手動補規則。
 qlora_adapter/
-qlora_adapter_v2/
-qlora_adapter_v3/
+qlora_adapter_v*/
 *.safetensors
 
 # Python
 __pycache__/
 *.pyc
 
-# 訓練/評估 log（體積小可留，但中途產生的可忽略）
+# Claude Code 本機設定（不含機密，但屬個人環境設定，不應進 repo）
+.claude/
+
+# 訓練/評估 log 與打包產物（zip 可用 git archive 重新產生）
+*.log
+*.zip

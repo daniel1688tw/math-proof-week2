@@ -1,0 +1,62 @@
+[
+  {
+    "problem_id": "cauchy_sequence_summable_differences",
+    "topic": "sequences",
+    "difficulty": "hard",
+    "raw_problem": "Let (a_n) be a sequence of real numbers such that |a_{n+1} - a_n| <= 1/2^n for every n >= 1. Prove that the sequence (a_n) converges."
+  },
+  {
+    "problem_id": "iterated_map_converges_to_zero",
+    "topic": "dynamical_systems",
+    "difficulty": "hard",
+    "raw_problem": "Let f: [0,1] -> [0,1] be continuous, with f(0) = 0 and f(x) < x for all x in (0,1]. Define a sequence by x_0 in [0,1] and x_{n+1} = f(x_n) for n >= 0. Prove that x_n -> 0 as n -> infinity, for any choice of x_0 in [0,1]."
+  },
+  {
+    "problem_id": "periodic_function_two_critical_points",
+    "topic": "derivatives",
+    "difficulty": "hard",
+    "raw_problem": "Suppose f: R -> R is differentiable everywhere, periodic with period 1 (that is, f(x+1) = f(x) for all real x), and f is not a constant function. Prove that f' has at least two distinct zeros in the interval [0,1)."
+  },
+  {
+    "problem_id": "nonnegative_continuous_zero_integral",
+    "topic": "integration",
+    "difficulty": "hard",
+    "raw_problem": "Let f: [0,1] -> R be continuous, with f(x) >= 0 for all x in [0,1]. Suppose that the integral from 0 to 1 of f(x) dx equals 0. Prove that f(x) = 0 for all x in [0,1]."
+  },
+  {
+    "problem_id": "cauchy_functional_equation_continuous",
+    "topic": "functional_equations",
+    "difficulty": "hard",
+    "raw_problem": "Let f: R -> R be a continuous function such that f(x+y) = f(x) + f(y) for all real numbers x and y. Prove that there exists a constant c such that f(x) = c*x for all x in R."
+  },
+  {
+    "problem_id": "recursive_sequence_convergence",
+    "topic": "sequences",
+    "difficulty": "hard",
+    "raw_problem": "Define a sequence (a_n) by a_1 = 1 and a_{n+1} = 1/(2 + a_n) for n >= 1. Prove that the sequence (a_n) converges, and find its limit."
+  },
+  {
+    "problem_id": "uniform_limit_continuous",
+    "topic": "continuity",
+    "difficulty": "hard",
+    "raw_problem": "Let (f_n) be a sequence of continuous functions on [a,b], and suppose f_n converges uniformly to f on [a,b]. Prove that f is continuous on [a,b]."
+  },
+  {
+    "problem_id": "derivative_limit_implies_average_limit",
+    "topic": "limits",
+    "difficulty": "hard",
+    "raw_problem": "Let f: [0, infinity) -> R be differentiable, and suppose that lim_{x -> infinity} f'(x) = L for some finite real number L. Prove that lim_{x -> infinity} f(x)/x = L."
+  },
+  {
+    "problem_id": "contraction_unique_fixed_point",
+    "topic": "fixed_point",
+    "difficulty": "hard",
+    "raw_problem": "Let f: R -> R be a function such that there exists a constant k with 0 < k < 1 satisfying |f(x) - f(y)| <= k|x - y| for all real numbers x and y. Prove that f has exactly one fixed point, i.e., there exists a unique real number p such that f(p) = p."
+  },
+  {
+    "problem_id": "gronwall_zero_function",
+    "topic": "derivatives",
+    "difficulty": "hard",
+    "raw_problem": "Let f: [0,1] -> R be continuous on [0,1] and differentiable on (0,1), with f(0) = 0. Suppose that |f'(x)| <= |f(x)| for all x in (0,1). Prove that f(x) = 0 for all x in [0,1]."
+  }
+]

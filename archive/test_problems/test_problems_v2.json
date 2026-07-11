@@ -1,0 +1,62 @@
+[
+  {
+    "problem_id": "squeeze_epsilon_delta_oscillation",
+    "topic": "limits",
+    "difficulty": "hard",
+    "raw_problem": "Using the epsilon-delta definition of a limit, prove that lim_{x->0} x^2 sin(1/x) = 0."
+  },
+  {
+    "problem_id": "product_rule_from_definition",
+    "topic": "derivatives",
+    "difficulty": "hard",
+    "raw_problem": "Using the limit definition of the derivative, prove the product rule: if f and g are both differentiable at x, then (fg)'(x) = f'(x)g(x) + f(x)g'(x)."
+  },
+  {
+    "problem_id": "rolle_theorem_proof",
+    "topic": "theorems",
+    "difficulty": "hard",
+    "raw_problem": "Prove Rolle's Theorem: if f is continuous on [a,b], differentiable on (a,b), and f(a) = f(b), then there exists c in (a,b) such that f'(c) = 0. You may use the Extreme Value Theorem and Fermat's Theorem on local extrema."
+  },
+  {
+    "problem_id": "mean_value_theorem_proof",
+    "topic": "theorems",
+    "difficulty": "hard",
+    "raw_problem": "Prove the Mean Value Theorem: if f is continuous on [a,b] and differentiable on (a,b), then there exists c in (a,b) such that f'(c) = (f(b) - f(a)) / (b - a). You may use Rolle's Theorem."
+  },
+  {
+    "problem_id": "induction_power_rule",
+    "topic": "derivatives",
+    "difficulty": "hard",
+    "raw_problem": "Using mathematical induction and the product rule, prove that d/dx(x^n) = n x^{n-1} for every positive integer n."
+  },
+  {
+    "problem_id": "abs_value_nondifferentiable",
+    "topic": "derivatives",
+    "difficulty": "medium",
+    "raw_problem": "Using the limit definition of the derivative, prove that f(x) = |x| is not differentiable at x = 0."
+  },
+  {
+    "problem_id": "monotonicity_from_derivative",
+    "topic": "theorems",
+    "difficulty": "medium",
+    "raw_problem": "Let f be differentiable on the open interval (a,b) with f'(x) > 0 for all x in (a,b). Using the Mean Value Theorem, prove that f is strictly increasing on (a,b)."
+  },
+  {
+    "problem_id": "lhopital_rule_proof",
+    "topic": "theorems",
+    "difficulty": "hard",
+    "raw_problem": "Prove L'Hopital's Rule for the 0/0 case: if f and g are differentiable on an open interval containing a (except possibly at a), f(a) = g(a) = 0, g'(x) is nonzero for x near a with x != a, and lim_{x->a} f'(x)/g'(x) = L exists, then lim_{x->a} f(x)/g(x) = L. You may use Cauchy's Mean Value Theorem."
+  },
+  {
+    "problem_id": "harmonic_series_divergence",
+    "topic": "series",
+    "difficulty": "hard",
+    "raw_problem": "Prove that the series sum_{n=1}^infinity 1/n diverges."
+  },
+  {
+    "problem_id": "monotone_convergence_theorem",
+    "topic": "sequences",
+    "difficulty": "hard",
+    "raw_problem": "Prove that every bounded, monotonically increasing sequence of real numbers converges. You may use the completeness axiom: every nonempty set of real numbers that is bounded above has a least upper bound."
+  }
+]

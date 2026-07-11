@@ -1,0 +1,246 @@
+﻿model,problem_id,topic,difficulty,total_score,has_question,no_direct_answer,focused_question,uses_math_terms,concise,word_count,question_count,elapsed_s,snippet,full_response
+base,cauchy_sequence_summable_differences,sequences,hard,5,1,1,1,1,1,193,2,21.3,"Great! We're given a sequence $(a_n)$ of real numbers such that:  $$ |a_{n+1} - a_n| \leq \frac{1}{2^n} \quad \text{for all } n \geq 1. $$  We are to **prove that $(a_n)$ converges**.  ---  Now, since we're dealing with …","Great! We're given a sequence $(a_n)$ of real numbers such that:
+
+$$
+|a_{n+1} - a_n| \leq \frac{1}{2^n} \quad \text{for all } n \geq 1.
+$$
+
+We are to **prove that $(a_n)$ converges**.
+
+---
+
+Now, since we're dealing with a sequence where the differences between consecutive terms are bounded by a rapidly decreasing sequence, it seems plausible that the sequence doesn't ""oscillate"" too much — maybe it's getting closer together as $n$ increases.
+
+A good strategy in such cases is to consider the **difference between terms** and show that the sequence is *Cauchy*, because any Cauchy sequence in $\mathbb{R}$ converges.
+
+So, let’s think: How can we bound $|a_m - a_n|$ for $m > n$?
+
+That would give us a way to show that the sequence satisfies the Cauchy criterion.
+
+So, to proceed, perhaps we should first consider the sum of the absolute differences from $n$ to some later index.
+
+Can you recall how to express $a_m - a_n$ in terms of the differences $a_{k+1} - a_k$?
+
+Yes — since each term is built from the previous one, we can write:
+
+$$
+a_m = a_n + \sum_{k=n}^{m-1} (a_{k+1} - a_k)
+$$
+
+Therefore,
+
+$$
+|a_m -"
+base,iterated_map_converges_to_zero,dynamical_systems,hard,3,0,1,0,1,1,203,0,22.0,"Great! We're given a continuous function $ f: [0,1] \to [0,1] $ such that:  - $ f(0) = 0 $ - $ f(x) < x $ for all $ x \in (0,1] $  And we define a sequence recursively by: $$ x_0 \in [0,1], \quad x_{n+1} = f(x_n) $$  We …","Great! We're given a continuous function $ f: [0,1] \to [0,1] $ such that:
+
+- $ f(0) = 0 $
+- $ f(x) < x $ for all $ x \in (0,1] $
+
+And we define a sequence recursively by:
+$$
+x_0 \in [0,1], \quad x_{n+1} = f(x_n)
+$$
+
+We are to **prove that $ x_n \to 0 $** as $ n \to \infty $, regardless of the initial value $ x_0 \in [0,1] $.
+
+---
+
+Let’s begin by thinking about what this sequence does.
+
+Since $ f(x) < x $ for all $ x \in (0,1] $, each term in the sequence is strictly less than the previous one — provided $ x_n > 0 $. That suggests the sequence might be decreasing.
+
+But we need to be careful: if $ x_0 = 0 $, then $ x_1 = f(0) = 0 $, so the sequence is constant at 0. So in that case, clearly $ x_n \to 0 $.
+
+So suppose $ x_0 > 0 $. Then since $ f(x) < x $, we get $ x_1 = f(x_0) < x_0 $. Then $ x_2 = f(x_1) < x_1 $, and so on. So the sequence seems to be strictly decreasing."
+base,periodic_function_two_critical_points,derivatives,hard,5,1,1,1,1,1,217,3,19.6,"Great! We're given a differentiable, periodic function $ f: \mathbb{R} \to \mathbb{R} $ with period 1, so $ f(x+1) = f(x) $ for all $ x $, and we're told that $ f $ is **not constant**.  We are to prove that its derivati…","Great! We're given a differentiable, periodic function $ f: \mathbb{R} \to \mathbb{R} $ with period 1, so $ f(x+1) = f(x) $ for all $ x $, and we're told that $ f $ is **not constant**.
+
+We are to prove that its derivative $ f' $ has **at least two distinct zeros** in the interval $[0,1)$.
+
+Let’s begin by thinking about what it means for a function to be periodic and differentiable.
+
+Since $ f $ is differentiable everywhere, its derivative $ f' $ exists at every point.
+
+Because $ f $ is periodic with period 1, we might expect some symmetry or repetition in its derivative as well.
+
+Now, since $ f $ is not constant, we know that it must vary over the interval $[0,1)$ — otherwise it would be constant everywhere.
+
+But how does that relate to the derivative?
+
+What happens to the derivative under periodicity?
+
+Let’s consider the behavior of $ f $ over $[0,1]$. Since it's periodic, $ f(0) = f(1) $. Is that true?
+
+Yes — because $ f(x+1) = f(x) $, so setting $ x = 0 $, we get $ f(1) = f(0) $.
+
+So $ f(0) = f(1) $.
+
+Now, $ f $ is differentiable, so in particular continuous.
+
+So we have a continuous function on $["
+base,nonnegative_continuous_zero_integral,integration,hard,4,1,1,0,1,1,219,8,19.7,"We are given:  - $ f: [0,1] \to \mathbb{R} $ is **continuous**, - $ f(x) \geq 0 $ for all $ x \in [0,1] $, - $ \int_0^1 f(x)\,dx = 0 $.  We are to prove that $ f(x) = 0 $ for all $ x \in [0,1] $.  Now, since $ f $ is con…","We are given:
+
+- $ f: [0,1] \to \mathbb{R} $ is **continuous**,
+- $ f(x) \geq 0 $ for all $ x \in [0,1] $,
+- $ \int_0^1 f(x)\,dx = 0 $.
+
+We are to prove that $ f(x) = 0 $ for all $ x \in [0,1] $.
+
+Now, since $ f $ is continuous and non-negative, and its integral over $[0,1]$ is zero, what can you say about the values of $ f(x) $?
+
+Try this: What would happen if $ f(x) > 0 $ for some $ x $ in $[0,1]$? Can you use continuity to show that this leads to a contradiction with the integral being zero?
+
+But first—what does it mean for a continuous function to have a non-negative integral equal to zero? Can you think of a basic property of integrals involving continuous functions?
+
+Let’s go step by step.  
+
+Since $ f $ is continuous on a closed interval, what can we say about its minimum value?  
+
+And since $ f(x) \geq 0 $, what does that tell us about how the area under the curve behaves?  
+
+Can you think of a key fact from calculus that connects continuity, non-negativity, and the integral being zero?  
+
+Try this: Suppose that $ f(x) > 0 $ somewhere. What would that imply about the value of"
+base,cauchy_functional_equation_continuous,functional_equations,hard,5,1,1,1,1,1,138,2,13.2,"Great! We're given that $ f: \mathbb{R} \to \mathbb{R} $ is **continuous** and satisfies the functional equation:  $$ f(x+y) = f(x) + f(y) \quad \text{for all } x, y \in \mathbb{R}. $$  We are to prove that there exists …","Great! We're given that $ f: \mathbb{R} \to \mathbb{R} $ is **continuous** and satisfies the functional equation:
+
+$$
+f(x+y) = f(x) + f(y) \quad \text{for all } x, y \in \mathbb{R}.
+$$
+
+We are to prove that there exists a constant $ c $ such that $ f(x) = c x $ for all $ x $.
+
+---
+
+First, let’s think about what this functional equation means.
+
+What can we say about $ f(0) $? Try plugging in specific values.
+
+Try setting $ x = 0 $ and $ y = 0 $. What happens?
+
+Go ahead — plug in $ x = 0 $, $ y = 0 $ into the equation and see what you get. Then use that to find $ f(0) $. 
+
+(Keep in mind: this is a key step in many functional equations.)"
+base,recursive_sequence_convergence,sequences,hard,5,1,1,1,1,1,157,1,20.9,"Great! Let's begin by understanding the behavior of this sequence.  We are given:  - $ a_1 = 1 $ - $ a_{n+1} = \frac{1}{2 + a_n} $ for $ n \geq 1 $  Our goal is to **prove that $ (a_n) $ converges**, and then **find its …","Great! Let's begin by understanding the behavior of this sequence.
+
+We are given:
+
+- $ a_1 = 1 $
+- $ a_{n+1} = \frac{1}{2 + a_n} $ for $ n \geq 1 $
+
+Our goal is to **prove that $ (a_n) $ converges**, and then **find its limit**.
+
+---
+
+First, let’s think: how can we prove a sequence converges?
+
+One standard approach is to show that the sequence is **monotonic** (either increasing or decreasing) and **bounded**. Then, by the Monotone Convergence Theorem, it must converge.
+
+So, let’s first check whether the sequence is bounded.
+
+Try computing the first few terms to get a sense:
+
+- $ a_1 = 1 $
+- $ a_2 = \frac{1}{2 + 1} = \frac{1}{3} \approx 0.333 $
+- $ a_3 = \frac{1}{2 + \frac{1}{3}} = \frac{1}{\frac{7}{3}} = \frac{3}{7} \approx 0.4286 $
+- $ a_4 = \frac{1}{2 + \frac{3}{7}} = \frac{1}{\frac{17}{7}} = \frac{7}{17} \approx 0.4118 $
+- $ a_5 = \frac{1}{2 + \"
+base,uniform_limit_continuous,continuity,hard,4,1,1,0,1,1,188,4,20.1,"Great! You're working with a classic uniform convergence result. Let's think through this step by step.  We are given:  - A sequence $(f_n)$ of **continuous** functions on $[a, b]$, - $f_n$ **converges uniformly** to $f$…","Great! You're working with a classic uniform convergence result. Let's think through this step by step.
+
+We are given:
+
+- A sequence $(f_n)$ of **continuous** functions on $[a, b]$,
+- $f_n$ **converges uniformly** to $f$ on $[a, b]$.
+
+We are to prove that the limit function $f$ is **continuous** on $[a, b]$.
+
+Now, to show continuity of $f$, we need to prove that for any point $x_0 \in [a, b]$, and for any $\varepsilon > 0$, there exists a $\delta > 0$ such that if $|x - x_0| < \delta$, then $|f(x) - f(x_0)| < \varepsilon$.
+
+So, how can we connect the uniform convergence of $f_n$ to continuity?
+
+What property of uniform convergence allows us to ""preserve"" continuity from the $f_n$'s?
+
+Try this: Fix a point $x_0 \in [a, b]$. Since each $f_n$ is continuous, and the convergence is uniform, maybe we can use the definition of uniform convergence to control how close $f_n(x)$ is to $f_n(x_0)$, and then relate that to $f(x)$ and $f(x_0)$.
+
+Can you recall the definition of uniform convergence? Specifically, what does it mean that $f_n \to f$ uniformly?
+
+Yes — for every $\"
+base,derivative_limit_implies_average_limit,limits,hard,5,1,1,1,1,1,218,2,19.7,"Great! We're given that $ f: [0, \infty) \to \mathbb{R} $ is differentiable, and that $ \lim_{x \to \infty} f'(x) = L $, where $ L $ is a finite real number. We are to prove that:  $$ \lim_{x \to \infty} \frac{f(x)}{x} =…","Great! We're given that $ f: [0, \infty) \to \mathbb{R} $ is differentiable, and that $ \lim_{x \to \infty} f'(x) = L $, where $ L $ is a finite real number. We are to prove that:
+
+$$
+\lim_{x \to \infty} \frac{f(x)}{x} = L.
+$$
+
+Now, let’s think about this carefully.
+
+We know something about the derivative of $ f $ at infinity — it approaches a limit $ L $. But we’re being asked about the behavior of $ \frac{f(x)}{x} $ as $ x \to \infty $. This looks like a ratio involving growth rate.
+
+What does it mean for $ f'(x) \to L $? It means that for large $ x $, the slope of $ f $ is close to $ L $. So intuitively, $ f(x) $ behaves like $ Lx $ for large $ x $, and thus $ \frac{f(x)}{x} \to L $.
+
+But we need to **prove** this rigorously.
+
+A good idea might be to use the **Mean Value Theorem**, because it relates the value of $ f $ over an interval to its derivative.
+
+So, consider $ x > 0 $. For each $ x $, apply the MVT on the interval $ [0, x] $. What does that tell us?
+
+Can you write $ f(x) $ in terms of $"
+base,contraction_unique_fixed_point,fixed_point,hard,5,1,1,1,1,1,211,2,19.7,"Great! You're working with a function that satisfies a **contraction condition**:  $$ |f(x) - f(y)| \leq k|x - y| \quad \text{for all } x, y \in \mathbb{R}, \text{ with } 0 < k < 1. $$  This is a classic setup for applyi…","Great! You're working with a function that satisfies a **contraction condition**:
+
+$$
+|f(x) - f(y)| \leq k|x - y| \quad \text{for all } x, y \in \mathbb{R}, \text{ with } 0 < k < 1.
+$$
+
+This is a classic setup for applying the **Contraction Mapping Theorem** (also known as the Banach Fixed Point Theorem). But since you're asked to *prove* that $ f $ has exactly one fixed point, let's proceed step-by-step.
+
+First, what does it mean for a function to have a **fixed point**?
+
+> A fixed point $ p $ satisfies $ f(p) = p $.
+
+We want to show that such a point exists and is **unique**.
+
+Let’s begin with existence.
+
+---
+
+**Step 1**: Consider the behavior of $ f $. Since $ |f(x) - f(y)| \leq k|x - y| $, this means $ f $ is **Lipschitz continuous** with constant $ k < 1 $. This kind of function is called a **contraction mapping**.
+
+Now, to show existence of a fixed point, we can try to *construct* a sequence that converges to a fixed point.
+
+But before that—what happens if we pick any starting point $ x_0 \in \mathbb{R} $, and define a sequence recursively via $ x_{n+1} = f(x_n) $? That might converge to a"
+base,gronwall_zero_function,derivatives,hard,5,1,1,1,1,1,201,2,19.7,"We are given:  - $ f: [0,1] \to \mathbb{R} $ is continuous on $[0,1]$ and differentiable on $(0,1)$, - $ f(0) = 0 $, - $ |f'(x)| \leq |f(x)| $ for all $ x \in (0,1) $.  We are to prove that $ f(x) = 0 $ for all $ x \in […","We are given:
+
+- $ f: [0,1] \to \mathbb{R} $ is continuous on $[0,1]$ and differentiable on $(0,1)$,
+- $ f(0) = 0 $,
+- $ |f'(x)| \leq |f(x)| $ for all $ x \in (0,1) $.
+
+We are to prove that $ f(x) = 0 $ for all $ x \in [0,1] $.
+
+---
+
+Let’s begin by thinking about what this condition means.
+
+We know from the Mean Value Theorem or standard differential inequalities that if $ |f'(x)| \leq |f(x)| $, then the function grows or shrinks slowly relative to itself.
+
+But since $ f(0) = 0 $, maybe we can consider whether $ f(x) $ can be nonzero anywhere.
+
+Suppose, for contradiction, that there exists some $ x_0 \in (0,1] $ such that $ f(x_0) \neq 0 $. What would that imply?
+
+Can we derive a contradiction from this assumption?
+
+Alternatively, consider the behavior of $ f(x) $ near zero.
+
+Since $ f(0) = 0 $, and we have a bound involving $ |f'(x)| $ and $ |f(x)| $, perhaps we can use an argument involving the maximum value of $ |f(x)| $, or consider using an integrating factor or a substitution.
+
+But let's go slow.
+
+Try this: suppose"
+finetuned,cauchy_sequence_summable_differences,sequences,hard,2,0,1,0,1,0,24,0,3.9,Let us consider the sequence (b_n) defined by b_n = a_n - a_1. Show that this sequence satisfies the same condition as (a_n) does.,Let us consider the sequence (b_n) defined by b_n = a_n - a_1. Show that this sequence satisfies the same condition as (a_n) does.
+finetuned,iterated_map_converges_to_zero,dynamical_systems,hard,5,1,1,1,1,1,76,1,11.0,"Let's suppose that there is some x* such that x* > 0 and x*_n = x* for all n >= N for some N. Then we know that x* = f(x*) > 0, but this contradicts the fact that f(x) < x for all x in (0,1]. So we must have that x_n -> …","Let's suppose that there is some x* such that x* > 0 and x*_n = x* for all n >= N for some N. Then we know that x* = f(x*) > 0, but this contradicts the fact that f(x) < x for all x in (0,1]. So we must have that x_n -> 0 as n -> infinity for any choice of x_0 in [0,1].
+
+Not quite right. Can you tell me what you did?"
+finetuned,periodic_function_two_critical_points,derivatives,hard,3,1,1,1,0,0,10,1,1.3,"Hi , could you please walk me through your solution?","Hi , could you please walk me through your solution?"
+finetuned,nonnegative_continuous_zero_integral,integration,hard,3,1,1,1,0,0,4,1,0.7,What does this mean?,What does this mean?
+finetuned,cauchy_functional_equation_continuous,functional_equations,hard,3,1,1,1,0,0,9,1,1.3,"Hi Seth, can you walk me through your solution?","Hi Seth, can you walk me through your solution?"
+finetuned,recursive_sequence_convergence,sequences,hard,3,1,1,1,0,0,10,1,1.3,"Hi , could you please walk me through your solution?","Hi , could you please walk me through your solution?"
+finetuned,uniform_limit_continuous,continuity,hard,3,1,1,1,0,0,8,1,1.4,Hi Ronny.  Please talk me through your solution?,Hi Ronny.  Please talk me through your solution?
+finetuned,derivative_limit_implies_average_limit,limits,hard,3,1,1,1,0,0,7,1,1.1,"Hi Jian, can you explain your answer?","Hi Jian, can you explain your answer?"
+finetuned,contraction_unique_fixed_point,fixed_point,hard,3,1,1,1,0,0,7,1,1.4,"Hi Alejandra, talk me through your solution?","Hi Alejandra, talk me through your solution?"
+finetuned,gronwall_zero_function,derivatives,hard,3,1,1,1,0,0,10,1,1.7,"Hello Alejandra, please can you talk me through your solution?","Hello Alejandra, please can you talk me through your solution?"
