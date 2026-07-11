@@ -1,8 +1,0 @@
-FROM ./gguf/Qwen3-4B-Thinking-2507-Q4_K_M.gguf
-
-# Qwen3-4B-Thinking-2507 (q4_K_M) — 思考型推理模型
-# 採樣參數沿用 Qwen 官方對思考模型的建議（勿用 greedy / 低溫）
-PARAMETER temperature 0.6
-PARAMETER top_p 0.95
-PARAMETER top_k 20
-PARAMETER num_ctx 16384

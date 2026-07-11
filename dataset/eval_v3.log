@@ -1,27 +1,0 @@
-Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights:   0%|          | 1/398 [00:00<01:54,  3.47it/s]Loading weights:   2%|▏         | 9/398 [00:00<00:13, 28.05it/s]Loading weights:   6%|▋         | 25/398 [00:00<00:05, 68.26it/s]Loading weights:  10%|▉         | 38/398 [00:00<00:04, 83.31it/s]Loading weights:  15%|█▍        | 58/398 [00:00<00:02, 116.40it/s]Loading weights:  19%|█▉        | 75/398 [00:00<00:02, 130.45it/s]Loading weights:  23%|██▎       | 92/398 [00:00<00:02, 137.84it/s]Loading weights:  27%|██▋       | 108/398 [00:01<00:02, 140.74it/s]Loading weights:  31%|███       | 124/398 [00:01<00:01, 144.79it/s]Loading weights:  35%|███▍      | 139/398 [00:01<00:01, 139.62it/s]Loading weights:  39%|███▊      | 154/398 [00:01<00:01, 142.27it/s]Loading weights:  42%|████▏     | 169/398 [00:01<00:01, 137.14it/s]Loading weights:  46%|████▋     | 185/398 [00:01<00:01, 141.30it/s]Loading weights:  51%|█████     | 201/398 [00:01<00:01, 146.40it/s]Loading weights:  55%|█████▍    | 217/398 [00:01<00:01, 149.48it/s]Loading weights:  59%|█████▉    | 235/398 [00:01<00:01, 154.26it/s]Loading weights:  63%|██████▎   | 251/398 [00:02<00:00, 154.83it/s]Loading weights:  67%|██████▋   | 267/398 [00:02<00:00, 152.17it/s]Loading weights:  71%|███████   | 283/398 [00:02<00:00, 148.06it/s]Loading weights:  75%|███████▌  | 300/398 [00:02<00:00, 149.61it/s]Loading weights:  79%|███████▉  | 315/398 [00:02<00:00, 144.64it/s]Loading weights:  84%|████████▎ | 333/398 [00:02<00:00, 149.83it/s]Loading weights:  88%|████████▊ | 349/398 [00:02<00:00, 149.54it/s]Loading weights:  92%|█████████▏| 367/398 [00:02<00:00, 156.04it/s]Loading weights:  97%|█████████▋| 388/398 [00:02<00:00, 167.64it/s]Loading weights: 100%|██████████| 398/398 [00:02<00:00, 135.46it/s]
-[H1/S1_first] done
-[H1/S2_rectify] done
-[H1/S3_leak] done
-[H2/S1_first] done
-[H2/S2_rectify] done
-[H2/S3_leak] done
-[H3/S1_first] done
-[H3/S2_rectify] done
-[H3/S3_leak] done
-[H4/S1_first] done
-[H4/S2_rectify] done
-[H4/S3_leak] done
-[H5/S1_first] done
-[H5/S2_rectify] done
-[H5/S3_leak] done
-[H6/S1_first] done
-[H6/S2_rectify] done
-[H6/S3_leak] done
-[H7/S1_first] done
-[H7/S2_rectify] done
-[H7/S3_leak] done
-[H8/S1_first] done
-[H8/S2_rectify] done
-[H8/S3_leak] done
-
-產出：D:\UserData\claude_project\霓的資料\引導式數學專案\week3\dataset\eval_out_v3\generations.md

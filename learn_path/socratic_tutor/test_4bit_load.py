@@ -29,7 +29,7 @@ if hasattr(sys.stdout, "reconfigure"):
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-from common import MODEL_NAME, SYSTEM_SOCRATIC
+from common import MODEL_NAME
 
 print(f"transformers 載入 {MODEL_NAME}（4-bit nf4）…", flush=True)
 print(f"  torch={torch.__version__} cuda={torch.cuda.is_available()}", flush=True)
@@ -57,7 +57,7 @@ if torch.cuda.is_available():
 
 # 一次極短推論，確認 forward/generate 正常
 messages = [
-    {"role": "system", "content": SYSTEM_SOCRATIC},
+    {"role": "system", "content": "你是蘇格拉底式數學助教，每次只問一個引導問題。"},
     {"role": "user", "content": "I need to prove that the function f(x)=x^2 is continuous at x=2. Where do I start?"},
 ]
 enc = tok.apply_chat_template(

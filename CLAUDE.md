@@ -1,8 +1,12 @@
-# week3 — 蘇格拉底式微積分引導助教
+# week3 — 蘇格拉底式高等數學證明引導助教
 
-本目錄記錄從「LLM 微積分證明 pipeline」演進至「蘇格拉底式引導助教」的完整實驗過程。
-**目前主要成果與活躍開發區是 `dataset/`**：一套手寫的 grounded 蘇格拉底對話資料集，
-用於 QLoRA 微調 Qwen3-4B，已透過多輪迭代（v2→v5）驗證微調可穩定超越未微調基底模型。
+本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v6`）
+＋ 對話驅動程式（`tutor_driver.py`）。這是經過 v2→v6 六輪迭代與三路線正面對決後判定的
+最佳部署形態（判定依據：`dataset/eval_out_final/FINAL_VERDICT.md`）。
+
+**歷史版本不在工作目錄**：所有被淘汰的方法（MathDial 行為遷移、Ollama 無微調路線、
+v2–v5 adapter 與其評估）完整保存在 git tag **`experiments-v2-v6`**，
+需要時 `git checkout experiments-v2-v6` 即可回看。
 
 ## 語言慣例
 
@@ -12,26 +16,41 @@
 
 ## Python 環境
 
-本專案使用 Anaconda 虛擬環境 **`lora_project`**。
-
-| 項目 | 值 |
-| --- | --- |
-| 環境名稱 | `lora_project` |
-| 環境路徑 | `D:\Danie\anaconda3\envs\lora_project` |
-| Python | 3.11.15 |
-| Anaconda root | `D:\Danie\anaconda3` |
-
-### 在環境中執行命令
+Anaconda 虛擬環境 **`lora_project`**（Python 3.11，路徑 `D:\Danie\anaconda3\envs\lora_project`）。
 
 ```powershell
 $env:PYTHONNOUSERSITE = "1"
 conda run -n lora_project --live-stream python your_script.py
 ```
 
-Bash（conda 不在 PATH 上）改用環境內 python 直呼：
+Bash（conda 不在 PATH）：
 ```bash
 PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe" your_script.py
 ```
+
+關鍵套件：torch 2.5.1+cu121、transformers 5.8.1、peft 0.19.1、bitsandbytes 0.49.2。
+硬體：RTX 4050 Laptop 6GiB VRAM。
+⚠️ transformers 5.x + bitsandbytes 在 Windows 載入 **7B** 會 segfault；本專案全程用 4B，安全。
+
+---
+
+## 架構（部署形態 = 模型 + 驅動程式）
+
+```
+學生訊息 ──► TutorDriver（dataset/tutor_driver.py）
+              │  確定性決策層：
+              │  · stuck counter（連續卡住 0/1/2 次 → 提示等級 0/1/2）
+              │  · 階段偵測（交草稿→審閱、逼問→拒絕、嘗試→糾錯、說懂了→請寫證明）
+              │  · 等級 2 注入 hint_ladders.json 的預寫提示內容
+              ▼
+         qlora_adapter_v6 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
+              │
+              ▼
+         後處理：單問句截斷、洩漏 15-gram 檢查（命中→加強指示重生成）
+```
+
+**設計鐵律**（v4→v6 三次驗證的教訓）：離散決策（何時升級、何時換階段）交給程式碼；
+內容拿捏（提示深度、審閱重點）交給預寫內容（參考解、hint ladder）；模型只負責數學與語氣。
 
 ---
 
@@ -39,139 +58,85 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
 
 ```
 week3/
-├── dataset/                          # ★★★ 主要成果：手寫 grounded 蘇格拉底資料集 + QLoRA 微調
-│   ├── src/                          # 手寫內容源碼（problems_*.py、dialogues_*.py）
-│   │   ├── problems_A.py ~ E.py      # 50 道題目 + LaTeX 參考解（極限/連續/微分/積分/級數 各10）
-│   │   ├── dialogues_A.py ~ E.py     # 150 條核心對話（3 persona × 50 題）
-│   │   ├── dialogues_aug_*.py        # 犯錯變體 + 關鍵步驟短對話
-│   │   ├── dialogues_resist.py       # 抗洩漏／抗附和對話（v3 新增）
-│   │   └── dialogues_hint.py         # 分級提示對話（v4/v5 新增，見下）
-│   ├── build.py                      # 組裝 src/ → problems.json + train/val.jsonl（注入 grounded system）
-│   ├── validate.py                   # 格式/字數/一問一等/不洩漏 驗證
-│   ├── test_dataset.py               # 分佈/引用/grounding 完整性測試
-│   ├── problems.json / train.jsonl / val.jsonl   # build.py 產出（382 對話，344/38 切分）
-│   ├── held_out.json / held_out_attempts.json    # 8 題訓練集外的評估題 + 埋錯嘗試
-│   ├── hard_math_major.json          # 5 題訓練分布外難題（一致收斂/Darboux定理/Chebyshev積分不等式等）
-│   ├── eval_heldout.py / eval_heldout_v3.py       # held-out 首問／三情境（首問/糾錯/逼問）評估
-│   ├── eval_hard.py                  # 難題評估（含 Darboux 完整多輪對話）
-│   ├── eval_full_dialogue.py         # 完整多輪引導對話測試（模型即時生成、學生依參考解手寫）
-│   ├── eval_hint_escalation.py       # 分級提示規則驗證（學生連續卡住兩次）
-│   ├── qlora_adapter_v2/ ~ v5/       # 各版 LoRA adapter（權重不進 git，見 .gitignore）
-│   └── eval_out_v2/ ~ v4/、eval_out_hard/   # 各版評估報告與生成結果
-├── learn_path/                       # 舊版蘇格拉底助教實驗（MathDial+GSM8K 行為遷移，歷史對照組）
-│   ├── 架構設計.md                   # 子系統 A/B 架構說明（含新舊資料策略對照）
-│   └── socratic_tutor/               # QLoRA 訓練腳本本體（train_qlora.py、common.py 等，dataset/ 沿用同一套腳本）
-├── socratic_math_research.md         # SocraticMath 研究與資料集設計規劃（已落地為 dataset/）
-├── dataset_plan.md                   # dataset/ 的企劃文件
-├── PUSH_SCOPE.md                     # git 推送範圍記錄
-├── simple_4B_ollama.py               # 4B Ollama 直接推論（歷史 baseline，未做 grounding）
-├── archive/                          # 歸檔：舊測試題、舊評估結果、舊腳本
-└── gguf/                             # 本機 GGUF 模型（Qwen3-4B-Thinking Q4_K_M，Ollama 用）
+├── dataset/                          # ★ 一切核心
+│   ├── src/                          # 手寫內容源碼（50 題 + 400 對話，Claude 撰寫並驗證）
+│   ├── build.py / validate.py / test_dataset.py     # 建置與驗證
+│   ├── problems.json / train.jsonl / val.jsonl       # 建置產出（360/40）
+│   ├── hint_ladders.json             # 分級提示內容（driver 等級 2 用）
+│   ├── tutor_driver.py               # ★ 對話驅動程式
+│   ├── interactive_turn.py           # 逐輪互動 CLI（維護 session 狀態檔）
+│   ├── qlora_adapter_v6/             # ★ 部署 adapter（權重不進 git）
+│   ├── held_out.json / held_out_attempts.json / hard_math_major.json / adv_test_problem.json  # 評估題
+│   ├── eval_heldout_v3.py            # 三情境回歸（裸模型，HELDOUT_ADAPTER 覆寫）
+│   ├── eval_hard.py                  # 分布外難題（HARD_ADAPTER 覆寫）
+│   ├── eval_final_driver.py          # 部署形態三情境（FINAL_ADAPTER 覆寫）
+│   ├── eval_final_ollama.py          # Ollama 對照（歷史對決用，需 Ollama）
+│   ├── test_driver_unit.py / test_driver_integration.py / test_driver_phase.py  # driver 測試
+│   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/       # 現行報告
+├── learn_path/socratic_tutor/        # 訓練引擎（僅 4 檔）
+│   ├── common.py                     # 模型與路徑設定（env 覆寫）
+│   ├── train_qlora.py                # QLoRA 訓練主程式
+│   ├── download_chunked.py           # 分塊下載基底模型（VPN 節流對策）
+│   ├── test_4bit_load.py             # 4-bit 載入煙霧測試
+│   └── qwen3_4b/                     # 基底權重（~8GB，不進 git）
+├── dataset_plan.md / socratic_math_research.md      # 設計文件
+├── PUSH_SCOPE.md                     # git 推送範圍
+└── README.md                         # GitHub 對外說明
 ```
 
 ---
 
-## 模型與路線
+## 常用指令
 
-| 路線 | 模型 | Backend | 現況 |
-| --- | --- | --- | --- |
-| **推薦（互動場景）** | Qwen3-4B-Instruct + QLoRA（`dataset/qlora_adapter_v3` 起） | transformers + bitsandbytes | ★ 已證實超越未微調基底，見下方結論 |
-| Ollama grounded（無微調） | Qwen3-4B-Thinking-2507 | Ollama（本機 GGUF） | 仍是「零訓練成本」的可靠備案 |
-| 歷史對照 | Qwen2.5-Math-7B-Instruct | transformers（⚠️ segfault 風險） | 不用，7B 在 Windows 會 segfault |
-
-> ⚠️ `transformers 5.x + bitsandbytes` 在 Windows 載入 7B 模型時會 segfault；4B 模型實測 OK。
-
----
-
-## 執行方式
-
-### 資料集重建與驗證（`dataset/`）
-
+### 資料集重建與驗證
 ```powershell
-$env:PYTHONNOUSERSITE = "1"
-conda run -n lora_project --live-stream python dataset\build.py          # src/ → problems.json + train/val.jsonl
-conda run -n lora_project --live-stream python dataset\validate.py       # 格式/字數/一問一等/不洩漏
-conda run -n lora_project --live-stream python dataset\test_dataset.py   # 分佈/引用/grounding 完整性
+conda run -n lora_project --live-stream python dataset\build.py
+conda run -n lora_project --live-stream python dataset\validate.py
+conda run -n lora_project --live-stream python dataset\test_dataset.py
 ```
 
-### QLoRA 微調（用 `learn_path/socratic_tutor/train_qlora.py`，但指向 `dataset/` 的資料）
-
-`common.py` 支援環境變數覆寫路徑，訓練 `dataset/` 資料集、輸出到新版 adapter 目錄，
-不動到舊的 `learn_path/socratic_tutor/qlora_adapter/`：
-
+### 重新訓練（產出新版 adapter，不覆蓋 v6）
 ```powershell
-$env:TRAIN_JSONL = "week3\dataset\train.jsonl"
-$env:VAL_JSONL   = "week3\dataset\val.jsonl"
-$env:ADAPTER_DIR = "week3\dataset\qlora_adapter_v6"     # 每次遞增版號
+$env:ADAPTER_DIR = "week3\dataset\qlora_adapter_v7"   # 預設是 qlora_adapter_new
 $env:MAX_LEN = "640"; $env:EPOCHS = "3"; $env:GRAD_ACCUM = "8"; $env:EVAL_STEPS = "20"
-$env:OPTIM = "adamw_8bit"          # ★ 不要用 paged_adamw_8bit，遇 abrupt kill 後會 init error
-$env:NEFTUNE_ALPHA = "5"           # embedding 噪音正則化，小資料 SFT 有感提升
+$env:OPTIM = "adamw_8bit"          # ★ 不要用 paged_adamw_8bit（abrupt kill 後 init error）
+$env:NEFTUNE_ALPHA = "5"
 conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_qlora.py
 ```
 
-### 評估（`dataset/eval_*.py`，皆走 transformers 4-bit + PeftModel，不需 Ollama）
-
+### 測試與評估
 ```powershell
-conda run -n lora_project --live-stream python dataset\eval_heldout_v3.py     # 3情境：首問/糾錯/逼問答案
-conda run -n lora_project --live-stream python dataset\eval_full_dialogue.py  # 完整多輪對話（人工檢視用）
-conda run -n lora_project --live-stream python dataset\eval_hard.py           # 訓練分布外難題
-conda run -n lora_project --live-stream python dataset\eval_hint_escalation.py # 分級提示規則驗證
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU
+conda run -n lora_project --live-stream python dataset\test_driver_integration.py   # 分級提示（GPU）
+conda run -n lora_project --live-stream python dataset\test_driver_phase.py         # 階段管理（GPU）
+conda run -n lora_project --live-stream python dataset\eval_final_driver.py         # 部署形態三情境
+conda run -n lora_project --live-stream python dataset\eval_heldout_v3.py           # 裸模型回歸
 ```
 
-### 舊版 Ollama grounded 助教（無微調，仍可用）
-
+### 互動使用
 ```powershell
-conda run -n lora_project --live-stream python learn_path\socratic_tutor\gen_reference_solutions.py
-conda run -n lora_project --live-stream python learn_path\best_grounded_tutor\grounded_tutor.py
+conda run -n lora_project --live-stream python dataset\interactive_turn.py --problem A2 --state session.json --reset
+conda run -n lora_project --live-stream python dataset\interactive_turn.py --problem A2 --state session.json --student "學生回覆"
 ```
 
 ---
 
-## 資料集設計（`dataset/`）
+## 最終判定數據（2026-07-11，8 held-out 題 × 3 情境，同尺評分）
 
-- **Grounded SFT**：每筆 `system` 含 `<REFERENCE_PROOF>`（該題參考解，學生看不到），
-  確保引導方向永遠正確，不會像早期跨域微調那樣「自信給錯方向」。
-- **五階段引導策略**：契約確認 → 架構規劃 → 逐步推導 → 邏輯糾錯 → 嚴謹總結。
-- **3 種學生人格**：confused（迷茫）/ error（犯錯）/ bright（優秀）。
-- **分級提示規則**（v4 起）：學生對同一步連續兩次答不出來，助教可點出關鍵定理/技巧
-  名稱或簡短想法，但不解釋如何套用、不給算式——避免無限鬼打牆問句，同時保留學生自己
-  完成推導的空間。
-- 全部內容（題目、參考解、對話）由 Claude 手寫並驗證數學正確性，非模型生成。
+| 路線 | S1 首問 | S2 糾錯 | S3 逼問 | 總平均 |
+|---|:---:|:---:|:---:|:---:|
+| **v6 + TutorDriver（採用）** | 4.31 | 4.19 | 4.31 | **4.27** |
+| v3 裸模型 | 4.38 | 4.31 | 4.38 | 4.35 |
+| Ollama Thinking + grounded | 3.63 | 4.75 | 3.63 | 4.00 |
+| base + grounded | 3.88 | 4.06 | 3.00 | 3.65 |
 
-## 微調版本迭代歷史
+- 與 v3 差 0.08（8 題雜訊內），但 v3 無分級提示/審閱/階段管理能力 → 功能完整性定勝負。
+- Ollama 思考型 S2 糾錯全場最強（4.75）但 S3 曾把完整證明整段交出、且有空輸出——
+  無訓練約束＋無防護的路線在對抗情境不可靠。未來可考慮「思考型當審閱後盾」混合架構。
+- driver 防護直接證據：S3 裸 4.06 → 4.31（洩漏重生成 24 筆中觸發 6 次全數成功）。
 
-| 版本 | 改動 | 結果（held-out，/5） |
-| --- | --- | :---: |
-| v2 | 首版重訓（50題/315對話，grounded 但無抗壓/分級提示訓練） | ft_grounded 4.26 ≈ base_grounded 4.44（未見優勢） |
-| **v3** | +20 條抗洩漏/抗附和對話、修複合問句、NEFTune | **ft 4.35 vs base 3.65（+0.70，全情境領先）** |
-| v4 | +10 條分級提示對話（學生連續卡住兩次才透漏定理名稱） | 觸發時機/深度未完全守住（過早透漏、給出完整算式） |
-| **v5** | 修正 v4 過度洩漏的範例、補充無正式定理名稱的純想法提示（12 條 hint，eval_loss 1.065） | 最嚴重的「把算式算給學生」在 2/3 題修復；C8 提前點名未修（根因是主題級聯想）；E4 轉為輕微保守。**結論：純 SFT 對「提示深度」的校準已到極限**，見 `eval_out_v5/HINT_REPORT_v5.md` |
-| **v6 + driver（★ 部署形態）** | 架構改造：`tutor_driver.py`（stuck counter→提示等級、階段偵測、單問句截斷、洩漏 n-gram 檢查）＋ `hint_ladders.json`（16 題）＋ 節奏錯位/寫證明審閱對話 +18 條（400 對話，eval_loss 1.176） | driver 測試 20/20＋9/9：分級提示完全受控、C8 提前點名修復、**審閱能力（新）**能抓嚴格性遺失與缺依據；裸模型回歸 4.13（vs v3 4.35，−0.22 換三項新能力，S3 抗洩漏稀釋為主因）。見 `eval_out_v6/EVAL_REPORT_v6.md` |
+## 已知弱點（下輪迭代方向）
 
-**關鍵發現**：
-1. **v2→v3 的轉折點是資料組成，不是超參數**：v2 的僵局根因是評估只測「標準題首問」（base
-   已近天花板）、且訓練集零筆「拒答洩漏/抗附和」訊號。補上針對性訓練資料後才反超。
-2. **難題測試（`hard_math_major.json`）證實遷移能力**：即使在完全不在訓練範圍的技巧
-   （一致收斂、Darboux 定理、Chebyshev 積分不等式）上，ft_grounded 仍平均領先 base +0.46。
-3. **完整多輪對話測試發現真實缺陷**：模型有時會把兩個子問題捆成複合問句，且學生沒按
-   預期順序回答時不會回頭確認，會自己搶先講出結論——這是下一步訓練資料可以補的方向。
-
-詳細報告見 `dataset/eval_out_v2/EVAL_REPORT_v2.md`、`eval_out_v3/EVAL_REPORT_v3.md`、
-`eval_out_hard/EVAL_REPORT_hard.md`。
-
----
-
-## 舊版實驗結論（歷史對照，`learn_path/socratic_tutor/eval_out/EVAL_REPORT.md`）
-
-在 `dataset/` 出現以前，用 MathDial+GSM8K 行為遷移訓練、無 grounding 訓練資料時的結論：
-
-| 路線 | held-out 12 題（/5） | v4 難題 10 題（/5） |
-| --- | :---: | :---: |
-| grounded（思考型 + 參考解，無微調） | 4.42 | 4.55 |
-| 微調 + grounded | 4.54 | 4.10 |
-| 微調（純，跨域訓練） | 4.04 | **2.90（危險，自信給錯方向）**|
-| base（無微調） | 3.63 | 3.30 |
-
-當時的結論「純微調在難題上反而有害」**已被 `dataset/` 的域內訓練推翻**——v3 之後的純微調
-（`ft_plain`）在同類難題上達 4.25/5，不再出現自信給錯方向的失敗模式（見 CLAUDE.md 上方
-「微調版本迭代歷史」與 `dataset/eval_out_v2/EVAL_REPORT_v2.md` 第二節）。
+1. 細膩雙重錯誤解剖力不足（H3-S2 誤說「平均式子沒問題」）→ rejection-sampling SFT 或混合架構。
+2. 偶發式子細節錯誤（H5-S3 均值定理區間寫錯）。
+3. M4 型細膩跳步（宣告聽起來完整時不驗證）→ driver 端步驟清單核對。
