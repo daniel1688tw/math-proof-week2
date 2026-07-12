@@ -12,6 +12,15 @@
   * 單問句截斷：回覆若含多個問號，截到第一個問號為止（修複合問句）。
   * 洩漏 n-gram 檢查：回覆與參考解正規化後比對字元 15-gram；等級 <2 時命中
     即以更強約束重生成一次（greedy 下改變輸入才會改變輸出）。
+  * on-track 防奉送（跨域評估 X2/X4 教訓）：等級 <2 且無特殊階段時，回覆若替學生
+    指定具體代數操作（左乘/減去…倍/代入…）即重生成——學生方向正確時只肯定不奉送。
+  * 等級 2 禁算式：提示只能點名想法，回覆若出現參考解之外的新等式/不等式即重生成
+    （允許重現題目敘述或學生自己寫過的式子）。
+  * 回問保底：等級 <2 的引導輪與 refuse_leak 輪必須以問題收尾，缺問句先重生成，
+    仍缺則附上固定追問（確定性優於賭模型服從）。
+  * 審閱後盾（混合架構，review_backstop.py）：review/rectify 輪先讓思考型模型
+    對照參考解找碴，把缺漏清單注入階段指示——判斷交給思考型、說話交給微調模型。
+    Ollama 不可用時靜默降級回原行為；REVIEW_BACKSTOP=0 可關閉。
 
 用法：
   from tutor_driver import TutorDriver
@@ -22,6 +31,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -121,12 +131,42 @@ def leaks_reference(reply: str, proof: str, n: int = 15) -> bool:
     return any(a[i: i + n] in grams for i in range(len(a) - n + 1))
 
 
+# on-track 防奉送：等級 0/1 不得替學生「指定具體代數操作」（引導注意力的動詞如
+# 看/想/回想不算；替他做步驟的操作動詞才算）。窄匹配以避免誤殺正常引導問句。
+_SPOONFEED_RE = re.compile(
+    r"左乘|右乘|同乘|兩邊(?:乘|除|加|減)|減去[^，。？]{0,18}倍|代入|移項|"
+    r"先寫出|寫出[^，。？]{0,12}(?:假設|方程|等式|式子)"
+)
+
+
+def is_spoonfeeding(reply: str) -> bool:
+    """回覆是否替學生指定了具體代數操作（on-track 洩漏模式）。"""
+    return bool(_SPOONFEED_RE.search(reply))
+
+
+# 等級 2 禁算式：抓「含 = / ≤ / ≥ / \le / \ge 的連續數學片段」
+_EQ_TOKEN_RE = re.compile(r"[^\s，。？！；、]*(?:=|≤|≥|\\le\b|\\ge\b)[^\s，。？！；、]*")
+
+
+def gives_new_equation(reply: str, allowed_src: str) -> bool:
+    """回覆是否出現 allowed_src（題目敘述＋提示＋學生說過的話）之外的新等式。"""
+    allowed = _normalize(allowed_src)
+    for tok in _EQ_TOKEN_RE.findall(reply):
+        t = _normalize(tok)
+        if len(t) < 3:
+            continue
+        if t not in allowed:
+            return True
+    return False
+
+
 @dataclass
 class TurnLog:
     level: int
     stuck_count: int
     leak_flag: bool = False
     regenerated: bool = False
+    guards: list = field(default_factory=list)   # 本輪觸發過的防護名稱（spoonfeed/formula/no_question）
 
 
 @dataclass
@@ -135,17 +175,48 @@ class TutorDriver:
     model: object
     problem: dict                      # 需含 statement / reference_proof；可選 hint_ladder(list[str])
     max_new_tokens: int = 240
+    # 審閱後盾開關（預設開；Ollama 不在線會自動降級，REVIEW_BACKSTOP=0 強制關）
+    backstop: bool = field(
+        default_factory=lambda: os.environ.get("REVIEW_BACKSTOP", "1") == "1")
     state: dict = field(default_factory=lambda: {
         "stuck_count": 0, "ladder_idx": 0, "turns": [],   # turns: list[TurnLog]
     })
     messages: list = field(default_factory=list)
 
     # ---- 生成 ----------------------------------------------------------------
+    def _backstop_block(self) -> str:
+        """把後盾複核結果組成注入 system 的指示段；後盾未啟用/失敗時為空字串。"""
+        gaps = self.state.get("backstop_gaps")
+        if gaps is None:
+            return ""
+        if not gaps:
+            return ("\n【複核結果】審閱後盾已對照參考解逐步複核：未發現缺漏。"
+                    "若你也同意，直接肯定學生，不要憑空發明問題。")
+        lines = "\n".join(f"- {g}" for g in gaps)
+        return ("\n【複核結果】審閱後盾已對照參考解逐步複核，找出以下缺漏"
+                "（可信，按嚴重程度排序）：\n" + lines +
+                "\n請只依據這份清單：挑第一項，用一個問題引導學生自行發現並修正；"
+                "不要提清單以外的問題，也不要把缺漏的正確版本直接講完。")
+
+    def _consult_backstop(self, student_text: str) -> None:
+        """review/rectify 輪呼叫思考型模型找碴；結果存 state['backstop_gaps']。"""
+        self.state["backstop_gaps"] = None
+        if not self.backstop:
+            return
+        try:
+            from review_backstop import find_gaps
+        except ImportError:
+            return
+        self.state["backstop_gaps"] = find_gaps(
+            self.problem["statement"], self.problem["reference_proof"], student_text)
+
     def _system(self, level: int) -> str:
         sys_txt = BASE_SYSTEM.format(proof=self.problem["reference_proof"])
         phase = self.state.get("phase")
         if phase in PHASE_INSTRUCTIONS:          # 階段指示優先於等級指示
             instr = PHASE_INSTRUCTIONS[phase]
+            if phase in ("review", "rectify"):
+                instr += self._backstop_block()
         elif level == 2:
             ladder = self.problem.get("hint_ladder") or []
             idx = min(self.state["ladder_idx"], max(len(ladder) - 1, 0))
@@ -170,35 +241,77 @@ class TutorDriver:
         return self.tok.decode(out[0][enc["input_ids"].shape[1]:],
                                skip_special_tokens=True).strip()
 
+    def _regen(self, level: int, note: str) -> str:
+        """以加強約束的 system 重生成一次（greedy 下改變輸入才會改變輸出）。"""
+        import torch
+        stronger = self._system(level) + f"\n（注意：{note}）"
+        msgs = [{"role": "system", "content": stronger}] + self.messages
+        enc = self.tok.apply_chat_template(
+            msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True
+        ).to(self.model.device)
+        with torch.no_grad():
+            out = self.model.generate(
+                **enc, max_new_tokens=self.max_new_tokens, do_sample=False,
+                repetition_penalty=1.05,
+                pad_token_id=self.tok.pad_token_id or self.tok.eos_token_id,
+            )
+        return enforce_single_question(
+            self.tok.decode(out[0][enc["input_ids"].shape[1]:],
+                            skip_special_tokens=True).strip())
+
+    def _allowed_equation_src(self) -> str:
+        """等級 2 算式檢查的白名單來源：題目敘述＋當前提示＋學生說過的話。"""
+        ladder = self.problem.get("hint_ladder") or []
+        idx = min(self.state["ladder_idx"], max(len(ladder) - 1, 0))
+        hint = ladder[idx] if ladder else ""
+        student = "".join(m["content"] for m in self.messages if m["role"] == "user")
+        return self.problem["statement"] + hint + student
+
     def _tutor_turn(self) -> str:
         level = min(self.state["stuck_count"], 2)
+        phase = self.state.get("phase")
         reply = self._generate(level)
         reply = enforce_single_question(reply)
 
         # 階段保底：writeup_request 輪若模型沒請學生寫證明，直接用模板取代
-        if self.state.get("phase") == "writeup_request" and not _WRITEUP_OK_RE.search(reply):
+        if phase == "writeup_request" and not _WRITEUP_OK_RE.search(reply):
             reply = WRITEUP_FALLBACK
 
         log = TurnLog(level=level, stuck_count=self.state["stuck_count"])
+        if phase in ("review", "rectify") and self.state.get("backstop_gaps") is not None:
+            log.guards.append("backstop")
         # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
         if level < 2 and leaks_reference(reply, self.problem["reference_proof"]):
             log.leak_flag = True
-            stronger = self._system(level) + "\n（注意：上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。）"
-            import torch
-            msgs = [{"role": "system", "content": stronger}] + self.messages
-            enc = self.tok.apply_chat_template(
-                msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True
-            ).to(self.model.device)
-            with torch.no_grad():
-                out = self.model.generate(
-                    **enc, max_new_tokens=self.max_new_tokens, do_sample=False,
-                    repetition_penalty=1.05,
-                    pad_token_id=self.tok.pad_token_id or self.tok.eos_token_id,
-                )
-            reply = enforce_single_question(
-                self.tok.decode(out[0][enc["input_ids"].shape[1]:],
-                                skip_special_tokens=True).strip())
+            reply = self._regen(level, "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。")
             log.regenerated = True
+
+        # on-track 防奉送：一般引導輪與拒絕輪（refuse_leak 規則本就禁止給步驟），
+        # 等級 <2 不得替學生指定具體代數操作
+        if level < 2 and phase in (None, "refuse_leak") and is_spoonfeeding(reply):
+            log.guards.append("spoonfeed")
+            reply = self._regen(
+                level, "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
+                "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。")
+            log.regenerated = True
+
+        # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
+        if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
+            log.guards.append("formula")
+            reply = self._regen(
+                level, "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
+                "絕對不要寫出任何等式或不等式，讓學生自己動筆推。")
+            log.regenerated = True
+
+        # 回問保底：引導輪與 refuse_leak 輪必須以問題收尾
+        if level < 2 and phase in (None, "refuse_leak") and not _QMARK_RE.search(reply):
+            log.guards.append("no_question")
+            regen = self._regen(level, "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。")
+            if _QMARK_RE.search(regen):
+                reply = regen
+                log.regenerated = True
+            else:
+                reply = reply.rstrip() + " 那你覺得，下一步該從哪裡下手？"
 
         if level == 2:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
@@ -225,11 +338,17 @@ class TutorDriver:
     def start(self, opener: str = "我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？") -> str:
         first = f"題目：{self.problem['statement']}\n\n{opener}"
         self._detect_phase(first)
+        if self.state.get("phase") in ("review", "rectify"):
+            self._consult_backstop(first)
         self.messages = [{"role": "user", "content": first}]
         return self._tutor_turn()
 
     def step(self, student_text: str) -> str:
         self._detect_phase(student_text)
+        if self.state.get("phase") in ("review", "rectify"):
+            self._consult_backstop(student_text)
+        else:
+            self.state["backstop_gaps"] = None
         if is_stuck(student_text):
             self.state["stuck_count"] += 1
         else:

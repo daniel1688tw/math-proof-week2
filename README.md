@@ -17,19 +17,28 @@
              · stuck counter：連續卡住次數 → 提示等級 0/1/2
              · 階段偵測：交草稿→審閱 / 逼問→拒絕 / 嘗試→糾錯 / 說懂了→請寫證明
              · 等級 2 注入 hint_ladders.json 的人工預寫提示
+             · 審閱/糾錯輪：審閱後盾（Ollama 思考型模型對照參考解找碴，
+               缺漏清單注入 system；未裝 Ollama 自動降級，REVIEW_BACKSTOP=0 關閉）
            → QLoRA 微調模型（4-bit）+ grounded system prompt（內含該題參考解）
-           → 後處理：單問句截斷、參考解洩漏 n-gram 檢查（命中即重生成）
+           → 後處理：單問句截斷、參考解洩漏 n-gram 檢查、on-track 防奉送
+             （不替學生指定代數操作）、等級 2 禁算式、回問保底（命中即重生成）
 ```
 
 核心設計原則（六輪迭代的教訓）：**離散決策交給程式碼、內容拿捏交給預寫內容、
 模型只負責數學與語氣**。「透漏多少提示」這類連續量，純 SFT 校準不準；
 把提示內容預先寫進 `hint_ladders.json`、由驅動程式決定何時注入，行為即完全受控。
 
+混合架構延伸：審閱學生草稿需要的「即時數學判斷」超出 4B 微調模型的可靠範圍
+（會出現「察覺對但解釋錯」與錯誤背書），故由思考型模型在幕後找碴、微調模型
+只負責把缺漏清單包裝成引導問題（`review_backstop.py`，選配，需本機 Ollama +
+`qwen3-4b-thinking-2507`；未安裝時自動降級回單模型行為）。
+
 ## 成效（8 道訓練集外題目 × 3 對抗情境，LLM-as-judge /5）
 
 | 路線 | 首問 | 糾錯 | 逼問答案 | 總平均 |
 |---|:---:|:---:|:---:|:---:|
-| **本方法（微調 + driver）** | 4.31 | 4.19 | 4.31 | **4.27** |
+| **本方法（微調 + driver + 審閱後盾）** | 4.31 | 4.50 | 4.31 | **4.37** |
+| 微調 + driver（後盾離線時的降級形態） | 4.31 | 4.19 | 4.31 | 4.27 |
 | 未微調基底 + 同樣 prompt | 3.88 | 4.06 | 3.00 | 3.65 |
 | Ollama 思考型 + 同樣 prompt（無微調） | 3.63 | 4.75 | 3.63 | 4.00 |
 
@@ -68,7 +77,7 @@ python train_qlora.py
 
 ```bash
 cd dataset
-python test_driver_unit.py            # 驅動程式邏輯（無 GPU，25 項斷言）
+python test_driver_unit.py            # 驅動程式邏輯（無 GPU，51 項斷言）
 python test_driver_integration.py     # 分級提示行為（GPU）
 python test_driver_phase.py           # 階段管理行為（GPU）
 python eval_final_driver.py           # 三情境完整評估

@@ -42,15 +42,20 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
               │  · stuck counter（連續卡住 0/1/2 次 → 提示等級 0/1/2）
               │  · 階段偵測（交草稿→審閱、逼問→拒絕、嘗試→糾錯、說懂了→請寫證明）
               │  · 等級 2 注入 hint_ladders.json 的預寫提示內容
+              │  · 審閱/糾錯輪 ──► 審閱後盾（review_backstop.py，Ollama 思考型找碴）
+              │                    缺漏清單注入 system；不在線自動降級（REVIEW_BACKSTOP=0 關）
               ▼
          qlora_adapter_v6 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
               │
               ▼
-         後處理：單問句截斷、洩漏 15-gram 檢查（命中→加強指示重生成）
+         後處理：單問句截斷、洩漏 15-gram 檢查、on-track 防奉送、
+         等級 2 禁算式、回問保底（命中→加強指示重生成）
 ```
 
 **設計鐵律**（v4→v6 三次驗證的教訓）：離散決策（何時升級、何時換階段）交給程式碼；
 內容拿捏（提示深度、審閱重點）交給預寫內容（參考解、hint ladder）；模型只負責數學與語氣。
+**混合架構延伸**（2026-07-12）：即時數學判斷（審閱草稿找缺漏）交給思考型模型
+（S2 4.75 的證據），微調模型只把缺漏清單包裝成引導語氣——判斷與說話分工。
 
 ---
 
@@ -64,15 +69,19 @@ week3/
 │   ├── problems.json / train.jsonl / val.jsonl       # 建置產出（360/40）
 │   ├── hint_ladders.json             # 分級提示內容（driver 等級 2 用）
 │   ├── tutor_driver.py               # ★ 對話驅動程式
+│   ├── review_backstop.py            # 審閱後盾（Ollama 思考型找碴，可降級）
 │   ├── interactive_turn.py           # 逐輪互動 CLI（維護 session 狀態檔）
 │   ├── qlora_adapter_v6/             # ★ 部署 adapter（權重不進 git）
 │   ├── held_out.json / held_out_attempts.json / hard_math_major.json / adv_test_problem.json  # 評估題
+│   ├── xdomain_problems.json         # 跨領域評估題（離散×3 + 線代×3，XDOMAIN_ADAPTER 覆寫）
 │   ├── eval_heldout_v3.py            # 三情境回歸（裸模型，HELDOUT_ADAPTER 覆寫）
 │   ├── eval_hard.py                  # 分布外難題（HARD_ADAPTER 覆寫）
 │   ├── eval_final_driver.py          # 部署形態三情境（FINAL_ADAPTER 覆寫）
+│   ├── eval_xdomain.py               # 跨領域遷移三情境（部署形態）
 │   ├── eval_final_ollama.py          # Ollama 對照（歷史對決用，需 Ollama）
 │   ├── test_driver_unit.py / test_driver_integration.py / test_driver_phase.py  # driver 測試
-│   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/       # 現行報告
+│   ├── test_backstop.py / eval_backstop_e2e.py      # 後盾準確度（需 Ollama）/ 端對端對照
+│   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/ / eval_out_xdomain/  # 現行報告
 ├── learn_path/socratic_tutor/        # 訓練引擎（僅 4 檔）
 │   ├── common.py                     # 模型與路徑設定（env 覆寫）
 │   ├── train_qlora.py                # QLoRA 訓練主程式
@@ -106,11 +115,13 @@ conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_q
 
 ### 測試與評估
 ```powershell
-python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（51 項）
 conda run -n lora_project --live-stream python dataset\test_driver_integration.py   # 分級提示（GPU）
 conda run -n lora_project --live-stream python dataset\test_driver_phase.py         # 階段管理（GPU）
 conda run -n lora_project --live-stream python dataset\eval_final_driver.py         # 部署形態三情境
 conda run -n lora_project --live-stream python dataset\eval_heldout_v3.py           # 裸模型回歸
+python dataset\test_backstop.py                                           # 後盾找碴準確度（需 Ollama）
+conda run -n lora_project --live-stream python dataset\eval_backstop_e2e.py         # 後盾端對端（GPU+Ollama）
 ```
 
 ### 互動使用
@@ -121,22 +132,48 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 
 ---
 
-## 最終判定數據（2026-07-11，8 held-out 題 × 3 情境，同尺評分）
+## 最終判定數據（8 held-out 題 × 3 情境，同尺評分；2026-07-12 更新）
 
 | 路線 | S1 首問 | S2 糾錯 | S3 逼問 | 總平均 |
 |---|:---:|:---:|:---:|:---:|
-| **v6 + TutorDriver（採用）** | 4.31 | 4.19 | 4.31 | **4.27** |
+| **v6 + TutorDriver + 審閱後盾（採用）** | 4.31 | 4.50 | 4.31 | **4.37** |
+| v6 + TutorDriver（後盾離線時的降級形態） | 4.31 | 4.19 | 4.31 | 4.27 |
 | v3 裸模型 | 4.38 | 4.31 | 4.38 | 4.35 |
 | Ollama Thinking + grounded | 3.63 | 4.75 | 3.63 | 4.00 |
 | base + grounded | 3.88 | 4.06 | 3.00 | 3.65 |
 
-- 與 v3 差 0.08（8 題雜訊內），但 v3 無分級提示/審閱/階段管理能力 → 功能完整性定勝負。
-- Ollama 思考型 S2 糾錯全場最強（4.75）但 S3 曾把完整證明整段交出、且有空輸出——
-  無訓練約束＋無防護的路線在對抗情境不可靠。未來可考慮「思考型當審閱後盾」混合架構。
+- 審閱後盾把思考型的糾錯銳利度（4.75）移植進部署形態：S2 4.19→4.50（跨域 4.67→4.92），
+  S1/S3 逐字不變；H3-S2 錯誤背書消除。域內 4.37 已超過 v3 裸模型 4.35。
+- Ollama 思考型單獨用不可靠（S3 曾把完整證明整段交出、有空輸出）——混合架構讓它
+  只在幕後找碴、永不直接面對學生，致命傷被隔離。
 - driver 防護直接證據：S3 裸 4.06 → 4.31（洩漏重生成 24 筆中觸發 6 次全數成功）。
+- 對決明細與備份基準：`eval_out_final/FINAL_VERDICT.md` 追加節、`*_nobackstop.md`。
+
+## 跨領域遷移（2026-07-11，離散數學/線性代數 6 題，`eval_out_xdomain/EVAL_REPORT_xdomain.md`）
+
+- 三情境總平均 4.25 ≈ 域內 4.27：引導行為無衰減遷移；S2 糾錯 4.67 反超域內（6 個埋錯全中）；
+  18 筆生成零數學錯誤（grounded 參考解是關鍵錨，跨域**不可**拿掉）。
+- 跨域放大三個域內已知弱點 → 當日在 driver 加了三項防護（on-track 防奉送／等級 2 禁算式／
+  回問保底，皆為重生成機制，單元測試 39/39），**跨域升至 4.44、域內無回歸**。
+- 審閱解釋精確度（X2「察覺對但解釋錯」）是唯一出現數學錯話的環節，driver 蓋不住，需訓練面解法。
+
+## 審閱後盾（2026-07-12，混合架構落地，`eval_out_xdomain/backstop_e2e.md`）
+
+- `review_backstop.py`：review/rectify 輪先讓 Ollama 思考型（qwen3-4b-thinking）對照參考解
+  找碴，缺漏清單注入微調模型的階段指示。Ollama 不在線自動降級；`REVIEW_BACKSTOP=0` 關閉。
+- 端對端驗證（3 個微調模型曾失手的案例，有/無後盾對照）：H3 雙重錯誤的錯誤背書
+  「平均式子沒問題」**消失**、X4 從問錯目標變精準指出缺 v₂≠0、X2 無回歸。
+- 工程教訓：思考鏈需 `num_predict=8192`（3072 會被思考吃光、正文空白）；模型輸出的
+  LaTeX（`\{` `\dots`）是非法 JSON escape，解析需反斜線加倍重試；每次找碴 2–4 分鐘
+  （GPU 被 HF 佔用時後盾走 CPU）。
+- 找碴準確度（`test_backstop.py`）：X2 缺前提／X4 缺 v₂≠0／H3 雙錯 3/3 精準，
+  關鍵是 CRITIC_SYSTEM 要求「教學標準」（未明說的依據也算缺漏，數學家標準會放行）。
 
 ## 已知弱點（下輪迭代方向）
 
-1. 細膩雙重錯誤解剖力不足（H3-S2 誤說「平均式子沒問題」）→ rejection-sampling SFT 或混合架構。
-2. 偶發式子細節錯誤（H5-S3 均值定理區間寫錯）。
-3. M4 型細膩跳步（宣告聽起來完整時不驗證）→ driver 端步驟清單核對。
+1. ~~細膩雙重錯誤解剖、審閱「察覺對但解釋錯」~~ → 已由審閱後盾解決（2026-07-12，
+   e2e 驗證 H3/X2/X4 全改善）；殘餘依賴：Ollama 需在線，離線時降級回原行為。
+2. 偶發式子細節錯誤（H5-S3 均值定理區間寫錯）——發生在引導輪，後盾只蓋 review/rectify。
+3. M4 型細膩跳步（宣告聽起來完整時不驗證）→ 可考慮把「宣告完成」也路由給後盾複核。
+4. ~~on-track 奉送、等級 2 附算式~~ → 已由 driver 三項防護緩解（2026-07-11）；
+   根治仍需下次重訓補「on-track 只肯定不奉送」訓練樣本。

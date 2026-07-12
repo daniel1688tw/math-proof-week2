@@ -1,0 +1,80 @@
+[
+  {
+    "id": "X1",
+    "domain": "離散數學",
+    "topic": "強歸納法（Fibonacci 上界）",
+    "statement": "設 Fibonacci 數列 $F_1=F_2=1$，$F_n=F_{n-1}+F_{n-2}$（$n\\ge3$）。證明對所有 $n\\ge1$，$F_n<2^n$。",
+    "reference_proof": "**起始情形**（遞迴用到前兩項，需要兩個起始情形）：$F_1=1<2=2^1$，$F_2=1<4=2^2$。\n\n**歸納步驟（強歸納）**：設 $n\\ge3$，假設對所有 $1\\le m<n$ 均有 $F_m<2^m$。則\n$$F_n=F_{n-1}+F_{n-2}<2^{n-1}+2^{n-2}=3\\cdot2^{n-2}<4\\cdot2^{n-2}=2^n.$$\n\n由強歸納法原理，對所有 $n\\ge1$，$F_n<2^n$。$\\blacksquare$\n\n（註：若用普通歸納法只假設 $F_k<2^k$ 一項，歸納步驟中對 $F_{k-1}$ 的估計沒有依據；正確做法是強歸納或把假設寫成同時涵蓋相鄰兩項，且起始情形必須驗證兩個。）",
+    "attempt": "$F_1=1<2^1$ 成立。假設 $F_k<2^k$ 成立，則 $F_{k+1}=F_k+F_{k-1}<2^k+2^{k-1}<2^k+2^k=2^{k+1}$，由數學歸納法得證。這樣對嗎？",
+    "attempt_error": "單一歸納假設只涵蓋 F_k，卻同時使用了 F_{k-1}<2^{k-1}（沒有依據）；且只驗證一個起始情形（遞迴用兩項需要兩個），k=1 時 F_{k-1}=F_0 甚至未定義。",
+    "hint_ladder": [
+      "歸納步驟裡 $F_n$ 的遞迴用到前面幾項？想想只假設一項的歸納假設夠不夠用。",
+      "用強歸納法：假設對所有小於 $n$ 的項都成立；並注意遞迴用到兩項時，起始情形也要驗證兩個。"
+    ]
+  },
+  {
+    "id": "X2",
+    "domain": "離散數學",
+    "topic": "鴿籠原理",
+    "statement": "任取 $n+1$ 個整數（$n\\ge1$），證明其中必存在兩個數，其差可被 $n$ 整除。",
+    "reference_proof": "考慮每個整數除以 $n$ 的餘數。餘數的可能值為 $\\{0,1,\\dots,n-1\\}$，共 $n$ 種。\n\n現有 $n+1$ 個整數、只有 $n$ 種餘數類別，由鴿籠原理，必有兩個數 $a,b$（$a\\ne b$）落在同一餘數類別，即 $a\\equiv b\\pmod n$。\n\n於是 $a-b\\equiv0\\pmod n$，即 $n\\mid a-b$。$\\blacksquare$\n\n（常見誤區：餘數是 $0$ 到 $n-1$ 共 $n$ 種，不是 $0$ 到 $n$ 共 $n+1$ 種——除以 $n$ 的餘數不可能等於 $n$。）",
+    "attempt": "我想把這些數依除以 $n$ 的餘數分類：餘數可能是 $0$ 到 $n$，共 $n+1$ 種，所以 $n+1$ 個數可能每種餘數恰好各出現一次，這樣就找不到兩個同餘的數了。我覺得題目條件不夠，應該要取 $n+2$ 個數才對。這樣對嗎？",
+    "attempt_error": "餘數類別數錯了：除以 n 的餘數是 0 到 n-1 共 n 種（餘數不可能等於 n），n+1 個數放入 n 類必有重複，題目條件其實足夠。",
+    "hint_ladder": [
+      "試著把這 $n+1$ 個數依某種性質分類，使類別數恰好只有 $n$ 種。",
+      "鴿籠原理：考慮每個數除以 $n$ 的餘數——餘數只有 $n$ 種可能，數卻有 $n+1$ 個。"
+    ]
+  },
+  {
+    "id": "X3",
+    "domain": "離散數學",
+    "topic": "圖論（握手引理）",
+    "statement": "證明任意有限簡單圖 $G=(V,E)$ 中，度數為奇數的頂點個數必為偶數。",
+    "reference_proof": "**度數總和**：每條邊恰有兩個端點，對兩端點的度數各貢獻 $1$，故\n$$\\sum_{v\\in V}\\deg(v)=2|E|,$$\n為偶數（握手引理）。\n\n**分組**：把 $V$ 分成奇度頂點集 $O$ 與偶度頂點集 $P$：\n$$\\sum_{v\\in O}\\deg(v)=2|E|-\\sum_{v\\in P}\\deg(v).$$\n右邊是偶數減去（偶數之和＝偶數），故 $\\sum_{v\\in O}\\deg(v)$ 為偶數。\n\n**計數**：$O$ 中每個頂點度數皆為奇數，而奇數個奇數之和為奇數、偶數個奇數之和為偶數。既然總和為偶數，$|O|$ 必為偶數。$\\blacksquare$",
+    "attempt": "每條邊有兩個端點，所以所有頂點的度數總和等於邊數 $|E|$。假設奇度頂點有奇數個，那奇數個奇數相加是奇數，加上偶度頂點的偶數總和還是奇數，但 $|E|$ 可能是偶數，矛盾。所以奇度頂點是偶數個。我是這樣想的，對嗎？",
+    "attempt_error": "度數總和應為 2|E|（每條邊貢獻 2）而非 |E|；且「|E| 可能是偶數」推不出矛盾——正因總和恆等於 2|E| 必為偶數，論證才成立，原論證邏輯不完整。",
+    "hint_ladder": [
+      "先問自己：每一條邊對「所有頂點度數的總和」貢獻多少？",
+      "握手引理：度數總和等於邊數的兩倍、必為偶數；再把頂點按度數的奇偶分成兩組比較。"
+    ]
+  },
+  {
+    "id": "X4",
+    "domain": "線性代數",
+    "topic": "相異特徵值的特徵向量線性獨立",
+    "statement": "設 $A$ 為方陣，$\\lambda_1\\ne\\lambda_2$ 為 $A$ 的兩個相異特徵值，$v_1,v_2$ 為對應的特徵向量。證明 $\\{v_1,v_2\\}$ 線性獨立。",
+    "reference_proof": "設 $c_1v_1+c_2v_2=0$ …… (1)。目標：$c_1=c_2=0$。\n\n對 (1) 左乘 $A$，利用 $Av_i=\\lambda_iv_i$：\n$$c_1\\lambda_1v_1+c_2\\lambda_2v_2=0\\ \\cdots\\ (2)$$\n\n計算 $(2)-\\lambda_1\\times(1)$ 消去 $v_1$：\n$$c_2(\\lambda_2-\\lambda_1)v_2=0.$$\n\n因 $\\lambda_2\\ne\\lambda_1$（相異特徵值）且 $v_2\\ne0$（特徵向量依定義非零），得 $c_2=0$。\n\n代回 (1)：$c_1v_1=0$，而 $v_1\\ne0$，故 $c_1=0$。\n\n兩係數皆為零，$\\{v_1,v_2\\}$ 線性獨立。$\\blacksquare$\n\n（註：「兩向量皆非零」不足以推出線性獨立——例如 $v_2=2v_1$；證明必須用到特徵值相異這個條件。）",
+    "attempt": "$v_1,v_2$ 是特徵向量，依定義都不是零向量。既然兩個向量都非零，它們的線性組合 $c_1v_1+c_2v_2=0$ 就只有 $c_1=c_2=0$ 這組解，所以線性獨立。這樣對嗎？",
+    "attempt_error": "「非零向量必線性獨立」是錯的（v_2=2v_1 時兩者皆非零但線性相依）；論證完全沒用到 λ1≠λ2 這個關鍵條件——條件沒用到通常代表證明有漏洞。",
+    "hint_ladder": [
+      "除了原本的線性組合等式，能不能再用 $A$ 作用一次，得到第二條等式？",
+      "把兩條等式相消去掉其中一個向量：用一個特徵值乘原式再相減——這一步會用到特徵值相異。"
+    ]
+  },
+  {
+    "id": "X5",
+    "domain": "線性代數",
+    "topic": "秩-零度定理（冪零條件）",
+    "statement": "設 $V$ 為 $n$ 維向量空間，$T:V\\to V$ 為線性變換且 $T^2=0$。證明 $\\operatorname{rank}(T)\\le\\dfrac n2$。",
+    "reference_proof": "**包含關係**：對任意 $v\\in V$，$T(Tv)=T^2v=0$，故 $Tv\\in\\ker(T)$。這對所有 $v$ 成立，即\n$$\\operatorname{Im}(T)\\subseteq\\ker(T).$$\n\n**維度比較**：子空間包含給出 $\\operatorname{rank}(T)=\\dim\\operatorname{Im}(T)\\le\\dim\\ker(T)=\\operatorname{nullity}(T)$。\n\n**秩-零度定理**：$\\operatorname{rank}(T)+\\operatorname{nullity}(T)=n$，故\n$$\\operatorname{rank}(T)\\le\\operatorname{nullity}(T)=n-\\operatorname{rank}(T)\\ \\Longrightarrow\\ 2\\operatorname{rank}(T)\\le n\\ \\Longrightarrow\\ \\operatorname{rank}(T)\\le\\frac n2.\\ \\blacksquare$$",
+    "attempt": "$T^2=0$ 表示核被像包住，即 $\\ker(T)\\subseteq\\operatorname{Im}(T)$，所以 $\\operatorname{nullity}(T)\\le\\operatorname{rank}(T)$。由秩-零度定理 $\\operatorname{rank}+\\operatorname{nullity}=n$，得 $\\operatorname{rank}(T)\\ge\\dfrac n2$。這樣對嗎？",
+    "attempt_error": "包含方向弄反了：T²=0 給的是 Im(T)⊆Ker(T)（任何 Tv 再被 T 打到 0），不是 Ker⊆Im；於是結論的不等號方向也反了（正確是 rank ≤ n/2）。",
+    "hint_ladder": [
+      "$T^2=0$ 是說「先做一次 $T$ 的結果，再做一次 $T$ 會變成零」——這對 $T$ 的像與核給出什麼包含關係？",
+      "秩-零度定理：$\\operatorname{rank}+\\operatorname{nullity}=n$；配合 $\\operatorname{Im}(T)\\subseteq\\ker(T)$ 比較兩個維度。"
+    ]
+  },
+  {
+    "id": "X6",
+    "domain": "線性代數",
+    "topic": "實對稱矩陣特徵值為實數",
+    "statement": "設 $A$ 為 $n\\times n$ 實對稱矩陣。證明 $A$ 的每個特徵值都是實數。",
+    "reference_proof": "設 $Av=\\lambda v$，$v\\ne0$（先允許 $\\lambda\\in\\mathbb C$、$v\\in\\mathbb C^n$）。記 $v^*=\\bar v^{\\,T}$（共軛轉置）。\n\n**左乘 $v^*$**：\n$$v^*Av=\\lambda\\,v^*v.$$\n\n**$v^*Av$ 是實數**：它是 $1\\times1$ 純量，取共軛轉置不變其值，且 $A$ 實對稱 $\\Rightarrow A^*=\\bar A^{\\,T}=A^T=A$，故\n$$\\overline{v^*Av}=(v^*Av)^*=v^*A^*v=v^*Av,$$\n即 $v^*Av$ 等於自身共軛，為實數。\n\n**$v^*v$ 是正實數**：$v^*v=\\sum_i|v_i|^2>0$（$v\\ne0$）。\n\n故 $\\lambda=\\dfrac{v^*Av}{v^*v}$ 為實數除以正實數，是實數。$\\blacksquare$\n\n（常見誤區：用轉置 $v^T$ 而非共軛轉置——$v$ 可能是複向量，$v^Tv$ 可以是 $0$ 或複數，例如 $v=(1,i)^T$ 時 $v^Tv=0$，論證會垮掉。）",
+    "attempt": "設 $Av=\\lambda v$，$v\\ne0$。兩邊左乘 $v^T$ 得 $v^TAv=\\lambda v^Tv$。因為 $v^Tv=\\|v\\|^2>0$，而 $v^TAv$ 是一個實數，所以 $\\lambda=\\dfrac{v^TAv}{v^Tv}$ 是實數。這樣對嗎？",
+    "attempt_error": "特徵向量 v 可能是複向量：v^Tv 不一定是 ‖v‖²、可以為 0 或複數（如 v=(1,i)^T 時 v^Tv=0），v^TAv 也不必是實數。必須改用共軛轉置 v*，並先論證 v*Av 等於自身共軛。",
+    "hint_ladder": [
+      "特徵值可能先要當成複數、特徵向量當成複向量來處理——這時「轉置」和「共軛轉置」有差嗎？",
+      "對 $Av=\\lambda v$ 左乘 $v$ 的共軛轉置，再說明所得的純量等於自身的共軛（會用到 $A$ 實對稱）。"
+    ]
+  }
+]

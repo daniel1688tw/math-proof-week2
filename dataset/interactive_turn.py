@@ -55,6 +55,12 @@ def load_extra_problem(pid: str, problems: dict):
     """允許測試不在 problems.json/held_out.json/hard_math_major.json 裡的一次性題目。"""
     if pid in problems:
         return
+    xdomain = HERE / "xdomain_problems.json"
+    if xdomain.exists():
+        for p in json.loads(xdomain.read_text(encoding="utf-8")):
+            if p["id"] == pid:
+                problems[pid] = p          # hint_ladder 已內嵌，無需再查 hint_ladders.json
+                return
     extra = HERE / "adv_test_problem.json"
     if extra.exists():
         p = json.loads(extra.read_text(encoding="utf-8"))

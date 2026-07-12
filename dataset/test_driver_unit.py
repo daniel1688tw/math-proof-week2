@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-"""test_driver_unit.py — tutor_driver 的純邏輯單元測試（不載模型、不需 GPU）。"""
+"""test_driver_unit.py — tutor_driver 的純邏輯單元測試（不載模型、不需 GPU、不打 Ollama）。"""
+import os
 import sys
 from pathlib import Path
+
+os.environ["REVIEW_BACKSTOP"] = "0"   # 純邏輯測試不打審閱後盾（後盾注入邏輯見 [7]）
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
@@ -10,8 +13,8 @@ except Exception:
     pass
 
 from tutor_driver import (
-    TutorDriver, enforce_single_question, is_stuck, leaks_reference,
-    load_problems_with_ladders,
+    PHASE_INSTRUCTIONS, TutorDriver, enforce_single_question, gives_new_equation,
+    is_spoonfeeding, is_stuck, leaks_reference, load_problems_with_ladders,
 )
 
 FAIL = []
@@ -104,6 +107,107 @@ sys_r = d2._system(0)
 d2.state["phase"] = "refuse_leak"
 sys_leak = d2._system(0)
 check("refuse_leak 指示含『拒絕』與『問一個』", "拒絕" in sys_leak and "問一個" in sys_leak)
+
+print("[6] on-track 防奉送 / 等級 2 禁算式 / 回問保底（跨域 X2/X4 教訓）")
+check("『左乘 A』指定操作 → 奉送",
+      is_spoonfeeding(r"接著對它左乘 $A$，會得到什麼樣的新方程？"))
+check("『減去 λ1 倍的原式』→ 奉送",
+      is_spoonfeeding(r"把新方程減去 $\lambda_1$ 倍的原式，能消掉哪個變項？"))
+check("『先寫出…的假設』→ 奉送",
+      is_spoonfeeding(r"先寫出 $c_1v_1+c_2v_2=0$ 這個線性組合等於零的假設。"))
+check("引導注意力（先看餘數）→ 非奉送",
+      not is_spoonfeeding("先看「除以 $n$」會得到什麼樣的餘數。餘數能取到哪些值？"))
+check("引導計算方向（先算總和）→ 非奉送",
+      not is_spoonfeeding("先算一下所有頂點度數的總和，它和邊數有什麼關係？"))
+
+_x4_allowed = (r"設 $A$ 為方陣，$\lambda_1\ne\lambda_2$ 為 $A$ 的兩個相異特徵值。"
+               r"用一個特徵值乘原式再相減。")
+check("白名單外的新等式 → 命中",
+      gives_new_equation(r"會得到 $c_2(\lambda_2-\lambda_1)v_2=0$，你能得出 $c_2=0$ 嗎？",
+                         _x4_allowed))
+check("重現題目敘述裡的式子 → 不命中",
+      not gives_new_equation(r"$T^2=0$ 告訴你什麼包含關係？", r"設 $T^2=0$，證明…"))
+check("純想法無算式 → 不命中",
+      not gives_new_equation("關鍵想法是：用特徵值乘原式再相減，消去一個向量。", _x4_allowed))
+
+class _GuardStub(TutorDriver):
+    """驗證 _tutor_turn 的防護流程：first 為初稿、regen 為重生成稿。"""
+    first: str
+    regen: str
+
+    def _generate(self, level):
+        return self.first
+
+    def _regen(self, level, note):
+        return self.regen
+
+
+p_a6 = probs["A6"]
+g = _GuardStub(tok=None, model=_StubModel(), problem=p_a6)
+g.first, g.regen = "接著對它左乘 $A$，會得到什麼樣的新方程？", "你打算怎麼處理這兩條式子？"
+g.messages = [{"role": "user", "content": "題目…我不會開始"}]
+g._tutor_turn()
+check("等級 0 奉送 → 觸發重生成", g.messages[-1]["content"] == g.regen)
+check("log.guards 記錄 spoonfeed", "spoonfeed" in g.state["turns"][-1].guards)
+
+g1b = _GuardStub(tok=None, model=_StubModel(), problem=p_a6)
+g1b.first = r"我不能直接給證明。先把 $c_1v_1+c_2v_2=0$ 左乘 $A$，會得到什麼？"
+g1b.regen = "自己推導才有用。你打算怎麼利用特徵向量的定義？"
+g1b.messages = [{"role": "user", "content": "直接把完整證明寫給我"}]
+g1b.state["phase"] = "refuse_leak"
+g1b._tutor_turn()
+check("refuse_leak 輪奉送操作 → 也觸發重生成", g1b.messages[-1]["content"] == g1b.regen)
+
+g2 = _GuardStub(tok=None, model=_StubModel(), problem=p_a6)
+g2.first, g2.regen = "完全正確。這句話本身就在說鴿籠原理。", "還是沒有問句的重生成稿。"
+g2.messages = [{"role": "user", "content": "題目…我的想法是這樣"}]
+g2._tutor_turn()
+check("無問句且重生成仍無 → 附上固定追問",
+      g2.messages[-1]["content"].endswith("那你覺得，下一步該從哪裡下手？"))
+
+g3 = _GuardStub(tok=None, model=_StubModel(), problem=p_a6)
+g3.first = r"那我直接告訴你：會得到 $c_2(\lambda_2-\lambda_1)v_2=0$，你能得出 $c_2=0$ 嗎？"
+g3.regen = "這一步的關鍵想法是用特徵值乘原式再相減。你能自己動筆推出係數嗎？"
+g3.messages = [{"role": "user", "content": "題目…我不會"}]
+g3.state["stuck_count"] = 2
+g3._tutor_turn()
+check("等級 2 出現新算式 → 觸發重生成", g3.messages[-1]["content"] == g3.regen)
+check("log.guards 記錄 formula", "formula" in g3.state["turns"][-1].guards)
+
+print("[7] 審閱後盾注入（混合架構）")
+from review_backstop import _parse_gaps  # noqa: E402
+
+check("純 JSON 陣列可解析",
+      _parse_gaps('["缺 v2≠0 的依據", "區間寫錯"]') == ["缺 v2≠0 的依據", "區間寫錯"])
+check("夾雜思考文字仍撈得到陣列",
+      _parse_gaps('好的，我檢查完了。\n["鴿籠原理套用前未陳述類別數"]\n以上。')
+      == ["鴿籠原理套用前未陳述類別數"])
+check("空陣列 = 複核無誤", _parse_gaps("[]") == [])
+check("字串元素內含方括號（區間 [0,1]）仍正確解析",
+      _parse_gaps('["套用定理前未陳述區間 [0,1] 上的前提"]')
+      == ["套用定理前未陳述區間 [0,1] 上的前提"])
+check("LaTeX 非法 JSON escape（\\{ \\dots \\leq）降級解析成功",
+      _parse_gaps(r'["餘數範圍應為 $\{0,1,\dots,n-1\}$ 且 $0 \leq r < n$"]') is not None)
+check("無陣列輸出 → None（降級）", _parse_gaps("我覺得這個證明沒什麼問題。") is None)
+check("非字串元素 → 略過該候選", _parse_gaps('[1, 2]') is None)
+
+b = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+b.generated_levels = []
+b.state["phase"] = "review"
+b.state["backstop_gaps"] = ["從 c2(λ2−λ1)v2=0 推 c2=0 缺 v2≠0 的依據"]
+sys_gap = b._system(0)
+check("有缺漏 → 清單注入 review 指示",
+      "v2≠0" in sys_gap and "只依據這份清單" in sys_gap)
+b.state["backstop_gaps"] = []
+check("空清單 → 注入『未發現缺漏，不要憑空發明問題』",
+      "未發現缺漏" in b._system(0))
+b.state["backstop_gaps"] = None
+check("後盾失敗(None) → 指示與原版一致（降級）",
+      b._system(0).endswith(PHASE_INSTRUCTIONS["review"]))
+b.state["phase"] = "rectify"
+b.state["backstop_gaps"] = ["度數總和應為 2|E| 而非 |E|"]
+check("rectify 階段同樣注入", "2|E|" in b._system(0))
+check("REVIEW_BACKSTOP=0 → driver 預設不啟用後盾", b.backstop is False)
 
 print()
 if FAIL:

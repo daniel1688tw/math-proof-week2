@@ -39,7 +39,10 @@ conda run -n lora_project --live-stream python dataset\test_dataset.py   # 分�
 ## 驅動程式與測試
 
 - `tutor_driver.py`：部署核心。stuck counter→提示等級、階段偵測（審閱/拒絕/糾錯/寫證明）、
-  單問句截斷、洩漏 n-gram 防護。
+  單問句截斷、洩漏 n-gram 防護、on-track 防奉送、等級 2 禁算式、回問保底。
+- `review_backstop.py`：審閱後盾（選配）。review/rectify 輪讓 Ollama 思考型模型對照
+  參考解找碴、缺漏清單注入 system；`test_backstop.py`（準確度）與 `eval_backstop_e2e.py`
+  （端對端對照）可重跑驗證。
 - `interactive_turn.py`：逐輪互動 CLI（session 狀態存檔）。
 - `test_driver_unit.py`（無 GPU）/ `test_driver_integration.py` / `test_driver_phase.py`：
   三套可重跑測試。
