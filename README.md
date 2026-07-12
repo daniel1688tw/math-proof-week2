@@ -78,15 +78,26 @@ python train_qlora.py
 # 產出 dataset/qlora_adapter_new/（訓練資料 dataset/train.jsonl 已內附，路徑均可用環境變數覆寫）
 ```
 
-### 4. 測試
+### 4. 測試與品質守門
 
 ```bash
 cd dataset
-python test_driver_unit.py            # 驅動程式邏輯（無 GPU，51 項斷言）
+python test_driver_unit.py            # 驅動程式邏輯（無 GPU，71 項斷言）
 python test_driver_integration.py     # 分級提示行為（GPU）
 python test_driver_phase.py           # 階段管理行為（GPU）
 python eval_final_driver.py           # 三情境完整評估
+
+# 推送前守門（版本只進不退）：
+python regression_suite.py --quick    # 單元＋資料集（~1 分鐘）
+python regression_suite.py            # 完整回歸（GPU＋Claude Code CLI，~1.5 小時）
 ```
+
+完整回歸由 **Claude 擔任評審與學生**：19 題深度題逐句審查數學正確性與糾錯命中、
+3 場多輪對話由 Claude 扮演不同人格的學生真實互動後整場評分；確定性斷言
+（洩漏／拒絕／單問句／提示升級／教學收尾）作為硬性底線。計分卡與
+`regression_baseline.json` 逐指標比較，**任何退步即 exit 1**；刻意改進後用
+`--update-baseline` 抬高基準。搭配 Claude Code 可用 `/pre-push-check` skill
+執行完整守門流程（含質性抽查與推送範圍檢查）。
 
 ### 5. 互動使用
 
@@ -113,7 +124,7 @@ print(driver.step("學生的回覆"))       # 逐輪推進
 | 題目（含手寫 LaTeX 參考解） | 50（極限/連續/微分/積分/級數 各 10）|
 | 對話（360 train / 40 val） | 400 |
 | 對話類型 | 核心引導（3 種學生人格）、犯錯變體、抗洩漏/抗附和、分級提示、節奏錯位、寫證明審閱 |
-| 評估題（全部不在訓練集） | 8 held-out + 5 分布外難題 + 1 進階題（L'Hôpital 嚴格證明）|
+| 評估題（全部不在訓練集） | 8 held-out + 5 分布外難題 + 6 跨域（離散/線代）+ 1 進階題（L'Hôpital 嚴格證明）|
 
 修改 `dataset/src/` 後執行 `python build.py && python validate.py && python test_dataset.py` 重建。
 

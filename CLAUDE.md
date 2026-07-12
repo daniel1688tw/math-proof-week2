@@ -88,6 +88,8 @@ week3/
 │   ├── test_driver_unit.py / test_driver_integration.py / test_driver_phase.py  # driver 測試
 │   ├── test_backstop.py / eval_backstop_e2e.py      # 後盾準確度（需 Ollama）/ 端對端對照
 │   ├── test_auto_reference.py / eval_svt_e2e.py     # 備課盲測 / walkthrough+同學模式端對端
+│   ├── regression_suite.py           # ★ 推送前守門（Claude 當評審+學生；退步即 exit 1）
+│   ├── regression_baseline.json / regression_scores/  # 基準（只升不降）與各版本計分卡
 │   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/ / eval_out_xdomain/  # 現行報告
 ├── learn_path/socratic_tutor/        # 訓練引擎（僅 4 檔）
 │   ├── common.py                     # 模型與路徑設定（env 覆寫）
@@ -95,7 +97,9 @@ week3/
 │   ├── download_chunked.py           # 分塊下載基底模型（VPN 節流對策）
 │   ├── test_4bit_load.py             # 4-bit 載入煙霧測試
 │   └── qwen3_4b/                     # 基底權重（~8GB，不進 git）
+├── .claude/skills/pre-push-check/    # /pre-push-check skill：推送前守門流程（進版控）
 ├── dataset_plan.md / socratic_math_research.md      # 設計文件
+├── self_verified_teaching_design.md  # 自我驗證教學設計（備課/同學模式/逐步教學）
 ├── PUSH_SCOPE.md                     # git 推送範圍
 └── README.md                         # GitHub 對外說明
 ```
