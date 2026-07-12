@@ -13,10 +13,15 @@
 ## 架構：模型只管數學與語氣，決策交給程式碼
 
 ```
+新題目 → auto_reference.py 備課（思考型模型：生成×3 → 獨立驗證 → 修補 → 教學步驟切分）
+          verified → 進入下方 grounded 教學；unverified → 同學模式（誠實聲明沒把握、
+          同儕一起探索、被質疑會反省認錯）——先自己證對才教，證不對不硬教
+
 學生訊息 → TutorDriver（確定性決策層）
              · stuck counter：連續卡住次數 → 提示等級 0/1/2
              · 階段偵測：交草稿→審閱 / 逼問→拒絕 / 嘗試→糾錯 / 說懂了→請寫證明
              · 等級 2 注入 hint_ladders.json 的人工預寫提示
+             · 提示梯用盡仍卡住 → 逐步教學（一步一確認地教完，學生仍要自寫證明）
              · 審閱/糾錯輪：審閱後盾（Ollama 思考型模型對照參考解找碴，
                缺漏清單注入 system；未裝 Ollama 自動降級，REVIEW_BACKSTOP=0 關閉）
            → QLoRA 微調模型（4-bit）+ grounded system prompt（內含該題參考解）

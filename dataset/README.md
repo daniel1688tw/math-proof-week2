@@ -43,6 +43,9 @@ conda run -n lora_project --live-stream python dataset\test_dataset.py   # 分�
 - `review_backstop.py`：審閱後盾（選配）。review/rectify 輪讓 Ollama 思考型模型對照
   參考解找碴、缺漏清單注入 system；`test_backstop.py`（準確度）與 `eval_backstop_e2e.py`
   （端對端對照）可重跑驗證。
+- `auto_reference.py`：自動備課管線（新題目先自己證對才教）。生成→獨立驗證→修補→
+  教學步驟切分；驗證不過標 unverified、driver 走同學模式。盲測 `test_auto_reference.py`
+  （9/10 verified、正確率 100%）、端對端 `eval_svt_e2e.py`（逐步教學＋同學模式）。
 - `interactive_turn.py`：逐輪互動 CLI（session 狀態存檔）。
 - `test_driver_unit.py`（無 GPU）/ `test_driver_integration.py` / `test_driver_phase.py`：
   三套可重跑測試。

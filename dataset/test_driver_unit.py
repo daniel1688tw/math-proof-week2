@@ -30,6 +30,7 @@ print("[1] 卡住偵測 is_stuck")
 check("『我不知道，想不出來。』→ stuck", is_stuck("我不知道，想不出來。"))
 check("『還是想不到，可以再提示一下嗎？』→ stuck", is_stuck("還是想不到，可以再提示一下嗎？"))
 check("『沒有頭緒』→ stuck", is_stuck("沒有頭緒"))
+check("『聽不懂這步。』→ stuck（e2e 發現的缺口）", is_stuck("聽不懂這步。"))
 check("實質嘗試（含定理）→ 非 stuck", not is_stuck("我想用均值定理，f(x)-f(y)=f'(c)(x-y)，然後取絕對值。"))
 check("長回覆含『不確定』但有嘗試 → 非 stuck（長度>60）",
       not is_stuck("我不確定對不對，但我試著設 g(x)=f(x)-kx，然後算它的導數 g'(x)=f'(x)-k，接著看端點的符號，g'(a)<0 而 g'(b)>0。"))
