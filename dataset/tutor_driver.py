@@ -22,6 +22,16 @@
     對照參考解找碴，把缺漏清單注入階段指示——判斷交給思考型、說話交給微調模型。
     Ollama 不可用時靜默降級回原行為；REVIEW_BACKSTOP=0 可關閉。
 
+自我驗證教學擴充（self_verified_teaching_design.md）：
+  * 同學模式：題目 grounding=unverified（自動備課驗證失敗、無可靠參考解）時，
+    放下助教權威改用同儕 persona——想法標明不確定、首輪誠實聲明沒把握、
+    學生質疑時注入反省指示認真重檢自己。洩漏/防奉送/禁算式防護停用（無參考解可護），
+    單問句與回問保底保留。
+  * 逐步教學（walkthrough）：hint ladder 用盡後學生再度連卡兩次 → 自動進入。
+    每輪講解一個教學步驟（teach_steps，備課切分或保底段落切分）＋問確認小問題；
+    學生答不出同一步最多重講一次（更簡單說法）後前進；走完接回 writeup→review，
+    學生仍要自己寫出完整證明。此階段教學步驟允許寫式子（洩漏防護對步驟內容放行）。
+
 用法：
   from tutor_driver import TutorDriver
   d = TutorDriver(tok, model, problem)          # problem: dict 含 statement/reference_proof/(hint_ladder)
@@ -96,6 +106,33 @@ PHASE_INSTRUCTIONS = {
 # driver 直接以此模板取代（確定性優於賭模型服從指示）。
 WRITEUP_FALLBACK = "思路已經完整了。現在請把完整證明一步步寫出來，我會幫你審閱。"
 _WRITEUP_OK_RE = re.compile(r"寫出|寫下|自己寫|完整證明")
+
+# ── 同學模式（grounding=unverified：自動備課驗證失敗，誠實降級為同儕）──────────────
+PEER_SYSTEM = """你是和學生一起解這道數學證明題的同學——不是助教、不是老師，你們都還不知道可靠的解法。規則：繁體中文、回覆 80 字內；可以提出自己的猜想或方向，但必須標明不確定（「我猜」「說不定」「我不確定」），絕不用權威口吻下斷言；學生質疑你的想法時，認真重新檢查、發現有錯就坦白承認並修正；每輪最後問學生一個問題（問他的看法或下一步想怎麼試）。"""
+
+PEER_REFLECT_INSTRUCTION = (
+    "本輪指示：學生質疑你上一個想法。認真重新檢查那個想法的每一步：若真的有錯，"
+    "明白承認、說出錯在哪並修正；若檢查後仍認為正確，溫和說明理由。不要不懂裝懂。"
+)
+
+# 首輪誠實聲明（確定性前綴，不賭模型自己說）
+PEER_DISCLAIMER = "先說好：這題我自己也沒有把握，我們當同學一起想，我的想法你要幫忙把關。"
+
+# 質疑偵測：學生對「你（同學）」的想法表示懷疑
+_CHALLENGE_RE = re.compile(
+    r"你錯|你搞錯|不對吧|好像不對|應該不是|我覺得不是|真的嗎|確定嗎|有問題吧|怪怪的"
+)
+
+# ── 逐步教學（walkthrough：提示梯用盡仍卡住 → 一小步一確認地教）─────────────────
+WALKTHROUGH_INSTRUCTION = (
+    "本輪指示：學生提示用盡仍無法前進，進入逐步教學。把下面的教學步驟用自己的話講解清楚"
+    "（此輪允許寫出式子），講解完後只問下面的確認問題（可換句話說）。"
+    "不要問別的問題、不要要求學生自己想出這一步。\n教學步驟：{explain}\n確認問題：{check}"
+)
+WALKTHROUGH_RETRY_NOTE = (
+    "學生沒聽懂上一輪的講解。換一種更簡單的講法（打比方或用更小的具體例子）"
+    "把同一步驟再講一次，再問一次確認問題。"
+)
 
 
 def is_stuck(student_text: str) -> bool:
@@ -183,6 +220,28 @@ class TutorDriver:
     })
     messages: list = field(default_factory=list)
 
+    # ---- 同學模式 / 逐步教學輔助 ----------------------------------------------
+    def is_peer(self) -> bool:
+        """無可靠參考解（自動備課驗證失敗）→ 同儕身分，不得以助教權威教學。"""
+        return (self.problem.get("grounding") == "unverified"
+                or not self.problem.get("reference_proof"))
+
+    def _ensure_teach_steps(self) -> list:
+        """取得教學步驟：題目自帶 → Ollama 切分 → 確定性段落切分保底。"""
+        steps = self.problem.get("teach_steps")
+        if steps:
+            return steps
+        proof = self.problem["reference_proof"]
+        try:
+            from auto_reference import fallback_steps, segment_proof
+            steps = segment_proof(self.problem["statement"], proof) or fallback_steps(proof)
+        except ImportError:
+            paras = [p.strip() for p in re.split(r"\n\s*\n", proof) if p.strip()]
+            steps = [{"explain": p, "check": "這一步的推理你能自己複述一遍嗎？"}
+                     for p in (paras or [proof])[:6]]
+        self.problem["teach_steps"] = steps
+        return steps
+
     # ---- 生成 ----------------------------------------------------------------
     def _backstop_block(self) -> str:
         """把後盾複核結果組成注入 system 的指示段；後盾未啟用/失敗時為空字串。"""
@@ -211,9 +270,20 @@ class TutorDriver:
             self.problem["statement"], self.problem["reference_proof"], student_text)
 
     def _system(self, level: int) -> str:
-        sys_txt = BASE_SYSTEM.format(proof=self.problem["reference_proof"])
         phase = self.state.get("phase")
-        if phase in PHASE_INSTRUCTIONS:          # 階段指示優先於等級指示
+        # 同學模式：無參考解，同儕 persona（質疑輪加反省指示）
+        if self.is_peer():
+            if phase == "peer_reflect":
+                return PEER_SYSTEM + "\n\n" + PEER_REFLECT_INSTRUCTION
+            return PEER_SYSTEM
+        sys_txt = BASE_SYSTEM.format(proof=self.problem["reference_proof"])
+        if phase == "walkthrough":               # 逐步教學：注入當前步驟
+            steps = self._ensure_teach_steps()
+            idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
+            instr = WALKTHROUGH_INSTRUCTION.format(**steps[idx])
+            if self.state.get("walk_retry"):
+                instr += "\n" + WALKTHROUGH_RETRY_NOTE
+        elif phase in PHASE_INSTRUCTIONS:        # 階段指示優先於等級指示
             instr = PHASE_INSTRUCTIONS[phase]
             if phase in ("review", "rectify"):
                 instr += self._backstop_block()
@@ -232,9 +302,11 @@ class TutorDriver:
         enc = self.tok.apply_chat_template(
             msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True
         ).to(self.model.device)
+        # 教學輪要「講解＋確認問題」，給多一點生成空間
+        max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
         with torch.no_grad():
             out = self.model.generate(
-                **enc, max_new_tokens=self.max_new_tokens, do_sample=False,
+                **enc, max_new_tokens=max_new, do_sample=False,
                 repetition_penalty=1.05,
                 pad_token_id=self.tok.pad_token_id or self.tok.eos_token_id,
             )
@@ -270,8 +342,11 @@ class TutorDriver:
     def _tutor_turn(self) -> str:
         level = min(self.state["stuck_count"], 2)
         phase = self.state.get("phase")
+        peer = self.is_peer()
+        walkthrough = phase == "walkthrough"
         reply = self._generate(level)
-        reply = enforce_single_question(reply)
+        if not walkthrough:                   # 教學輪允許「講解＋確認問題」多句結構
+            reply = enforce_single_question(reply)
 
         # 階段保底：writeup_request 輪若模型沒請學生寫證明，直接用模板取代
         if phase == "writeup_request" and not _WRITEUP_OK_RE.search(reply):
@@ -280,40 +355,55 @@ class TutorDriver:
         log = TurnLog(level=level, stuck_count=self.state["stuck_count"])
         if phase in ("review", "rectify") and self.state.get("backstop_gaps") is not None:
             log.guards.append("backstop")
-        # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
-        if level < 2 and leaks_reference(reply, self.problem["reference_proof"]):
-            log.leak_flag = True
-            reply = self._regen(level, "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。")
-            log.regenerated = True
 
-        # on-track 防奉送：一般引導輪與拒絕輪（refuse_leak 規則本就禁止給步驟），
-        # 等級 <2 不得替學生指定具體代數操作
-        if level < 2 and phase in (None, "refuse_leak") and is_spoonfeeding(reply):
-            log.guards.append("spoonfeed")
-            reply = self._regen(
-                level, "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
-                "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。")
-            log.regenerated = True
-
-        # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
-        if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
-            log.guards.append("formula")
-            reply = self._regen(
-                level, "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
-                "絕對不要寫出任何等式或不等式，讓學生自己動筆推。")
-            log.regenerated = True
-
-        # 回問保底：引導輪與 refuse_leak 輪必須以問題收尾
-        if level < 2 and phase in (None, "refuse_leak") and not _QMARK_RE.search(reply):
-            log.guards.append("no_question")
-            regen = self._regen(level, "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。")
-            if _QMARK_RE.search(regen):
-                reply = regen
+        # 內容防護只在有參考解、且非教學輪時運作（同學模式無解可護；教學步驟本就要講出來）
+        if not peer and not walkthrough:
+            # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
+            if level < 2 and leaks_reference(reply, self.problem["reference_proof"]):
+                log.leak_flag = True
+                reply = self._regen(level, "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。")
                 log.regenerated = True
-            else:
-                reply = reply.rstrip() + " 那你覺得，下一步該從哪裡下手？"
 
-        if level == 2:
+            # on-track 防奉送：一般引導輪與拒絕輪（refuse_leak 規則本就禁止給步驟），
+            # 等級 <2 不得替學生指定具體代數操作
+            if level < 2 and phase in (None, "refuse_leak") and is_spoonfeeding(reply):
+                log.guards.append("spoonfeed")
+                reply = self._regen(
+                    level, "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
+                    "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。")
+                log.regenerated = True
+
+            # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
+            if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
+                log.guards.append("formula")
+                reply = self._regen(
+                    level, "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
+                    "絕對不要寫出任何等式或不等式，讓學生自己動筆推。")
+                log.regenerated = True
+
+        # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾
+        needs_q = (walkthrough or peer
+                   or (level < 2 and phase in (None, "refuse_leak")))
+        if needs_q and not _QMARK_RE.search(reply):
+            log.guards.append("no_question")
+            if walkthrough:                   # 教學輪確定性補上該步的確認問題
+                steps = self._ensure_teach_steps()
+                idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
+                reply = reply.rstrip() + " " + steps[idx]["check"]
+            else:
+                regen = self._regen(level, "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。")
+                if _QMARK_RE.search(regen):
+                    reply = regen
+                    log.regenerated = True
+                else:
+                    reply = reply.rstrip() + " 那你覺得，下一步該從哪裡下手？"
+
+        # 同學模式首輪：確定性補上誠實聲明（不賭模型自己說）
+        if peer and not any(m["role"] == "assistant" for m in self.messages):
+            if "沒有把握" not in reply and "不確定" not in reply[:30]:
+                reply = PEER_DISCLAIMER + " " + reply
+
+        if level == 2 and not walkthrough and not peer:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
             self.state["stuck_count"] = 0     # 給過想法後重新計數
         self.state["turns"].append(log)
@@ -322,6 +412,10 @@ class TutorDriver:
 
     # ---- 階段偵測（start 與 step 共用；優先序：交草稿 > 逼問 > 懂了）-----------
     def _detect_phase(self, student_text: str) -> None:
+        if self.is_peer():                    # 同儕沒有階段機，只偵測質疑
+            self.state["phase"] = ("peer_reflect"
+                                   if _CHALLENGE_RE.search(student_text) else None)
+            return
         if _DRAFT_RE.search(student_text):
             self.state["phase"] = "review"
         elif _DEMAND_RE.search(student_text):
@@ -334,18 +428,46 @@ class TutorDriver:
         else:
             self.state["phase"] = None
 
+    def _walkthrough_transition(self, student_text: str) -> None:
+        """逐步教學狀態機：進入 / 重講 / 前進 / 收尾（交草稿隨時可打斷進審閱）。"""
+        if self.state.get("walk_active"):
+            if self.state.get("phase") == "review":   # 學生交草稿 → 結束教學進審閱
+                self.state["walk_active"] = False
+                return
+            steps = self._ensure_teach_steps()
+            if is_stuck(student_text) and not self.state.get("walk_retry"):
+                self.state["walk_retry"] = 1          # 同一步換簡單說法重講一次
+            else:
+                self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
+                self.state["walk_retry"] = 0
+            if self.state["walk_idx"] >= len(steps):  # 教完 → 請學生自己寫證明
+                self.state["walk_active"] = False
+                self.state["phase"] = "writeup_request"
+                self.state["writeup_asked"] = True
+            else:
+                self.state["phase"] = "walkthrough"
+            self.state["stuck_count"] = 0
+            return
+        # 進入條件：提示梯已用盡（至少給過一輪等級 2）且學生再度連卡兩次
+        ladder_len = max(len(self.problem.get("hint_ladder") or []), 1)
+        if (self.state["stuck_count"] >= 2
+                and self.state["ladder_idx"] >= ladder_len
+                and self.state.get("phase") is None):
+            self.state.update(walk_active=True, walk_idx=0, walk_retry=0,
+                              phase="walkthrough", stuck_count=0)
+
     # ---- 對外 API -------------------------------------------------------------
     def start(self, opener: str = "我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？") -> str:
         first = f"題目：{self.problem['statement']}\n\n{opener}"
         self._detect_phase(first)
-        if self.state.get("phase") in ("review", "rectify"):
+        if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(first)
         self.messages = [{"role": "user", "content": first}]
         return self._tutor_turn()
 
     def step(self, student_text: str) -> str:
         self._detect_phase(student_text)
-        if self.state.get("phase") in ("review", "rectify"):
+        if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(student_text)
         else:
             self.state["backstop_gaps"] = None
@@ -353,6 +475,8 @@ class TutorDriver:
             self.state["stuck_count"] += 1
         else:
             self.state["stuck_count"] = 0
+        if not self.is_peer():
+            self._walkthrough_transition(student_text)
         self.messages.append({"role": "user", "content": student_text})
         return self._tutor_turn()
 
