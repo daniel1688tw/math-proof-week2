@@ -14,7 +14,9 @@ __pycache__/
 *.pyc
 
 # Claude Code 本機設定（不含機密，但屬個人環境設定，不應進 repo）
-.claude/
+# 例外：.claude/skills/ 是專案工作流程（如 /pre-push-check 守門），要進版控
+.claude/*
+!.claude/skills/
 
 # 訓練/評估 log 與打包產物（zip 可用 git archive 重新產生）
 *.log

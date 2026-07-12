@@ -1,0 +1,493 @@
+# -*- coding: utf-8 -*-
+"""regression_suite.py — 全自動回歸套件：每次更新跑一次，任何指標退步即擋下。
+
+評估者不是關鍵字比對，而是 **Claude（經 Claude Code CLI headless）**：
+  * 評審角色：逐題審查助教回覆的「數學正確性」與「引導品質」（給 JSON 裁決）
+  * 學生角色：在多輪對話 tier 扮演真實推理的學生（會卡住、會犯錯、被引導才懂）
+確定性斷言仍保留為硬性底線（洩漏/拒絕/單問句/升級/教學收尾——這些不需判斷力）。
+
+  Tier 0（無 GPU，~1 分）     單元測試 + 資料集驗證（exit 0 才續跑）
+  Tier 1（GPU，~40 分）       19 深度題 × S1/S2/S3 生成 + 確定性結構指標
+  Tier 2（Claude 評審）        逐題審查 Tier 1 回覆：math_ok / S2 是否抓到埋錯 / 品質 1-5
+  Tier 3（Claude 學生+評審）   3 題多輪對話（Claude 扮學生逐輪回應）→ 整場對話審查
+  Tier 4（Ollama，選配）       審閱後盾 3 案例，找碴結果交 Claude 判對錯
+
+計分卡 regression_scores/<ts>_<sha>.json 與 regression_baseline.json 比較：
+確定性指標嚴格不得退步；judge_* 指標容忍 ε=0.05（評審有噪音）。
+刻意提升後用 --update-baseline 抬高基準（基準只升不降 = 版本只進不退）。
+
+用法：
+  python regression_suite.py --quick             # 只跑 Tier 0
+  python regression_suite.py                     # 全部（自動偵測 GPU/Ollama/claude CLI）
+  python regression_suite.py --update-baseline
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+os.environ.setdefault("PYTHONNOUSERSITE", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("BITSANDBYTES_NOWELCOME", "1")
+os.environ["REVIEW_BACKSTOP"] = "0"          # Tier 1 求確定性與速度；後盾由 Tier 4 專測
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+SCORE_DIR = HERE / "regression_scores"
+BASELINE = HERE / "regression_baseline.json"
+MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
+ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v6")
+PY = sys.executable
+JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
+JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）
+
+S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
+_QMARK = re.compile(r"[?？]")
+
+DEEP_IDS = [f"H{i}" for i in range(1, 9)] + [f"M{i}" for i in range(1, 6)] + \
+           [f"X{i}" for i in range(1, 7)]
+ESC_IDS = ["A6", "C8", "E4"]
+# Tier 3 多輪對話：題 × 學生人格（Claude 扮演）
+DIALOGUE_CASES = [
+    ("H5", "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來"),
+    ("M2", "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據"),
+    ("X4", "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正"),
+]
+DIALOGUE_TURNS = 6
+
+
+# ── Claude CLI（評審與學生共用）────────────────────────────────────────────────
+def claude_available() -> bool:
+    return shutil.which("claude") is not None
+
+
+def claude_call(prompt: str, timeout: int = 420) -> str | None:
+    exe = shutil.which("claude")
+    if not exe:
+        return None
+    try:
+        r = subprocess.run(
+            [exe, "-p", "--model", JUDGE_MODEL, "--output-format", "text"],
+            input=prompt, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=timeout)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    return (r.stdout or "").strip() or None
+
+
+def _balanced(content: str, open_ch: str, close_ch: str) -> list:
+    spans, depth, start = [], 0, None
+    for i, ch in enumerate(content):
+        if ch == open_ch:
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == close_ch and depth > 0:
+            depth -= 1
+            if depth == 0 and start is not None:
+                spans.append(content[start:i + 1])
+    return spans
+
+
+def _loads_lenient(s: str):
+    for attempt in (s, s.replace("\\", "\\\\")):
+        try:
+            return json.loads(attempt)
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
+def parse_json_obj(content: str | None) -> dict | None:
+    if not content:
+        return None
+    for span in _balanced(content, "{", "}"):
+        obj = _loads_lenient(span)
+        if isinstance(obj, dict):
+            return obj
+    return None
+
+
+# ── Tier 0 ────────────────────────────────────────────────────────────────────
+def tier0() -> bool:
+    ok = True
+    for script in ("test_driver_unit.py", "validate.py", "test_dataset.py"):
+        r = subprocess.run([PY, str(HERE / script)], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
+        print(f"  [{'✓' if r.returncode == 0 else '✗'}] {script}")
+        if r.returncode != 0:
+            print(r.stdout[-800:], r.stderr[-400:])
+            ok = False
+    return ok
+
+
+# ── Tier 1：生成 + 確定性結構指標 ────────────────────────────────────────────────
+def _load_problems() -> dict:
+    from tutor_driver import load_problems_with_ladders
+    problems = load_problems_with_ladders()
+    xd = HERE / "xdomain_problems.json"
+    if xd.exists():
+        for p in json.loads(xd.read_text(encoding="utf-8")):
+            problems[p["id"]] = p
+    return problems
+
+
+def load_model():
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+    from peft import PeftModel
+    tok = AutoTokenizer.from_pretrained(str(MODEL_DIR))
+    if tok.pad_token_id is None:
+        tok.pad_token = tok.eos_token
+    bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                             bnb_4bit_compute_dtype=torch.bfloat16,
+                             bnb_4bit_use_double_quant=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        str(MODEL_DIR), quantization_config=bnb, device_map={"": 0}, dtype=torch.bfloat16)
+    model = PeftModel.from_pretrained(model, str(ADAPTER_DIR))
+    model.eval()
+    return tok, model
+
+
+def tier1(tok, model, metrics: dict) -> list:
+    """回傳 items：每筆 {id, scenario, reply, ...} 供 Tier 2 評審。"""
+    from tutor_driver import TutorDriver, is_spoonfeeding, leaks_reference
+    problems = _load_problems()
+    att = json.loads((HERE / "held_out_attempts.json").read_text(encoding="utf-8"))
+    items, all_replies = [], []
+
+    s1_ok = s3_ok = 0
+    for pid in DEEP_IDS:
+        p = problems[pid]
+        d = TutorDriver(tok, model, dict(p), backstop=False)
+        r1 = d.start()
+        all_replies.append(r1)
+        ok1 = bool(_QMARK.search(r1)) and not is_spoonfeeding(r1) \
+            and not leaks_reference(r1, p["reference_proof"])
+        s1_ok += ok1
+        items.append({"id": pid, "scenario": "S1", "reply": r1})
+
+        d3 = TutorDriver(tok, model, dict(p), backstop=False)
+        r3 = d3.start(opener=S3_OPENER)
+        all_replies.append(r3)
+        ok3 = d3.state.get("phase") == "refuse_leak" and bool(_QMARK.search(r3)) \
+            and not leaks_reference(r3, p["reference_proof"])
+        s3_ok += ok3
+        items.append({"id": pid, "scenario": "S3", "reply": r3})
+
+        attempt = att[pid]["attempt"] if pid in att else p.get("attempt")
+        if attempt:
+            d2 = TutorDriver(tok, model, dict(p), backstop=False)
+            r2 = d2.start(opener=f"我的嘗試如下：{attempt}")
+            all_replies.append(r2)
+            items.append({"id": pid, "scenario": "S2", "reply": r2,
+                          "attempt": attempt,
+                          "planted_error": (att.get(pid) or p).get("planted_error")
+                          or p.get("attempt_error", "")})
+        print(f"  [{pid}] S1 {'✓' if ok1 else '✗'}  S3 {'✓' if ok3 else '✗'}")
+    metrics["s1_structural"] = round(s1_ok / len(DEEP_IDS), 4)
+    metrics["s3_refusal"] = round(s3_ok / len(DEEP_IDS), 4)
+
+    esc_ok = 0
+    from tutor_driver import TutorDriver as TD
+    for pid in ESC_IDS:
+        d = TD(tok, model, dict(problems[pid]), backstop=False)
+        d.start()
+        d.step("我不知道，想不出來。")
+        r = d.step("還是想不到，再提示一下。")
+        all_replies.append(r)
+        ok = d.state["turns"][-1].level == 2 and bool(_QMARK.search(r)) \
+            and d.state["ladder_idx"] == 1
+        esc_ok += ok
+        print(f"  [{pid}] 升級 {'✓' if ok else '✗'}")
+    metrics["escalation"] = round(esc_ok / len(ESC_IDS), 4)
+
+    d = TD(tok, model, dict(problems["A6"]), backstop=False)
+    d.start()
+    for msg in ("我不知道。", "還是不會。", "不會。", "再提示，還是不會。",
+                "我不會。", "完全沒頭緒。"):
+        d.step(msg)
+    entered = bool(d.state.get("walk_active"))
+    for _ in range(12):
+        if not d.state.get("walk_active"):
+            break
+        d.step("這步我懂了。")
+    finished = not d.state.get("walk_active") and d.state.get("phase") == "writeup_request"
+    metrics["walkthrough"] = round((entered + finished) / 2, 4)
+    print(f"  [A6] walkthrough 進入 {'✓' if entered else '✗'} 收尾 {'✓' if finished else '✗'}")
+
+    sq = sum(1 for r in all_replies if len(_QMARK.findall(r)) <= 1)
+    metrics["single_question"] = round(sq / len(all_replies), 4)
+    return items
+
+
+# ── Tier 2：Claude 逐題評審 ──────────────────────────────────────────────────────
+JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明題、正確參考解，以及蘇格拉底式助教在三種情境下的回覆。請逐則審查。
+
+【題目】{statement}
+
+【參考解（正確）】{proof}
+
+{blocks}
+
+對每一則回覆判定：
+- math_ok：回覆中所有數學陳述是否**全部正確**（一句錯就 false；引導問題本身沒有數學斷言則為 true）
+- caught（僅 S2）：助教是否指到了學生嘗試中「真正的錯誤」（見埋錯說明；只點到皮毛或指錯地方算 false）
+- score：引導品質 1-5（蘇格拉底原則：不奉送、一問一等、指向正確下一步）
+- issue：一句話說明扣分或錯誤處（沒有就空字串）
+
+只輸出一個 JSON 物件，格式：
+{{"S1": {{"math_ok": true, "score": 4, "issue": ""}}, "S2": {{"math_ok": true, "caught": true, "score": 4, "issue": ""}}, "S3": {{"math_ok": true, "score": 4, "issue": ""}}}}
+（缺某情境就省略該鍵）不要輸出任何其他文字。"""
+
+
+def tier2_judge(items: list, metrics: dict) -> None:
+    problems = _load_problems()
+    by_pid: dict = {}
+    for it in items:
+        by_pid.setdefault(it["id"], {})[it["scenario"]] = it
+
+    math_ok = catch_ok = catch_n = 0
+    scores, judged = [], 0
+    for pid, scen in by_pid.items():
+        p = problems[pid]
+        blocks = []
+        for sname in ("S1", "S2", "S3"):
+            if sname not in scen:
+                continue
+            it = scen[sname]
+            if sname == "S2":
+                blocks.append(f"【S2 學生嘗試（埋錯）】{it['attempt']}\n"
+                              f"【S2 埋錯說明】{it['planted_error']}\n"
+                              f"【S2 助教回覆】{it['reply']}")
+            else:
+                ctx = "學生請求第一個提示" if sname == "S1" else "學生逼問直接給完整證明"
+                blocks.append(f"【{sname} 情境】{ctx}\n【{sname} 助教回覆】{it['reply']}")
+        out = claude_call(JUDGE_ITEM_PROMPT.format(
+            statement=p["statement"], proof=p["reference_proof"], blocks="\n\n".join(blocks)))
+        verdict = parse_json_obj(out)
+        if not verdict:
+            print(f"  [{pid}] 評審失敗（跳過，不計入）")
+            continue
+        for sname, v in verdict.items():
+            if not isinstance(v, dict):
+                continue
+            judged += 1
+            math_ok += bool(v.get("math_ok"))
+            if isinstance(v.get("score"), (int, float)):
+                scores.append(float(v["score"]))
+            if sname == "S2":
+                catch_n += 1
+                catch_ok += bool(v.get("caught"))
+            if not v.get("math_ok") or (sname == "S2" and not v.get("caught")):
+                print(f"  [{pid}/{sname}] ✗ {v.get('issue', '')[:80]}")
+        print(f"  [{pid}] 評審完成")
+    if judged:
+        metrics["judge_math_ok"] = round(math_ok / judged, 4)
+        metrics["judge_score"] = round(sum(scores) / len(scores) / 5, 4) if scores else 0.0
+    if catch_n:
+        metrics["judge_s2_catch"] = round(catch_ok / catch_n, 4)
+
+
+# ── Tier 3：Claude 扮學生的多輪對話 + 整場評審 ───────────────────────────────────
+STUDENT_PROMPT = """你在測試一個蘇格拉底式數學助教。你扮演一位真實推理的大學生，人格設定：{persona}
+
+題目：{statement}
+
+以下是到目前為止的對話（「助教」是被測系統、「學生」是你）：
+{history}
+
+請產生學生的下一句回覆（1-3 句、口語、符合人格；真的被引導到理解才說懂，不要無腦附和；
+若助教的話有數學問題，你可以提出疑問）。只輸出學生要說的話，不要任何其他文字。"""
+
+DIALOGUE_JUDGE_PROMPT = """你是嚴格的數學教學評審。審查以下完整的引導對話。
+
+【題目】{statement}
+【參考解（正確）】{proof}
+【對話】
+{history}
+
+判定（只看「助教」的發言）：
+- math_ok：助教所有數學陳述是否全部正確（一句錯就 false）
+- guidance：整場引導品質 1-5（不奉送、一問一等、有效把學生推向理解、該提示才提示）
+- issue：一句話指出最大問題（沒有就空字串）
+
+只輸出 JSON：{{"math_ok": true, "guidance": 4, "issue": ""}}"""
+
+
+def tier3_dialogue(tok, model, metrics: dict) -> list:
+    from tutor_driver import TutorDriver
+    problems = _load_problems()
+    math_ok_n = 0
+    guidance, records = [], []
+    for pid, persona in DIALOGUE_CASES:
+        p = problems[pid]
+        d = TutorDriver(tok, model, dict(p), backstop=False)
+        reply = d.start()
+        history = [("助教", reply)]
+        print(f"  [{pid}] 對話開始（{persona[:4]}…）")
+        for _ in range(DIALOGUE_TURNS):
+            h_txt = "\n".join(f"{who}：{txt}" for who, txt in history)
+            stu = claude_call(STUDENT_PROMPT.format(
+                persona=persona, statement=p["statement"], history=h_txt), timeout=300)
+            if not stu:
+                print(f"  [{pid}] 學生生成失敗，提前結束")
+                break
+            stu = stu.strip().strip('"')
+            history.append(("學生", stu))
+            reply = d.step(stu)
+            history.append(("助教", reply))
+        h_txt = "\n".join(f"{who}：{txt}" for who, txt in history)
+        verdict = parse_json_obj(claude_call(DIALOGUE_JUDGE_PROMPT.format(
+            statement=p["statement"], proof=p["reference_proof"], history=h_txt)))
+        records.append({"id": pid, "persona": persona, "history": history,
+                        "verdict": verdict})
+        if verdict:
+            math_ok_n += bool(verdict.get("math_ok"))
+            if isinstance(verdict.get("guidance"), (int, float)):
+                guidance.append(float(verdict["guidance"]))
+            print(f"  [{pid}] math_ok={verdict.get('math_ok')} "
+                  f"guidance={verdict.get('guidance')} {verdict.get('issue', '')[:60]}")
+    if records:
+        metrics["judge_dialogue_math_ok"] = round(math_ok_n / len(records), 4)
+    if guidance:
+        metrics["judge_dialogue_guidance"] = round(sum(guidance) / len(guidance) / 5, 4)
+    return records
+
+
+# ── Tier 4：後盾（找碴結果交 Claude 判對錯）─────────────────────────────────────
+BACKSTOP_JUDGE_PROMPT = """你是數學評審。學生草稿有已知缺漏，審閱後盾找出了缺漏清單。判定後盾找得對不對。
+
+【題目】{statement}
+【已知的真實缺漏】{truth}
+【後盾找出的清單】{gaps}
+
+只輸出 JSON：{{"correct": true}}（清單有指到真實缺漏、且沒有錯誤指控）或 {{"correct": false}}"""
+
+
+def tier4_backstop(metrics: dict) -> None:
+    try:
+        from review_backstop import available, find_gaps
+    except ImportError:
+        return
+    if not available():
+        print("  Ollama 不在線，跳過（不計入比較）")
+        return
+    problems = _load_problems()
+    att = json.loads((HERE / "held_out_attempts.json").read_text(encoding="utf-8"))
+    cases = [
+        ("X2", "證明：任取 n+1 個整數。由鴿籠原理，必存在兩數 a、b 除以 n 的餘數相同。"
+               "設 a=qn+r、b=pn+r，則 a−b=(q−p)n。證畢。",
+         "套用鴿籠原理前未陳述「餘數只有 n 種（0 到 n-1）、數卻有 n+1 個」這個前提"),
+        ("X4", "證明：設 c1v1+c2v2=0。左乘 A 得 c1λ1v1+c2λ2v2=0。相減得 c2(λ2−λ1)v2=0。"
+               "因 λ2≠λ1 故 c2=0；代回得 c1=0。",
+         "從 c2(λ2−λ1)v2=0 推 c2=0 缺少 v2≠0（特徵向量非零）這個依據"),
+        ("H3", att["H3"]["attempt"], att["H3"]["planted_error"]),
+    ]
+    ok = n = 0
+    for pid, draft, truth in cases:
+        gaps = find_gaps(problems[pid]["statement"], problems[pid]["reference_proof"], draft)
+        if gaps is None:
+            print(f"  [{pid}] 後盾降級（不計入）")
+            continue
+        verdict = parse_json_obj(claude_call(BACKSTOP_JUDGE_PROMPT.format(
+            statement=problems[pid]["statement"], truth=truth,
+            gaps=json.dumps(gaps, ensure_ascii=False))))
+        n += 1
+        hit = bool(verdict and verdict.get("correct"))
+        ok += hit
+        print(f"  [{pid}] 後盾 {'✓' if hit else '✗'}")
+    if n:
+        metrics["judge_backstop"] = round(ok / n, 4)
+
+
+# ── 基準比較 ──────────────────────────────────────────────────────────────────
+def compare_with_baseline(metrics: dict) -> bool:
+    if not BASELINE.exists():
+        print("\n（無基準檔——完整跑通過後本次成績將寫入為初始基準）")
+        return True
+    base = json.loads(BASELINE.read_text(encoding="utf-8"))["metrics"]
+    ok = True
+    print("\n=== 與基準比較（確定性指標零容忍；judge_* 容忍 ε=%.2f）===" % JUDGE_EPSILON)
+    for k, v in metrics.items():
+        if k not in base:
+            print(f"  [新增] {k} = {v}")
+            continue
+        eps = JUDGE_EPSILON if k.startswith("judge_") else 0.0
+        good = v >= base[k] - eps
+        print(f"  [{'✓' if good else '✗ 退步'}] {k}: {base[k]} → {v}")
+        ok = ok and good
+    return ok
+
+
+def _git_sha() -> str:
+    try:
+        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=HERE,
+                              capture_output=True, text=True).stdout.strip() or "unknown"
+    except Exception:
+        return "unknown"
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--quick", action="store_true", help="只跑 Tier 0")
+    ap.add_argument("--update-baseline", action="store_true")
+    args = ap.parse_args()
+
+    metrics: dict = {}
+    print("=== Tier 0：單元 + 資料集（無 GPU）===")
+    if not tier0():
+        print("\n✗ Tier 0 失敗，中止")
+        sys.exit(1)
+    metrics["tier0"] = 1.0
+
+    dialogue_records = []
+    if not args.quick:
+        if not claude_available():
+            print("\n✗ 找不到 claude CLI（評審/學生角色必需）。裝設後重跑，或用 --quick。")
+            sys.exit(1)
+        tok, model = load_model()
+        print("\n=== Tier 1：19 深度題生成 + 結構指標（GPU）===")
+        items = tier1(tok, model, metrics)
+        print("\n=== Tier 2：Claude 逐題評審（math_ok / S2 抓錯 / 品質）===")
+        tier2_judge(items, metrics)
+        print("\n=== Tier 3：Claude 扮學生多輪對話 + 整場評審 ===")
+        dialogue_records = tier3_dialogue(tok, model, metrics)
+        print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
+        tier4_backstop(metrics)
+
+    record = {"timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
+              "commit": _git_sha(), "judge_model": JUDGE_MODEL, "metrics": metrics}
+    SCORE_DIR.mkdir(exist_ok=True)
+    stem = f"{record['timestamp'].replace(':', '')}_{record['commit']}"
+    (SCORE_DIR / f"{stem}.json").write_text(
+        json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    if dialogue_records:
+        (SCORE_DIR / f"{stem}_dialogues.json").write_text(
+            json.dumps(dialogue_records, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n計分卡：{SCORE_DIR / (stem + '.json')}")
+    print(json.dumps(metrics, ensure_ascii=False, indent=2))
+
+    ok = compare_with_baseline(metrics)
+    if ok and not args.quick and (args.update_baseline or not BASELINE.exists()):
+        BASELINE.write_text(json.dumps(record, ensure_ascii=False, indent=2),
+                            encoding="utf-8")
+        print(f"基準已更新：{BASELINE}")
+    if not ok:
+        print("\n✗ 回歸失敗：有指標低於基準")
+        sys.exit(1)
+    print("\n✓ 回歸通過：全部指標 ≥ 基準")
+
+
+if __name__ == "__main__":
+    main()

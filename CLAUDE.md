@@ -133,6 +133,16 @@ python dataset\test_auto_reference.py                                     # 備�
 conda run -n lora_project --live-stream python dataset\eval_svt_e2e.py              # 逐步教學+同學模式端對端
 ```
 
+### 推送前守門（每次更新必跑；skill：`/pre-push-check`）
+```powershell
+python dataset\regression_suite.py --quick     # 單元+資料集（~1 分鐘）
+python dataset\regression_suite.py             # 完整：Claude 當評審+學生（GPU+claude CLI，~1.5hr）
+python dataset\regression_suite.py --update-baseline   # 確認進步後抬高基準
+```
+任何指標低於 `dataset/regression_baseline.json` → exit 1，**不可推送**。
+確定性指標（洩漏/拒絕/單問句/升級/教學收尾）零容忍；judge_* 指標容忍 ε=0.05。
+計分卡與對話記錄存 `dataset/regression_scores/`（進 git，留版本歷史）。
+
 ### 新題目備課（先自己證對才教）
 ```powershell
 python dataset\auto_reference.py --statement "證明 ..." --id NEW1 --out new_problem.json
