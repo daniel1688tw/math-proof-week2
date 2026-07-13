@@ -64,7 +64,7 @@ class _StubDriver(TutorDriver):
 
     def _generate(self, level):
         self.generated_levels.append(level)
-        return f"（等級{level}的回覆）這一步該怎麼想？"
+        return f"（等級{level}的回覆，第{len(self.generated_levels)}輪）這一步該怎麼想？"
 
 
 probs = load_problems_with_ladders()
@@ -104,6 +104,63 @@ sys_r = d2._system(0)
 d2.state["phase"] = "refuse_leak"
 sys_leak = d2._system(0)
 check("refuse_leak 指示含『拒絕』與『問一個』", "拒絕" in sys_leak and "問一個" in sys_leak)
+
+print("[6] 英文偵測（雙語支援）")
+from tutor_driver import detect_lang
+
+check("純英文 → en", detect_lang("I have no idea how to start this problem.") == "en")
+check("繁中 → zh", detect_lang("我不知道怎麼開始。") == "zh")
+check("英文夾 LaTeX → en", detect_lang(r"Prove that $\lim_{x\to 2}x^2=4$ using epsilon-delta.") == "en")
+
+check("en stuck: I don't know", is_stuck("I don't know how to continue."))
+check("en stuck: no idea", is_stuck("Sorry, I have no idea."))
+check("en stuck: still stuck, hint", is_stuck("I'm still stuck, can I get another hint?"))
+check("en 實質嘗試不算 stuck",
+      not is_stuck("I am not sure, but I tried setting g(x)=f(x)-kx and computing g'(x)=f'(x)-k, then I checked the signs of g'(a) and g'(b) at both endpoints of the interval."))
+
+d3 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d3.generated_levels = []
+d3.start(opener="I have not started yet. I am very confused, please guide me one tiny step at a time.")
+check("英文 session 語言 = en", d3.state.get("lang") == "en")
+check("英文首則含 Problem: 前綴", d3.messages[0]["content"].startswith("Problem:"))
+d3.step("Just tell me the full proof, stop asking me questions.")
+check("en 逼問 → refuse_leak", d3.state["phase"] == "refuse_leak")
+d3.step("I think we keep only the quadratic term as a lower bound. Is this correct?")
+check("en 嘗試 → rectify", d3.state["phase"] == "rectify")
+d3.step("Here is my proof: by the binomial theorem ... please review it.")
+check("en 交草稿 → review", d3.state["phase"] == "review")
+d3.step("I don't know.")
+check("en 卡住累計", d3.state["stuck_count"] == 1)
+sys_en = d3._system(0)
+check("en session 的 system 是英文", "Socratic" in sys_en)
+
+d4 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d4.generated_levels = []
+d4.start()
+check("中文 session 語言 = zh", d4.state.get("lang") == "zh")
+check("zh system 不變", "蘇格拉底" in d4._system(0))
+
+print("[7] 重複回覆保底")
+
+
+class _RepeatDriver(TutorDriver):
+    """前兩次生成回傳同一句，第三次（重生成）回傳新句。"""
+    calls: int = 0
+
+    def _generate_text(self, sys_txt):
+        self.calls += 1
+        if self.calls <= 2:
+            return "Which hypothesis in the problem verifies one condition of that theorem?"
+        return "What value does the theorem guarantee for f somewhere in the interval?"
+
+
+d5 = _RepeatDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d5.calls = 0
+d5.start(opener="I am confused, please guide me step by step.")
+r1 = d5.step("I checked continuity on [a,b]. What value are we trying to get?")
+check("重複命中後重生成出新句", r1.startswith("What value"))
+check("重複輪有標記 regenerated", d5.state["turns"][-1].regenerated)
+check("重生成共呼叫 3 次", d5.calls == 3)
 
 print()
 if FAIL:
