@@ -67,7 +67,7 @@ class _StubDriver(TutorDriver):
 
     def _generate(self, level):
         self.generated_levels.append(level)
-        return f"（等級{level}的回覆）這一步該怎麼想？"
+        return f"（等級{level}的回覆，第{len(self.generated_levels)}輪）這一步該怎麼想？"
 
 
 probs = load_problems_with_ladders()
@@ -208,6 +208,60 @@ b.state["phase"] = "rectify"
 b.state["backstop_gaps"] = ["度數總和應為 2|E| 而非 |E|"]
 check("rectify 階段同樣注入", "2|E|" in b._system(0))
 check("REVIEW_BACKSTOP=0 → driver 預設不啟用後盾", b.backstop is False)
+
+print("[8] 英文偵測（雙語支援）")
+from tutor_driver import detect_lang, is_spoonfeeding as _is_spoon
+
+check("純英文 → en", detect_lang("I have no idea how to start this problem.") == "en")
+check("繁中 → zh", detect_lang("我不知道怎麼開始。") == "zh")
+check("英文夾 LaTeX → en", detect_lang(r"Prove that $\lim_{x\to 2}x^2=4$ using epsilon-delta.") == "en")
+check("en stuck: I don't know", is_stuck("I don't know how to continue."))
+check("en stuck: still stuck", is_stuck("I'm still stuck, can I get another hint?"))
+check("en 實質嘗試不算 stuck",
+      not is_stuck("I am not sure, but I tried setting g(x)=f(x)-kx and computing g'(x)=f'(x)-k, then checked the signs at both endpoints of the interval."))
+check("en 奉送：left-multiply", _is_spoon("Next, left-multiply both sides by A to get a new equation."))
+check("en 奉送：subtract ... times", _is_spoon("Subtract lambda_1 times the original equation."))
+check("en 引導注意力不算奉送", not _is_spoon("First look at what dividing by n gives you. What remainders can appear?"))
+
+d3 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d3.generated_levels = []
+d3.start(opener="I have not started yet. I am very confused, please guide me one tiny step at a time.")
+check("英文 session 語言 = en", d3.state.get("lang") == "en")
+check("英文首則含 Problem: 前綴", d3.messages[0]["content"].startswith("Problem:"))
+d3.step("Just tell me the full proof, stop asking me questions.")
+check("en 逼問 → refuse_leak", d3.state["phase"] == "refuse_leak")
+d3.step("I think we keep only the quadratic term as a lower bound. Is this correct?")
+check("en 嘗試 → rectify", d3.state["phase"] == "rectify")
+d3.step("Here is my proof: by the binomial theorem ... please review it.")
+check("en 交草稿 → review", d3.state["phase"] == "review")
+check("en session 的 system 是英文", "Socratic" in d3._system(0))
+
+d4 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d4.generated_levels = []
+d4.start()
+check("中文 session 語言 = zh", d4.state.get("lang") == "zh")
+check("zh system 不變", "蘇格拉底" in d4._system(0))
+
+print("[9] 重複回覆保底")
+
+
+class _RepeatStub(TutorDriver):
+    calls: int = 0
+
+    def _generate(self, level):
+        self.calls += 1
+        return "Which hypothesis in the problem verifies one condition of that theorem?"
+
+    def _regen(self, level, note):
+        return "What value does the theorem guarantee for f somewhere in the interval?"
+
+
+d5 = _RepeatStub(tok=None, model=_StubModel(), problem=probs["A6"])
+d5.calls = 0
+d5.start(opener="I am confused, please guide me step by step.")
+r1 = d5.step("I checked continuity on [a,b]. What value are we trying to get?")
+check("重複命中後重生成出新句", r1.startswith("What value"))
+check("重複輪標記 repeat 守衛", "repeat" in d5.state["turns"][-1].guards)
 
 print()
 if FAIL:

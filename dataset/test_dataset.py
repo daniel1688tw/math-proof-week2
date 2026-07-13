@@ -22,6 +22,7 @@ except Exception:
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
+SRC_EN = HERE / "src_en"
 
 
 def load_module(path):
@@ -34,18 +35,23 @@ def load_module(path):
 def main():
     fails = []
 
-    # ---- 來源 ----
-    problems = {}
+    # ---- 來源（中英雙語）----
+    problems = {}                 # id → 中文題目（統計用；grounding 另收雙語片段）
+    proof_snippets = []           # (id, 參考解前 20 字) 中英各一份
     topic_counter = Counter()
-    for p in sorted(SRC.glob("problems_*.py")):
-        for prob in load_module(p).PROBLEMS:
-            problems[prob["id"]] = prob
-            topic_counter[prob["topic"]] += 1
+    for src in (SRC, SRC_EN):
+        for p in sorted(src.glob("problems_*.py")):
+            for prob in load_module(p).PROBLEMS:
+                proof_snippets.append((prob["id"], prob["reference_proof"][:20]))
+                if src is SRC:
+                    problems[prob["id"]] = prob
+                    topic_counter[prob["topic"]] += 1
 
     dialogues = []
-    for p in sorted(SRC.glob("dialogues_*.py")):
-        for d in load_module(p).DIALOGUES:
-            dialogues.append(d)
+    for src in (SRC, SRC_EN):
+        for p in sorted(src.glob("dialogues_*.py")):
+            for d in load_module(p).DIALOGUES:
+                dialogues.append(d)
 
     persona_counter = Counter(d["persona"] for d in dialogues)
     kind_counter = Counter(d["kind"] for d in dialogues)
@@ -94,11 +100,11 @@ def main():
                 fails.append(f"{name}#{i} system 缺參考解標籤")
             if len(msgs) < 2 or msgs[1]["role"] != "user":
                 fails.append(f"{name}#{i} 第二則非 user")
-            elif not msgs[1]["content"].startswith("題目："):
+            elif not (msgs[1]["content"].startswith("題目：")
+                      or msgs[1]["content"].startswith("Problem: ")):
                 fails.append(f"{name}#{i} user 未注入題目陳述")
 
-    # grounding 抽樣：確認 system 內的參考解確實來自某題（比對片段）
-    proof_snippets = [(pid, p["reference_proof"][:20]) for pid, p in problems.items()]
+    # grounding 抽樣：確認 system 內的參考解確實來自某題（中英雙語片段皆比對）
     matched = 0
     for r in train + val:
         sys_c = r["messages"][0]["content"]
