@@ -1,5 +1,11 @@
 # 高等數學蘇格拉底引導資料集企劃
 
+> [!NOTE]
+> 本文件為專案開發初期的**企劃規劃文件**。專案在後續的六輪迭代中已有多項演進：
+> 1. **資料量擴充**：實際資料集已擴展為中英雙語，總計 800 條對話（720 條 train / 80 條 val），而非企劃初期的 350 條。
+> 2. **工具與介面演進**：企劃中提及的 `inference.py` 與 `eval_judge.py` 在實際部署中已演進為有狀態的 [tutor_driver.py](dataset/tutor_driver.py)、[interactive_turn.py](dataset/interactive_turn.py) 及複數評估腳本（如 [eval_final_driver.py](dataset/eval_final_driver.py)）。
+> 3. **最新設計與防護**：請參考根目錄的最新 [architecture_design.md](architecture_design.md)。
+
 > 目標：建立一套**域內（on-domain）、grounded、繁體中文**的蘇格拉底式對話訓練資料集，
 > 用於 QLoRA 微調 Qwen3-4B，使其成為可靠的高等數學證明引導助教。
 

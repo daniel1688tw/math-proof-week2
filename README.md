@@ -10,7 +10,11 @@
 訓練資料**全部人工撰寫並驗證數學正確性**（50 道題目 + 400 條繁體中文多輪對話），
 在單張 6GB VRAM 的筆電 GPU（RTX 4050）上即可完成訓練與推論。
 
+> [!NOTE]
+> 關於本專案的完整混合式設計框架、每個模組檔案的具體功用以及核心機制的詳細技術細節，請參閱專為開發者撰寫的：[**架構設計文件 (architecture_design.md)**](architecture_design.md)。
+
 ## 架構：模型只管數學與語氣，決策交給程式碼
+
 
 ```
 學生訊息 → TutorDriver（確定性決策層）
@@ -46,7 +50,24 @@
 思考型模型甚至曾把完整證明整段交出；微調 + driver 則穩定做到「一句拒絕 + 一個引導問題」。
 完整判定過程見 [dataset/eval_out_final/FINAL_VERDICT.md](dataset/eval_out_final/FINAL_VERDICT.md)。
 
+## 專案結構與模組導覽
+
+本專案主要包含以下模組與檔案（詳細設計請參考 [architecture_design.md](architecture_design.md)）：
+
+*   **對話驅動層 (`dataset/`)**
+    *   [tutor_driver.py](dataset/tutor_driver.py)：核心有狀態驅動程式，控制 stuck 狀態與階段判定，並施加 6 大推論端防護。
+    *   [review_backstop.py](dataset/review_backstop.py)：後台審閱後盾，調用本地 Ollama 思考型模型進行草稿找碴。
+    *   [interactive_turn.py](dataset/interactive_turn.py)：學生/開發者逐輪互動 CLI。
+*   **資料集建置與驗證 (`dataset/`)**
+    *   `src/` & `src_en/`：收錄人工手寫之 50 道大學微積分/數學分析題目與 400 條多輪對話。
+    *   [build.py](dataset/build.py)：將手寫內容組裝成 grounded SFT 格式並切分 train/val 資料。
+    *   [validate.py](dataset/validate.py)：嚴格的 SFT 資料集品質驗證器。
+*   **QLoRA 微調訓練 (`learn_path/socratic_tutor/`)**
+    *   [train_qlora.py](learn_path/socratic_tutor/train_qlora.py)：微調主程式，實作 Assistant-only loss masking 與左截斷保留視窗。
+    *   [common.py](learn_path/socratic_tutor/common.py)：共用路徑設定檔。
+
 ## 快速開始
+
 
 ### 1. 環境（Python 3.11，CUDA 12.x，≥6GB VRAM）
 

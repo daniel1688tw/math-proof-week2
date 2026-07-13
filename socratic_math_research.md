@@ -1,5 +1,9 @@
 # SocraticMath 研究與微積分證明引導數據集設計規劃
 
+> [!NOTE]
+> 本文件為專案初期的**研究與設計規劃備忘錄**。
+> 其中提出的「蘇格拉底微積分證明引導五階段」與 Persona 設計已在 [tutor_driver.py](dataset/tutor_driver.py) 中完整實作。關於後期第六輪迭代引入的「審閱後盾 ([review_backstop.py](dataset/review_backstop.py))」等進階混合式架構與 6 大安全防護機制，請參閱最新 [architecture_design.md](architecture_design.md)。
+
 本文件整理了對華東師範大學 ICALK 實驗室發表的 **SocraticMath** 數據集之研究成果，並針對「微積分證明引導助手」提出了一套客製化的數據集設計與生成方案。
 
 ---
