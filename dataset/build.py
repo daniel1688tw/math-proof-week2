@@ -21,6 +21,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
+SRC_EN = HERE / "src_en"
 
 # 精簡版 grounded system（~80 token）：完整規則版約 130 token，會讓多數 grounded 樣本
 # （system 已含完整 LaTeX 參考解）超過 MAX_LEN=512 而被截斷/丟棄。精簡後多能塞進 512~640。
@@ -30,6 +31,19 @@ SYSTEM_TEMPLATE = """你是蘇格拉底式高等數學引導助教。下面 <REF
 {proof}
 </REFERENCE_PROOF>"""
 
+# 英文版 grounded system（與中文版語義等價；與 tutor_driver.BASE_SYSTEM_EN 同源）。
+SYSTEM_TEMPLATE_EN = """You are a Socratic tutor for advanced mathematics proofs. The <REFERENCE_PROOF> below is a reference solution (invisible to the student); use it only to ensure your questions point toward the correct next step, and never leak its content or final conclusion. Rules: ask only one focused question per turn, use precise mathematical terminology, keep replies within about 60 words; if the student is on the right track, affirm and push forward; if there is a logical gap, guide them to discover it themselves through a question. If the student fails the same step or goes the wrong direction twice in a row, you may name the key theorem or technique that step needs (without explaining how to apply it and without formulas), then ask one question for the student to continue the derivation. Once the student has walked through all key steps, ask them to write out the complete proof; when reviewing their written proof, point out any gap with a single question and let them fix it themselves.
+
+<REFERENCE_PROOF>
+{proof}
+</REFERENCE_PROOF>"""
+
+# 語言設定：目錄、system 模板、題目前綴、problems.json 輸出檔名
+LANGS = [
+    {"src": SRC, "template": SYSTEM_TEMPLATE, "prefix": "題目：", "problems_out": "problems.json"},
+    {"src": SRC_EN, "template": SYSTEM_TEMPLATE_EN, "prefix": "Problem: ", "problems_out": "problems_en.json"},
+]
+
 
 def _load_module(path: Path):
     spec = importlib.util.spec_from_file_location(path.stem, path)
@@ -38,10 +52,10 @@ def _load_module(path: Path):
     return mod
 
 
-def load_problems():
+def load_problems(src: Path):
     problems = {}
     order = []
-    for path in sorted(SRC.glob("problems_*.py")):
+    for path in sorted(src.glob("problems_*.py")):
         mod = _load_module(path)
         for p in mod.PROBLEMS:
             if p["id"] in problems:
@@ -51,9 +65,9 @@ def load_problems():
     return problems, order
 
 
-def load_dialogues():
+def load_dialogues(src: Path):
     dialogues = []
-    for path in sorted(SRC.glob("dialogues_*.py")):
+    for path in sorted(src.glob("dialogues_*.py")):
         mod = _load_module(path)
         for d in mod.DIALOGUES:
             d["_src"] = path.name
@@ -61,37 +75,43 @@ def load_dialogues():
     return dialogues
 
 
-def build_record(dialogue, problems):
+def build_record(dialogue, problems, template, prefix):
     pid = dialogue["problem_id"]
     if pid not in problems:
         raise ValueError(f"對話引用不存在的題目 id: {pid} ({dialogue.get('_src')})")
     prob = problems[pid]
-    messages = [{"role": "system", "content": SYSTEM_TEMPLATE.format(proof=prob["reference_proof"])}]
+    messages = [{"role": "system", "content": template.format(proof=prob["reference_proof"])}]
     turns = dialogue["turns"]
     if not turns or turns[0]["role"] != "user":
         raise ValueError(f"對話首回合須為 user: {pid} ({dialogue.get('_src')})")
     # 將題目陳述注入第一個 user 回合，避免每條對話重複抄寫 LaTeX
-    first = f"題目：{prob['statement']}\n\n{turns[0]['content']}"
+    first = f"{prefix}{prob['statement']}\n\n{turns[0]['content']}"
     messages.append({"role": "user", "content": first})
     messages.extend({"role": t["role"], "content": t["content"]} for t in turns[1:])
     return {"messages": messages}
 
 
 def main():
-    problems, order = load_problems()
-    dialogues = load_dialogues()
-
-    # 1. problems.json
-    problems_out = [problems[pid] for pid in order]
-    (HERE / "problems.json").write_text(
-        json.dumps(problems_out, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-
-    # 2. 分流
     core, aug = [], []
-    for d in dialogues:
-        rec = build_record(d, problems)
-        (core if d["kind"] == "core" else aug).append(rec)
+    lang_stats = []
+    for lang in LANGS:
+        problems, order = load_problems(lang["src"])
+        dialogues = load_dialogues(lang["src"])
+
+        # problems.json / problems_en.json（供 driver 與評估使用）
+        problems_out = [problems[pid] for pid in order]
+        (HERE / lang["problems_out"]).write_text(
+            json.dumps(problems_out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+
+        n_core = n_aug = 0
+        for d in dialogues:
+            rec = build_record(d, problems, lang["template"], lang["prefix"])
+            if d["kind"] == "core":
+                core.append(rec); n_core += 1
+            else:
+                aug.append(rec); n_aug += 1
+        lang_stats.append((lang["src"].name, len(problems_out), n_core, n_aug))
 
     def dump_jsonl(path, records):
         with open(path, "w", encoding="utf-8") as f:
@@ -101,7 +121,7 @@ def main():
     dump_jsonl(HERE / "dialogues_core.jsonl", core)
     dump_jsonl(HERE / "dialogues_augmented.jsonl", aug)
 
-    # 3. 合併 + 切分
+    # 合併雙語 + 固定種子 shuffle + 9:1 切分
     allrec = core + aug
     rng = random.Random(20260702)
     rng.shuffle(allrec)
@@ -110,7 +130,8 @@ def main():
     dump_jsonl(HERE / "train.jsonl", train)
     dump_jsonl(HERE / "val.jsonl", val)
 
-    print(f"題目數        : {len(problems_out)}")
+    for name, n_prob, n_core, n_aug in lang_stats:
+        print(f"[{name:8}] 題目 {n_prob}，核心 {n_core}，擴充 {n_aug}")
     print(f"核心對話      : {len(core)}")
     print(f"擴充對話      : {len(aug)}")
     print(f"對話總數      : {len(allrec)}")

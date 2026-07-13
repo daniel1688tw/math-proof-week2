@@ -55,10 +55,23 @@ BASE_SYSTEM = """你是蘇格拉底式高等數學引導助教。下面 <REFEREN
 {proof}
 </REFERENCE_PROOF>"""
 
+# 英文版 grounded system（與 BASE_SYSTEM 語義等價；session 語言為英文時採用）。
+BASE_SYSTEM_EN = """You are a Socratic tutor for advanced mathematics proofs. The <REFERENCE_PROOF> below is a reference solution (invisible to the student); use it only to ensure your questions point toward the correct next step, and never leak its content or final conclusion. Rules: ask only one focused question per turn, use precise mathematical terminology, keep replies within about 60 words; if the student is on the right track, affirm and push forward; if there is a logical gap, guide them to discover it themselves through a question. Once the student has walked through all key steps, ask them to write out the complete proof; when reviewing their written proof, point out any gap with a single question and let them fix it themselves.
+
+<REFERENCE_PROOF>
+{proof}
+</REFERENCE_PROOF>"""
+
 LEVEL_INSTRUCTIONS = {
     0: "本輪指示：只問一個聚焦問題，不要點名任何定理或技巧名稱，讓學生自己想方向。",
     1: "本輪指示：學生剛才答不出來。把上一個問題拆成更小、更具體的子問題再問一次，仍然不要點名定理或技巧名稱。",
     2: "本輪指示：學生已連續兩次答不出來，本輪必須透漏想法。回覆的第一句要明確說出下面提示裡的定理／技巧名稱或核心想法（這是此輪允許且必要的透漏，不要再用反問代替），第二句問一個讓學生自己接手推導的問題。不要給任何算式、不要替學生完成任何一步計算。\n提示內容：{hint}",
+}
+
+LEVEL_INSTRUCTIONS_EN = {
+    0: "This turn: ask exactly one focused question. Do not name any theorem or technique; let the student find the direction themselves.",
+    1: "This turn: the student just failed to answer. Break your previous question into a smaller, more concrete sub-question and ask again. Still do not name any theorem or technique.",
+    2: "This turn: the student has failed twice in a row, so you must reveal an idea now. Your first sentence must explicitly state the theorem/technique name or core idea from the hint below (this reveal is required this turn - do not replace it with another counter-question); your second sentence asks one question that lets the student take over the derivation. Do not give any formula and do not carry out any computation for the student.\nHint: {hint}",
 }
 
 # 卡住偵測：短回覆且含「答不出」語彙（確定性、可測試）
@@ -66,18 +79,53 @@ _STUCK_RE = re.compile(
     r"不知道|不會|想不到|想不出|沒(有)?頭緒|不確定|不太?懂|不明白|卡住|再提示|"
     r"沒(有)?想法|毫無頭緒|完全沒概念"
 )
+_STUCK_EN_RE = re.compile(
+    r"i don'?t know|no idea|no clue|not sure|stuck|confused|"
+    r"can'?t (figure|see|think)|i'?m lost|(another|more|give me a) hint",
+    re.I,
+)
 _QMARK_RE = re.compile(r"[?？]")
 
 # 階段偵測（v6 專項測試發現：階段轉換也不能賭模型慣性，由驅動程式判定）
-_UNDERSTOOD_RE = re.compile(r"思路.{0,6}(懂|有了|清楚)|都懂了|我懂了|我會了|理解了")
-_DRAFT_RE = re.compile(r"證明[:：]|請幫我審閱|寫好了")
+_UNDERSTOOD_RE = re.compile(
+    r"思路.{0,6}(懂|有了|清楚)|都懂了|我懂了|我會了|理解了|"
+    r"i understand now|now i understand|i (got|get) it( now)?|makes sense now|i see it now",
+    re.I,
+)
+_DRAFT_RE = re.compile(
+    r"證明[:：]|請幫我審閱|寫好了|"
+    r"here is my proof|my proof:|proof:|please review|i('| ha)ve written|i wrote (it|the|my) proof",
+    re.I,
+)
 # 逼問偵測（v6 回歸發現 S3 抗洩漏被 hint/writeup 資料稀釋，改由 driver 確定性防護）
 _DEMAND_RE = re.compile(
     r"直接.{0,14}(告訴我|給我|寫給我|說出來|貼給我|抄給我)|給我答案|不要問我|"
-    r"直接給出|完整證明.{0,6}(給|寫)|把答案|抄一份"
+    r"直接給出|完整證明.{0,6}(給|寫)|把答案|抄一份|"
+    r"just tell me|give me the (answer|full proof|solution|whole proof)|"
+    r"write (it|the proof)( out)? for me|show me the (full|complete|whole) (proof|solution)|"
+    r"stop asking|don'?t ask me",
+    re.I,
 )
 # 嘗試偵測：學生交來一段自己的推導求確認 → 糾錯模式（此時可點名其誤用定理的前提）
-_ATTEMPT_RE = re.compile(r"這樣對嗎|對不對|我的嘗試|我是這樣(想|做)|我認為|我覺得")
+_ATTEMPT_RE = re.compile(
+    r"這樣對嗎|對不對|我的嘗試|我是這樣(想|做)|我認為|我覺得|"
+    r"is (this|that|it) (right|correct)|am i (right|correct)|my attempt|"
+    r"i think|i believe|does (this|that) work|here'?s what i did",
+    re.I,
+)
+
+# 語言偵測：CJK 字元占比 <10% 判為英文（session 級，首則訊息決定）
+_CJK_RE = re.compile(r"[一-鿿]")
+
+
+def detect_lang(text: str) -> str:
+    # LaTeX 數學片段與指令語言中立，先剝除再算 CJK 占比
+    text = re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", text)
+    chars = [c for c in text if not c.isspace()]
+    if not chars:
+        return "zh"
+    cjk = sum(1 for c in chars if _CJK_RE.match(c))
+    return "en" if cjk / len(chars) < 0.10 else "zh"
 
 PHASE_INSTRUCTIONS = {
     "refuse_leak": (
@@ -102,25 +150,68 @@ PHASE_INSTRUCTIONS = {
     ),
 }
 
+PHASE_INSTRUCTIONS_EN = {
+    "refuse_leak": (
+        "This turn: the student demands the answer or the full proof directly. Gently refuse in one "
+        "sentence (explain that deriving it themselves is what actually helps), then ask one concrete "
+        "mathematical question to hand control back to the student. Never give any step, formula, or "
+        "conclusion of the proof."
+    ),
+    "rectify": (
+        "This turn: the student submitted their own attempt. Check it against the reference proof: if "
+        "there is an error, point to the key mistake with one question and let them discover and fix it "
+        "themselves (you may name the missing hypothesis of a theorem they misused, but do not rewrite "
+        "it for them); if they are on the right track, affirm briefly and ask about the next step. Do "
+        "not let the student's confidence sway your judgment."
+    ),
+    "writeup_request": (
+        "This turn: the student says they understand the whole idea. Ask them to write out the complete "
+        "proof themselves (you will review it). Do not ask further step-by-step questions, do not "
+        "summarize, and do not declare completion."
+    ),
+    "review": (
+        "This turn: the student submitted a complete proof draft. Check it step by step against the "
+        "reference proof, prioritizing these gaps: theorem hypotheses not verified, cited facts without "
+        "justification (e.g. why a comparison series converges), strict vs non-strict inequalities "
+        "mixed up, special cases not excluded, quantifier order errors. Pick the most important gap and "
+        "point to it with one question so the student fixes it themselves; do not question correct "
+        "steps; only confirm completion when there is no gap at all."
+    ),
+}
+
 # writeup_request 的保底回覆：階段轉換是公式化行為，模型若被「完成→確認」慣性帶走，
 # driver 直接以此模板取代（確定性優於賭模型服從指示）。
 WRITEUP_FALLBACK = "思路已經完整了。現在請把完整證明一步步寫出來，我會幫你審閱。"
-_WRITEUP_OK_RE = re.compile(r"寫出|寫下|自己寫|完整證明")
+WRITEUP_FALLBACK_EN = ("The idea is now complete. Please write out the full proof step by step, "
+                       "and I will review it for you.")
+_WRITEUP_OK_RE = re.compile(r"寫出|寫下|自己寫|完整證明|write (out|up|it)|full proof|complete proof", re.I)
 
 # ── 同學模式（grounding=unverified：自動備課驗證失敗，誠實降級為同儕）──────────────
 PEER_SYSTEM = """你是和學生一起解這道數學證明題的同學——不是助教、不是老師，你們都還不知道可靠的解法。規則：繁體中文、回覆 80 字內；可以提出自己的猜想或方向，但必須標明不確定（「我猜」「說不定」「我不確定」），絕不用權威口吻下斷言；學生質疑你的想法時，認真重新檢查、發現有錯就坦白承認並修正；每輪最後問學生一個問題（問他的看法或下一步想怎麼試）。"""
+
+PEER_SYSTEM_EN = """You are a fellow student working on this math proof together with the student — not a tutor, not a teacher; neither of you knows a reliable solution yet. Rules: reply in English within about 60 words; you may propose your own conjectures or directions, but you MUST mark them as uncertain ("I guess", "maybe", "I'm not sure"), and never assert in an authoritative tone; when the student questions your idea, genuinely re-examine it and, if you find a mistake, admit it plainly and correct it; end every turn with a question to the student (ask their view or what they want to try next)."""
 
 PEER_REFLECT_INSTRUCTION = (
     "本輪指示：學生質疑你上一個想法。認真重新檢查那個想法的每一步：若真的有錯，"
     "明白承認、說出錯在哪並修正；若檢查後仍認為正確，溫和說明理由。不要不懂裝懂。"
 )
+PEER_REFLECT_INSTRUCTION_EN = (
+    "This turn: the student questions your previous idea. Genuinely re-check every step of that idea: "
+    "if it is really wrong, admit it plainly, say where the error is, and fix it; if after checking you "
+    "still believe it is correct, explain your reasoning gently. Do not pretend to understand."
+)
 
 # 首輪誠實聲明（確定性前綴，不賭模型自己說）
 PEER_DISCLAIMER = "先說好：這題我自己也沒有把握，我們當同學一起想，我的想法你要幫忙把關。"
+PEER_DISCLAIMER_EN = ("Just so we're clear: I'm not sure about this one myself. Let's think it through "
+                      "together as classmates, and please double-check my ideas.")
 
 # 質疑偵測：學生對「你（同學）」的想法表示懷疑
 _CHALLENGE_RE = re.compile(
-    r"你錯|你搞錯|不對吧|好像不對|應該不是|我覺得不是|真的嗎|確定嗎|有問題吧|怪怪的"
+    r"你錯|你搞錯|不對吧|好像不對|應該不是|我覺得不是|真的嗎|確定嗎|有問題吧|怪怪的|"
+    r"you'?re wrong|that'?s (not right|wrong)|are you sure|really\?|i don'?t think (so|that'?s)|"
+    r"that seems (off|wrong)|doesn'?t (seem|look) right",
+    re.I,
 )
 
 # ── 逐步教學（walkthrough：提示梯用盡仍卡住 → 一小步一確認地教）─────────────────
@@ -129,15 +220,32 @@ WALKTHROUGH_INSTRUCTION = (
     "（此輪允許寫出式子），講解完後只問下面的確認問題（可換句話說）。"
     "不要問別的問題、不要要求學生自己想出這一步。\n教學步驟：{explain}\n確認問題：{check}"
 )
+WALKTHROUGH_INSTRUCTION_EN = (
+    "This turn: the student has exhausted the hints and still cannot proceed, so enter step-by-step "
+    "teaching. Explain the teaching step below clearly in your own words (writing formulas is allowed "
+    "this turn), and afterwards ask only the confirmation question below (you may paraphrase it). Do "
+    "not ask any other question and do not require the student to figure this step out themselves.\n"
+    "Teaching step: {explain}\nConfirmation question: {check}"
+)
 WALKTHROUGH_RETRY_NOTE = (
     "學生沒聽懂上一輪的講解。換一種更簡單的講法（打比方或用更小的具體例子）"
     "把同一步驟再講一次，再問一次確認問題。"
 )
+WALKTHROUGH_RETRY_NOTE_EN = (
+    "The student did not understand the previous explanation. Explain the same step again in a simpler "
+    "way (an analogy or a smaller concrete example), then ask the confirmation question again."
+)
+# 逐步教學保底切分時的英文確認問句
+_TEACH_CHECK_EN = "Can you restate the reasoning of this step in your own words?"
+_TEACH_CHECK_ZH = "這一步的推理你能自己複述一遍嗎？"
 
 
 def is_stuck(student_text: str) -> bool:
-    """學生回覆是否屬於「答不出來」。長回覆（有實質嘗試）不算卡住。"""
+    """學生回覆是否屬於「答不出來」。長回覆（有實質嘗試）不算卡住。
+    英文回覆詞長較長，長度門檻放寬到 120 字元。"""
     t = student_text.strip()
+    if detect_lang(t) == "en":
+        return bool(_STUCK_EN_RE.search(t)) and len(t) <= 120
     return bool(_STUCK_RE.search(t)) and len(t) <= 60
 
 
@@ -174,11 +282,18 @@ _SPOONFEED_RE = re.compile(
     r"左乘|右乘|同乘|兩邊(?:乘|除|加|減)|減去[^，。？]{0,18}倍|代入|移項|"
     r"先寫出|寫出[^，。？]{0,12}(?:假設|方程|等式|式子)"
 )
+# 英文奉送模式：替學生指定具體代數操作（引導注意力的 look/recall 不算）。
+_SPOONFEED_EN_RE = re.compile(
+    r"(left|right)-?multiply|multiply (both sides|through)|subtract [^.?!]{0,24}times|"
+    r"substitute [^.?!]{0,20}into|move [^.?!]{0,16}to the other side|"
+    r"first write (out|down) [^.?!]{0,20}(assumption|equation|identity)",
+    re.I,
+)
 
 
 def is_spoonfeeding(reply: str) -> bool:
-    """回覆是否替學生指定了具體代數操作（on-track 洩漏模式）。"""
-    return bool(_SPOONFEED_RE.search(reply))
+    """回覆是否替學生指定了具體代數操作（on-track 洩漏模式；中英雙語）。"""
+    return bool(_SPOONFEED_RE.search(reply) or _SPOONFEED_EN_RE.search(reply))
 
 
 # 等級 2 禁算式：抓「含 = / ≤ / ≥ / \le / \ge 的連續數學片段」
@@ -221,6 +336,10 @@ class TutorDriver:
     messages: list = field(default_factory=list)
 
     # ---- 同學模式 / 逐步教學輔助 ----------------------------------------------
+    @property
+    def lang(self) -> str:
+        return self.state.get("lang", "zh")
+
     def is_peer(self) -> bool:
         """無可靠參考解（自動備課驗證失敗）→ 同儕身分，不得以助教權威教學。"""
         return (self.problem.get("grounding") == "unverified"
@@ -232,12 +351,13 @@ class TutorDriver:
         if steps:
             return steps
         proof = self.problem["reference_proof"]
+        check_q = _TEACH_CHECK_EN if self.lang == "en" else _TEACH_CHECK_ZH
         try:
             from auto_reference import fallback_steps, segment_proof
             steps = segment_proof(self.problem["statement"], proof) or fallback_steps(proof)
         except ImportError:
             paras = [p.strip() for p in re.split(r"\n\s*\n", proof) if p.strip()]
-            steps = [{"explain": p, "check": "這一步的推理你能自己複述一遍嗎？"}
+            steps = [{"explain": p, "check": check_q}
                      for p in (paras or [proof])[:6]]
         self.problem["teach_steps"] = steps
         return steps
@@ -248,6 +368,17 @@ class TutorDriver:
         gaps = self.state.get("backstop_gaps")
         if gaps is None:
             return ""
+        if self.lang == "en":
+            if not gaps:
+                return ("\n[REVIEW CHECK] The review backstop has checked the draft step by step "
+                        "against the reference proof: no gaps found. If you agree, affirm the student "
+                        "directly and do not invent problems out of thin air.")
+            lines = "\n".join(f"- {g}" for g in gaps)
+            return ("\n[REVIEW CHECK] The review backstop checked step by step against the reference "
+                    "proof and found these gaps (reliable, ordered by severity):\n" + lines +
+                    "\nUse only this list: take the first item and guide the student with one question "
+                    "to discover and fix it themselves; do not raise questions outside the list, and do "
+                    "not state the correct version of the gap outright.")
         if not gaps:
             return ("\n【複核結果】審閱後盾已對照參考解逐步複核：未發現缺漏。"
                     "若你也同意，直接肯定學生，不要憑空發明問題。")
@@ -270,30 +401,43 @@ class TutorDriver:
             self.problem["statement"], self.problem["reference_proof"], student_text)
 
     def _system(self, level: int) -> str:
+        en = self.lang == "en"
         phase = self.state.get("phase")
         # 同學模式：無參考解，同儕 persona（質疑輪加反省指示）
         if self.is_peer():
+            peer_sys = PEER_SYSTEM_EN if en else PEER_SYSTEM
             if phase == "peer_reflect":
-                return PEER_SYSTEM + "\n\n" + PEER_REFLECT_INSTRUCTION
-            return PEER_SYSTEM
-        sys_txt = BASE_SYSTEM.format(proof=self.problem["reference_proof"])
+                reflect = PEER_REFLECT_INSTRUCTION_EN if en else PEER_REFLECT_INSTRUCTION
+                return peer_sys + "\n\n" + reflect
+            return peer_sys
+        base = BASE_SYSTEM_EN if en else BASE_SYSTEM
+        phase_map = PHASE_INSTRUCTIONS_EN if en else PHASE_INSTRUCTIONS
+        level_map = LEVEL_INSTRUCTIONS_EN if en else LEVEL_INSTRUCTIONS
+        sys_txt = base.format(proof=self.problem["reference_proof"])
         if phase == "walkthrough":               # 逐步教學：注入當前步驟
             steps = self._ensure_teach_steps()
             idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
-            instr = WALKTHROUGH_INSTRUCTION.format(**steps[idx])
+            walk_tpl = WALKTHROUGH_INSTRUCTION_EN if en else WALKTHROUGH_INSTRUCTION
+            instr = walk_tpl.format(**steps[idx])
             if self.state.get("walk_retry"):
-                instr += "\n" + WALKTHROUGH_RETRY_NOTE
-        elif phase in PHASE_INSTRUCTIONS:        # 階段指示優先於等級指示
-            instr = PHASE_INSTRUCTIONS[phase]
+                instr += "\n" + (WALKTHROUGH_RETRY_NOTE_EN if en else WALKTHROUGH_RETRY_NOTE)
+        elif phase in phase_map:                 # 階段指示優先於等級指示
+            instr = phase_map[phase]
             if phase in ("review", "rectify"):
                 instr += self._backstop_block()
         elif level == 2:
-            ladder = self.problem.get("hint_ladder") or []
+            key = "hint_ladder_en" if en else "hint_ladder"
+            ladder = self.problem.get(key) or self.problem.get("hint_ladder") or []
             idx = min(self.state["ladder_idx"], max(len(ladder) - 1, 0))
-            hint = ladder[idx] if ladder else "點出此步驟所需的關鍵定理或想法名稱（不給算式）。"
-            instr = LEVEL_INSTRUCTIONS[2].format(hint=hint)
+            if ladder:
+                hint = ladder[idx]
+            elif en:
+                hint = "Name the key theorem or idea this step needs (no formulas)."
+            else:
+                hint = "點出此步驟所需的關鍵定理或想法名稱（不給算式）。"
+            instr = level_map[2].format(hint=hint)
         else:
-            instr = LEVEL_INSTRUCTIONS[level]
+            instr = level_map[level]
         return sys_txt + "\n\n" + instr
 
     def _generate(self, level: int) -> str:
@@ -339,9 +483,16 @@ class TutorDriver:
         student = "".join(m["content"] for m in self.messages if m["role"] == "user")
         return self.problem["statement"] + hint + student
 
+    def _repeats_previous(self, reply: str) -> bool:
+        """回覆是否與最近 3 輪助教回覆（正規化後）完全相同。"""
+        prev = [m["content"] for m in self.messages if m["role"] == "assistant"][-3:]
+        norm = _normalize(reply)
+        return any(norm == _normalize(p) for p in prev)
+
     def _tutor_turn(self) -> str:
         level = min(self.state["stuck_count"], 2)
         phase = self.state.get("phase")
+        en = self.lang == "en"
         peer = self.is_peer()
         walkthrough = phase == "walkthrough"
         reply = self._generate(level)
@@ -350,7 +501,7 @@ class TutorDriver:
 
         # 階段保底：writeup_request 輪若模型沒請學生寫證明，直接用模板取代
         if phase == "writeup_request" and not _WRITEUP_OK_RE.search(reply):
-            reply = WRITEUP_FALLBACK
+            reply = WRITEUP_FALLBACK_EN if en else WRITEUP_FALLBACK
 
         log = TurnLog(level=level, stuck_count=self.state["stuck_count"])
         if phase in ("review", "rectify") and self.state.get("backstop_gaps") is not None:
@@ -361,24 +512,33 @@ class TutorDriver:
             # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
             if level < 2 and leaks_reference(reply, self.problem["reference_proof"]):
                 log.leak_flag = True
-                reply = self._regen(level, "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。")
+                reply = self._regen(level, (
+                    "Your previous draft quoted the reference proof verbatim. Rewrite it and avoid "
+                    "reproducing any formula word-for-word." if en else
+                    "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。"))
                 log.regenerated = True
 
             # on-track 防奉送：一般引導輪與拒絕輪（refuse_leak 規則本就禁止給步驟），
             # 等級 <2 不得替學生指定具體代數操作
             if level < 2 and phase in (None, "refuse_leak") and is_spoonfeeding(reply):
                 log.guards.append("spoonfeed")
-                reply = self._regen(
-                    level, "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
-                    "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。")
+                reply = self._regen(level, (
+                    "Your previous draft prescribed a concrete algebraic operation (such as multiplying, "
+                    "subtracting, substituting). Rewrite: state no operation step; instead ask the "
+                    "student an open question like how they plan to proceed." if en else
+                    "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
+                    "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。"))
                 log.regenerated = True
 
             # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
             if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
                 log.guards.append("formula")
-                reply = self._regen(
-                    level, "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
-                    "絕對不要寫出任何等式或不等式，讓學生自己動筆推。")
+                reply = self._regen(level, (
+                    "Your previous draft contained a formula. Rewrite: state only the theorem/technique "
+                    "name or idea from the hint, and never write any equation or inequality; let the "
+                    "student derive it themselves." if en else
+                    "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
+                    "絕對不要寫出任何等式或不等式，讓學生自己動筆推。"))
                 log.regenerated = True
 
         # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾
@@ -391,17 +551,35 @@ class TutorDriver:
                 idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
                 reply = reply.rstrip() + " " + steps[idx]["check"]
             else:
-                regen = self._regen(level, "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。")
+                regen = self._regen(level, (
+                    "Your previous draft had no question. Rewrite: it must end with one question guiding "
+                    "the student to the next step." if en else
+                    "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。"))
                 if _QMARK_RE.search(regen):
                     reply = regen
                     log.regenerated = True
                 else:
-                    reply = reply.rstrip() + " 那你覺得，下一步該從哪裡下手？"
+                    reply = reply.rstrip() + (" So where do you think the next step should start?"
+                                              if en else " 那你覺得，下一步該從哪裡下手？")
+
+        # 重複回問保底：與近 3 輪助教回覆相同 → 加強指示重生成一次（中英共用）
+        if self._repeats_previous(reply):
+            log.guards.append("repeat")
+            reply = self._regen(level, (
+                "Your previous draft repeated a question you already asked. Do not repeat any earlier "
+                "question; respond to the student's latest message and ask one new question that moves "
+                "to the next step." if en else
+                "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
+                "問一個推進到下一步的新問題。"))
+            log.regenerated = True
 
         # 同學模式首輪：確定性補上誠實聲明（不賭模型自己說）
         if peer and not any(m["role"] == "assistant" for m in self.messages):
-            if "沒有把握" not in reply and "不確定" not in reply[:30]:
-                reply = PEER_DISCLAIMER + " " + reply
+            has_hedge = ("沒有把握" not in reply and "不確定" not in reply[:30]
+                         and "not sure" not in reply.lower()[:40] and "i guess" not in reply.lower()[:40])
+            if has_hedge:
+                disclaimer = PEER_DISCLAIMER_EN if en else PEER_DISCLAIMER
+                reply = disclaimer + " " + reply
 
         if level == 2 and not walkthrough and not peer:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
@@ -457,8 +635,15 @@ class TutorDriver:
                               phase="walkthrough", stuck_count=0)
 
     # ---- 對外 API -------------------------------------------------------------
-    def start(self, opener: str = "我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？") -> str:
-        first = f"題目：{self.problem['statement']}\n\n{opener}"
+    def start(self, opener: str | None = None) -> str:
+        # session 語言：有 opener 依 opener 判定，否則依題目陳述
+        self.state["lang"] = detect_lang(opener if opener else self.problem["statement"])
+        if self.lang == "en":
+            opener = opener or "I've read the problem but don't know how to start. Could you give me a first hint?"
+            first = f"Problem: {self.problem['statement']}\n\n{opener}"
+        else:
+            opener = opener or "我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？"
+            first = f"題目：{self.problem['statement']}\n\n{opener}"
         self._detect_phase(first)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(first)
@@ -466,6 +651,8 @@ class TutorDriver:
         return self._tutor_turn()
 
     def step(self, student_text: str) -> str:
+        if "lang" not in self.state:             # 未經 start() 直接 step 時補判語言
+            self.state["lang"] = detect_lang(student_text)
         self._detect_phase(student_text)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(student_text)
@@ -489,9 +676,11 @@ def load_problems_with_ladders() -> dict:
         if p.exists():
             for item in json.loads(p.read_text(encoding="utf-8")):
                 problems[item["id"]] = item
-    lad = HERE / "hint_ladders.json"
-    if lad.exists():
-        for pid, ladder in json.loads(lad.read_text(encoding="utf-8")).items():
-            if pid in problems:
-                problems[pid]["hint_ladder"] = ladder
+    for fname, key in (("hint_ladders.json", "hint_ladder"),
+                       ("hint_ladders_en.json", "hint_ladder_en")):
+        lad = HERE / fname
+        if lad.exists():
+            for pid, ladder in json.loads(lad.read_text(encoding="utf-8")).items():
+                if pid in problems:
+                    problems[pid][key] = ladder
     return problems
