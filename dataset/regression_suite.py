@@ -71,18 +71,30 @@ def claude_available() -> bool:
     return shutil.which("claude") is not None
 
 
-def claude_call(prompt: str, timeout: int = 420) -> str | None:
+def claude_call(prompt: str, timeout: int = 420, retries: int = 3) -> str | None:
+    """呼叫 claude CLI；同帳號併發/速率限制會造成陣發性失敗，重試＋退避是必要的。"""
+    import time
     exe = shutil.which("claude")
     if not exe:
         return None
-    try:
-        r = subprocess.run(
-            [exe, "-p", "--model", JUDGE_MODEL, "--output-format", "text"],
-            input=prompt, capture_output=True, text=True,
-            encoding="utf-8", errors="replace", timeout=timeout)
-    except (subprocess.TimeoutExpired, OSError):
-        return None
-    return (r.stdout or "").strip() or None
+    last_err = ""
+    for attempt in range(retries):
+        if attempt:
+            time.sleep(15 * attempt)          # 退避 15s / 30s
+        try:
+            r = subprocess.run(
+                [exe, "-p", "--model", JUDGE_MODEL, "--output-format", "text"],
+                input=prompt, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=timeout)
+        except (subprocess.TimeoutExpired, OSError) as e:
+            last_err = str(e)[:200]
+            continue
+        out = (r.stdout or "").strip()
+        if out:
+            return out
+        last_err = (r.stderr or "").strip()[:200] or f"exit={r.returncode}, 空輸出"
+    print(f"    （claude CLI 連續 {retries} 次失敗：{last_err}）")
+    return None
 
 
 def _balanced(content: str, open_ch: str, close_ch: str) -> list:
@@ -325,11 +337,11 @@ DIALOGUE_JUDGE_PROMPT = """你是嚴格的數學教學評審。審查以下完�
 只輸出 JSON：{{"math_ok": true, "guidance": 4, "issue": ""}}"""
 
 
-def tier3_dialogue(tok, model, metrics: dict) -> list:
+def tier3_generate(tok, model) -> list:
+    """Claude 扮學生跑多輪對話，只生成不評（評分在 tier3_judge，支援 --rejudge）。"""
     from tutor_driver import TutorDriver
     problems = _load_problems()
-    math_ok_n = 0
-    guidance, records = [], []
+    records = []
     for pid, persona in DIALOGUE_CASES:
         p = problems[pid]
         d = TutorDriver(tok, model, dict(p), backstop=False)
@@ -343,26 +355,36 @@ def tier3_dialogue(tok, model, metrics: dict) -> list:
             if not stu:
                 print(f"  [{pid}] 學生生成失敗，提前結束")
                 break
-            stu = stu.strip().strip('"')
-            history.append(("學生", stu))
-            reply = d.step(stu)
+            history.append(("學生", stu.strip().strip('"')))
+            reply = d.step(history[-1][1])
             history.append(("助教", reply))
-        h_txt = "\n".join(f"{who}：{txt}" for who, txt in history)
+        records.append({"id": pid, "persona": persona, "history": history,
+                        "verdict": None})
+    return records
+
+
+def tier3_judge(records: list, metrics: dict) -> None:
+    problems = _load_problems()
+    math_ok_n, guidance, judged = 0, [], 0
+    for rec in records:
+        p = problems[rec["id"]]
+        h_txt = "\n".join(f"{who}：{txt}" for who, txt in rec["history"])
         verdict = parse_json_obj(claude_call(DIALOGUE_JUDGE_PROMPT.format(
             statement=p["statement"], proof=p["reference_proof"], history=h_txt)))
-        records.append({"id": pid, "persona": persona, "history": history,
-                        "verdict": verdict})
+        rec["verdict"] = verdict
         if verdict:
+            judged += 1
             math_ok_n += bool(verdict.get("math_ok"))
             if isinstance(verdict.get("guidance"), (int, float)):
                 guidance.append(float(verdict["guidance"]))
-            print(f"  [{pid}] math_ok={verdict.get('math_ok')} "
-                  f"guidance={verdict.get('guidance')} {verdict.get('issue', '')[:60]}")
-    if records:
-        metrics["judge_dialogue_math_ok"] = round(math_ok_n / len(records), 4)
+            print(f"  [{rec['id']}] math_ok={verdict.get('math_ok')} "
+                  f"guidance={verdict.get('guidance')} {str(verdict.get('issue', ''))[:60]}")
+        else:
+            print(f"  [{rec['id']}] 評審失敗（跳過，不計入）")
+    if judged:
+        metrics["judge_dialogue_math_ok"] = round(math_ok_n / judged, 4)
     if guidance:
         metrics["judge_dialogue_guidance"] = round(sum(guidance) / len(guidance) / 5, 4)
-    return records
 
 
 # ── Tier 4：後盾（找碴結果交 Claude 判對錯）─────────────────────────────────────
@@ -438,10 +460,17 @@ def _git_sha() -> str:
         return "unknown"
 
 
+def _latest(pattern: str) -> Path | None:
+    files = sorted(SCORE_DIR.glob(pattern))
+    return files[-1] if files else None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--quick", action="store_true", help="只跑 Tier 0")
     ap.add_argument("--update-baseline", action="store_true")
+    ap.add_argument("--rejudge", action="store_true",
+                    help="讀最近一次的 *_replies.json / *_dialogues.json 重新評審（不重跑 GPU 生成）")
     args = ap.parse_args()
 
     metrics: dict = {}
@@ -451,8 +480,30 @@ def main():
         sys.exit(1)
     metrics["tier0"] = 1.0
 
-    dialogue_records = []
-    if not args.quick:
+    items, dialogue_records = [], []
+    if args.rejudge:
+        if not claude_available():
+            print("\n✗ 找不到 claude CLI")
+            sys.exit(1)
+        rp, dp = _latest("*_replies.json"), _latest("*_dialogues.json")
+        if not rp:
+            print("\n✗ 找不到既有的 *_replies.json，先跑一次完整版")
+            sys.exit(1)
+        saved = json.loads(rp.read_text(encoding="utf-8"))
+        items = saved["items"]
+        metrics.update(saved["structural_metrics"])   # 結構指標沿用該次生成
+        print(f"\n（rejudge 模式：沿用 {rp.name} 的生成結果與結構指標）")
+        print("\n=== Tier 2：Claude 逐題評審 ===")
+        tier2_judge(items, metrics)
+        if dp:
+            dialogue_records = [
+                {**r, "history": [tuple(t) for t in r["history"]]}
+                for r in json.loads(dp.read_text(encoding="utf-8"))]
+            print("\n=== Tier 3：既有對話重新評審 ===")
+            tier3_judge(dialogue_records, metrics)
+        print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
+        tier4_backstop(metrics)
+    elif not args.quick:
         if not claude_available():
             print("\n✗ 找不到 claude CLI（評審/學生角色必需）。裝設後重跑，或用 --quick。")
             sys.exit(1)
@@ -462,7 +513,8 @@ def main():
         print("\n=== Tier 2：Claude 逐題評審（math_ok / S2 抓錯 / 品質）===")
         tier2_judge(items, metrics)
         print("\n=== Tier 3：Claude 扮學生多輪對話 + 整場評審 ===")
-        dialogue_records = tier3_dialogue(tok, model, metrics)
+        dialogue_records = tier3_generate(tok, model)
+        tier3_judge(dialogue_records, metrics)
         print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
         tier4_backstop(metrics)
 
@@ -472,6 +524,12 @@ def main():
     stem = f"{record['timestamp'].replace(':', '')}_{record['commit']}"
     (SCORE_DIR / f"{stem}.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    if items and not args.rejudge:
+        structural = {k: v for k, v in metrics.items()
+                      if not k.startswith("judge_") and k != "tier0"}
+        (SCORE_DIR / f"{stem}_replies.json").write_text(
+            json.dumps({"items": items, "structural_metrics": structural},
+                       ensure_ascii=False, indent=2), encoding="utf-8")
     if dialogue_records:
         (SCORE_DIR / f"{stem}_dialogues.json").write_text(
             json.dumps(dialogue_records, ensure_ascii=False, indent=2), encoding="utf-8")
