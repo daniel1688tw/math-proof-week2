@@ -155,7 +155,7 @@ DIALOGUES = [
     ]},
     {"problem_id": "C6", "persona": "bright", "kind": "core", "turns": [
         {"role": "user", "content": "For any x_1<x_2, MVT gives f(x_2)-f(x_1)=f'(c)(x_2-x_1)>0, so strictly increasing."},
-        {"role": "assistant", "content": "Correct. Does the converse hold — must a strictly increasing differentiable function have $f'>0$? Example?"},
+        {"role": "assistant", "content": "Correct. Does the converse hold — must a strictly increasing differentiable function have $f'>0$, and can you give an example?"},
         {"role": "user", "content": "No: f(x)=x^3 is strictly increasing but f'(0)=0, so you can only conclude f'>=0."},
         {"role": "assistant", "content": "Correct — you pinpointed that monotonicity and derivative sign are not equivalent. Well done."},
     ]},
@@ -175,7 +175,7 @@ DIALOGUES = [
         {"role": "user", "content": "The tangent is horizontal at a maximum, so f'(c)=0 — isn't that obvious?"},
         {"role": "assistant", "content": "The picture must become inequalities. Using $f(c+h)\\le f(c)$, what sign does the right derivative ($h\\to0^+$) get?"},
         {"role": "user", "content": "The quotient <=0, so the right derivative <=0."},
-        {"role": "assistant", "content": "Good — and the left derivative ($h\\to0^-$)? What do the two force together?"},
+        {"role": "assistant", "content": "Good. Now the left derivative ($h\\to0^-$): what do the two sides force together?"},
         {"role": "user", "content": "Left derivative >=0; since they're equal, it must be 0."},
         {"role": "assistant", "content": "Correct. Also: why insist on an interior point — does the conclusion fail for an endpoint extremum?"},
         {"role": "user", "content": "An endpoint has only one side, so you only get the sign of a one-sided derivative, not necessarily 0. Hence interior."},
@@ -183,7 +183,7 @@ DIALOGUES = [
     ]},
     {"problem_id": "C7", "persona": "bright", "kind": "core", "turns": [
         {"role": "user", "content": "From f(c+h)<=f(c): right derivative <=0, left derivative >=0; differentiability equates them so f'(c)=0."},
-        {"role": "assistant", "content": "Completely correct. Is the converse true — does $f'(c)=0$ make $c$ an extremum? Counterexample?"},
+        {"role": "assistant", "content": "Completely correct. Is the converse true — does $f'(c)=0$ make $c$ an extremum, and what is a counterexample?"},
         {"role": "user", "content": "No: f(x)=x^3 has f'(0)=0 but 0 is not an extremum. So f'(c)=0 is only necessary, not sufficient."},
         {"role": "assistant", "content": "Correct — Fermat gives a necessary condition only. Well mastered."},
     ]},

@@ -88,7 +88,7 @@ DIALOGUES = [
         {"role": "user", "content": "Set G(x)=∫_a^x f; FTC-1 gives G'=f=F', so ∫f=F(b)-F(a). Finished!"},
         {"role": "assistant", "content": "A step was skipped in the middle: between $G'=F'$ and the final identity, what unstated fact did you use?"},
         {"role": "user", "content": "Hmm... G'=F' means G-F is a constant."},
-        {"role": "assistant", "content": "Right — and what is that constant? Which point do you use to determine it?"},
+        {"role": "assistant", "content": "Right — what is that constant, and which point do you use to determine it?"},
         {"role": "user", "content": "Use x=a: G(a)=0, so the constant is -F(a), hence G(b)=F(b)-F(a)."},
         {"role": "assistant", "content": "Exactly — with \"differ by a constant + fix it at the endpoint\" filled in, your conclusion truly holds."},
     ]},

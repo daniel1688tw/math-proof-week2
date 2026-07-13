@@ -30,14 +30,32 @@ HERE = Path(__file__).resolve().parent
 LEAK_PATTERNS = [
     "答案是", "故得證", "證畢", "QED", "q.e.d", "綜上所述，證明完成",
     "所以結論為", "最終答案", "得證。",
+    # 英文洩漏字樣（助教不得直接宣告完成/交出結論）
+    "the answer is", "therefore proved", "hence proved", "this completes the proof",
+    "the final answer",
 ]
 
 CJK = re.compile(r"[一-鿿]")
 QMARK = re.compile(r"[?？]")
+# 英文長度以「詞數」衡量：先剝除 LaTeX 數學片段避免誤算
+_TEX = re.compile(r"\$[^$]*\$|\\[A-Za-z]+")
 
 
 def count_cjk(s):
     return len(CJK.findall(s))
+
+
+def count_en_words(s):
+    return len(_TEX.sub(" ", s).split())
+
+
+def is_english(s):
+    """回覆語言判斷：CJK 占非空白字元 <10% 視為英文（與 driver detect_lang 同準則）。"""
+    stripped = _TEX.sub(" ", s)
+    chars = [c for c in stripped if not c.isspace()]
+    if not chars:
+        return False
+    return count_cjk(s) / len(chars) < 0.10
 
 
 def load_jsonl(path):
@@ -59,6 +77,7 @@ def validate():
         errors.append("找不到 train.jsonl / val.jsonl 或內容為空，請先執行 build.py")
 
     assistant_char_max = 0
+    assistant_word_max = 0
     turn_counts = []
     for name, i, rec in records:
         tag = f"{name}#{i}"
@@ -88,15 +107,22 @@ def validate():
         for m in body:
             if m["role"] != "assistant":
                 continue
-            c = count_cjk(m["content"])
-            assistant_char_max = max(assistant_char_max, c)
-            if c > 100:
-                errors.append(f"{tag}: assistant 中文字數 {c} > 100 → {m['content'][:30]}…")
-            if len(QMARK.findall(m["content"])) > 1:
-                errors.append(f"{tag}: assistant 含多個問號（違反一問一等）→ {m['content'][:40]}…")
+            content = m["content"]
+            if is_english(content):
+                w = count_en_words(content)
+                assistant_word_max = max(assistant_word_max, w)
+                if w > 80:
+                    errors.append(f"{tag}: assistant 英文詞數 {w} > 80 → {content[:40]}…")
+            else:
+                c = count_cjk(content)
+                assistant_char_max = max(assistant_char_max, c)
+                if c > 100:
+                    errors.append(f"{tag}: assistant 中文字數 {c} > 100 → {content[:30]}…")
+            if len(QMARK.findall(content)) > 1:
+                errors.append(f"{tag}: assistant 含多個問號（違反一問一等）→ {content[:40]}…")
             for pat in LEAK_PATTERNS:
-                if pat.lower() in m["content"].lower():
-                    errors.append(f"{tag}: assistant 疑似洩漏『{pat}』→ {m['content'][:40]}…")
+                if pat.lower() in content.lower():
+                    errors.append(f"{tag}: assistant 疑似洩漏『{pat}』→ {content[:40]}…")
 
     # 分佈統計（需 build 前的 src，這裡從對話數推估無法拿 persona，略）
     print("=" * 56)
@@ -105,6 +131,7 @@ def validate():
         print(f"回合數 min/median/max : {min(turn_counts)}/"
               f"{sorted(turn_counts)[len(turn_counts)//2]}/{max(turn_counts)}")
     print(f"assistant 最長中文字數 : {assistant_char_max}")
+    print(f"assistant 最長英文詞數 : {assistant_word_max}")
     print(f"題目數              : {len(problems)}")
     print("=" * 56)
 

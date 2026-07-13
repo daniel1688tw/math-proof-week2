@@ -179,7 +179,7 @@ DIALOGUES = [
     ]},
     {"problem_id": "E7", "persona": "bright", "kind": "core", "turns": [
         {"role": "user", "content": "Let b_n = a_n+|a_n| in [0, 2|a_n|]; comparison gives sum b_n convergent, so sum a_n = sum b_n - sum |a_n| converges."},
-        {"role": "assistant", "content": "Completely correct. Do conditionally convergent series (convergent but not absolutely) exist? Example?"},
+        {"role": "assistant", "content": "Completely correct. Do conditionally convergent series (convergent but not absolutely) exist, and can you give an example?"},
         {"role": "user", "content": "Yes: sum (-1)^{n+1}/n converges (Leibniz) while sum 1/n diverges, so it is conditionally convergent."},
         {"role": "assistant", "content": "Correct — you have the absolute/conditional distinction clear. Well mastered."},
     ]},
