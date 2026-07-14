@@ -263,6 +263,24 @@ r1 = d5.step("I checked continuity on [a,b]. What value are we trying to get?")
 check("重複命中後重生成出新句", r1.startswith("What value"))
 check("重複輪標記 repeat 守衛", "repeat" in d5.state["turns"][-1].guards)
 
+print("[10] 語言跟隨學生（英文題＋中文學生等混合）")
+_en_prob = {"id": "B1",
+            "statement": "Prove that a continuous function on [a,b] with f(a)<0<f(b) has a root in (a,b).",
+            "reference_proof": "Let S={x:f(x)<0}, c=sup S. ..."}
+dm = _StubDriver(tok=None, model=_StubModel(), problem=dict(_en_prob))
+dm.generated_levels = []
+dm.start(opener="老師我完全不知道怎麼開始，可以給我第一個引導提示嗎？")
+check("英文題＋中文開場 → lang=zh（跟學生）", dm.state.get("lang") == "zh")
+check("英文題＋中文開場 → 前綴用中文『題目：』", dm.messages[0]["content"].startswith("題目："))
+dm2 = _StubDriver(tok=None, model=_StubModel(), problem=dict(_en_prob))
+dm2.generated_levels = []
+dm2.start()
+check("英文題自動開場 → 初始 lang=en", dm2.state.get("lang") == "en")
+dm2.step("我還是看不懂這一步，可以換個方式解釋嗎？")
+check("學生改講中文（夠長）→ 切換 lang=zh", dm2.state.get("lang") == "zh")
+dm2.step("ok")
+check("短訊息不觸發誤切（維持 zh）", dm2.state.get("lang") == "zh")
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

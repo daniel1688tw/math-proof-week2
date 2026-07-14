@@ -66,12 +66,13 @@ LEVEL_INSTRUCTIONS_EN = {
 
 # 卡住偵測：短回覆且含「答不出」語彙（確定性、可測試）
 _STUCK_RE = re.compile(
-    r"不知道|不會|想不到|想不出|沒(有)?頭緒|不確定|不太懂|不明白|卡住|再提示|"
+    r"不知道|不會|想不到|想不出|沒(有)?頭緒|不確定|不太?懂|不明白|卡住|再提示|"
     r"沒(有)?想法|毫無頭緒|完全沒概念"
 )
 _STUCK_EN_RE = re.compile(
     r"i don'?t know|no idea|no clue|not sure|stuck|confused|"
-    r"can'?t (figure|see|think)|i'?m lost|(another|more|give me a) hint",
+    r"can'?t (figure|see|think|do)|i can'?t\.?$|(completely|totally)? ?lost|"
+    r"(another|more|give me a) hint",
     re.I,
 )
 _QMARK_RE = re.compile(r"[?？]")
@@ -374,8 +375,11 @@ class TutorDriver:
                             skip_special_tokens=True).strip())
 
     def _allowed_equation_src(self) -> str:
-        """等級 2 算式檢查的白名單來源：題目敘述＋當前提示＋學生說過的話。"""
-        ladder = self.problem.get("hint_ladder") or []
+        """等級 2 算式檢查的白名單來源：題目敘述＋當前提示＋學生說過的話。
+        梯的選擇須與 _system 等級 2 注入一致（en 優先 hint_ladder_en），
+        否則英文提示含式子時會被誤判為奉送新算式。"""
+        key = "hint_ladder_en" if self.lang == "en" else "hint_ladder"
+        ladder = self.problem.get(key) or self.problem.get("hint_ladder") or []
         idx = min(self.state["ladder_idx"], max(len(ladder) - 1, 0))
         hint = ladder[idx] if ladder else ""
         student = "".join(m["content"] for m in self.messages if m["role"] == "user")
@@ -496,8 +500,14 @@ class TutorDriver:
         return self._tutor_turn()
 
     def step(self, student_text: str) -> str:
+        # 語言跟隨「學生」而非題目：學生訊息夠長且語言明確不同 → 切換 session 語言
+        # （支援「英文題＋中文學生」等混合，以及對話中途換語言；短訊息不切以免誤判）。
         if "lang" not in self.state:             # 未經 start() 直接 step 時補判語言
             self.state["lang"] = detect_lang(student_text)
+        else:
+            _s = re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", student_text)
+            if len([c for c in _s if not c.isspace()]) >= 12:
+                self.state["lang"] = detect_lang(student_text)
         self._detect_phase(student_text)
         if self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(student_text)
