@@ -167,7 +167,21 @@ def tier0() -> bool:
 
 
 # ── Tier 1：生成 + 確定性結構指標 ────────────────────────────────────────────────
-def _load_problems() -> dict:
+def _load_problems(lang: str = "zh") -> dict:
+    if lang == "en":
+        problems = {}
+        for f in ("problems_en.json", "held_out_en.json",
+                  "hard_math_major_en.json", "xdomain_problems_en.json"):
+            fp = HERE / f
+            if fp.exists():
+                for it in json.loads(fp.read_text(encoding="utf-8")):
+                    problems[it["id"]] = dict(it)
+        lad = HERE / "hint_ladders_en.json"
+        if lad.exists():
+            for pid, l in json.loads(lad.read_text(encoding="utf-8")).items():
+                if pid in problems:
+                    problems[pid]["hint_ladder_en"] = l   # 英文 session 讀 hint_ladder_en
+        return problems
     from tutor_driver import load_problems_with_ladders
     problems = load_problems_with_ladders()
     xd = HERE / "xdomain_problems.json"
@@ -194,11 +208,28 @@ def load_model():
     return tok, model
 
 
-def tier1(tok, model, metrics: dict) -> list:
-    """回傳 items：每筆 {id, scenario, reply, ...} 供 Tier 2 評審。"""
+# 語言相關字串（S3 逼問語、S2 前綴、卡住語、教學懂了語）
+_LANG_STR = {
+    "zh": {"s3": S3_OPENER, "s2": "我的嘗試如下：",
+           "stuck1": "我不知道，想不出來。", "stuck2": "還是想不到，再提示一下。",
+           "walk": ("我不知道。", "還是不會。", "不會。", "再提示，還是不會。", "我不會。", "完全沒頭緒。"),
+           "got": "這步我懂了。"},
+    "en": {"s3": S3_OPENER_EN, "s2": "Here is my attempt: ",
+           "stuck1": "I don't know, I can't figure it out.", "stuck2": "I'm still stuck, please give another hint.",
+           "walk": ("I don't know.", "Still can't do it.", "No idea.", "Another hint, still stuck.",
+                    "I can't.", "Completely lost."),
+           "got": "I understand this step."},
+}
+
+
+def tier1(tok, model, metrics: dict, lang: str = "zh") -> list:
+    """回傳 items：每筆 {id, scenario, reply, lang, ...} 供 Tier 2 評審。lang 決定語言與指標後綴。"""
     from tutor_driver import TutorDriver, is_spoonfeeding
-    problems = _load_problems()
-    att = json.loads((HERE / "held_out_attempts.json").read_text(encoding="utf-8"))
+    problems = _load_problems(lang)
+    att = json.loads((HERE / f"held_out_attempts{'_en' if lang == 'en' else ''}.json"
+                      ).read_text(encoding="utf-8"))
+    L = _LANG_STR[lang]
+    sfx = f"_{lang}"
     items, all_replies = [], []
 
     # 結構檢查用軟化的「整段搬答案」判定取代硬性 leaks_reference（教學原則：小透露不算退步，
@@ -213,64 +244,63 @@ def tier1(tok, model, metrics: dict) -> list:
         ok1 = bool(_QMARK.search(r1)) and not is_spoonfeeding(r1) \
             and not dumps_full_solution(r1, p["reference_proof"], stmt)
         s1_ok += ok1
-        items.append({"id": pid, "scenario": "S1", "reply": r1})
+        items.append({"id": pid, "scenario": "S1", "reply": r1, "lang": lang})
 
         d3 = TutorDriver(tok, model, dict(p), backstop=False)
-        r3 = d3.start(opener=S3_OPENER)
+        r3 = d3.start(opener=L["s3"])
         all_replies.append(r3)
         ok3 = d3.state.get("phase") == "refuse_leak" and bool(_QMARK.search(r3)) \
             and not dumps_full_solution(r3, p["reference_proof"], stmt)
         s3_ok += ok3
-        items.append({"id": pid, "scenario": "S3", "reply": r3})
+        items.append({"id": pid, "scenario": "S3", "reply": r3, "lang": lang})
 
         attempt = att[pid]["attempt"] if pid in att else p.get("attempt")
         if attempt:
             d2 = TutorDriver(tok, model, dict(p), backstop=False)
-            r2 = d2.start(opener=f"我的嘗試如下：{attempt}")
+            r2 = d2.start(opener=f"{L['s2']}{attempt}")
             all_replies.append(r2)
-            items.append({"id": pid, "scenario": "S2", "reply": r2,
+            items.append({"id": pid, "scenario": "S2", "reply": r2, "lang": lang,
                           "attempt": attempt,
                           "planted_error": (att.get(pid) or p).get("planted_error")
                           or p.get("attempt_error", "")})
-        print(f"  [{pid}] S1 {'✓' if ok1 else '✗'}  S3 {'✓' if ok3 else '✗'}")
-    metrics["s1_structural"] = round(s1_ok / len(DEEP_IDS), 4)
-    metrics["s3_refusal"] = round(s3_ok / len(DEEP_IDS), 4)
+        print(f"  [{pid}/{lang}] S1 {'✓' if ok1 else '✗'}  S3 {'✓' if ok3 else '✗'}")
+    metrics["s1_structural" + sfx] = round(s1_ok / len(DEEP_IDS), 4)
+    metrics["s3_refusal" + sfx] = round(s3_ok / len(DEEP_IDS), 4)
 
     esc_ok = 0
     from tutor_driver import TutorDriver as TD
     for pid in ESC_IDS:
         d = TD(tok, model, dict(problems[pid]), backstop=False)
         d.start()
-        d.step("我不知道，想不出來。")
-        r = d.step("還是想不到，再提示一下。")
+        d.step(L["stuck1"])
+        r = d.step(L["stuck2"])
         all_replies.append(r)
         ok = d.state["turns"][-1].level == 2 and bool(_QMARK.search(r)) \
             and d.state["ladder_idx"] == 1
         esc_ok += ok
-        print(f"  [{pid}] 升級 {'✓' if ok else '✗'}")
-    metrics["escalation"] = round(esc_ok / len(ESC_IDS), 4)
+        print(f"  [{pid}/{lang}] 升級 {'✓' if ok else '✗'}")
+    metrics["escalation" + sfx] = round(esc_ok / len(ESC_IDS), 4)
 
     d = TD(tok, model, dict(problems["A6"]), backstop=False)
     d.start()
-    for msg in ("我不知道。", "還是不會。", "不會。", "再提示，還是不會。",
-                "我不會。", "完全沒頭緒。"):
+    for msg in L["walk"]:
         d.step(msg)
     entered = bool(d.state.get("walk_active"))
     for _ in range(12):
         if not d.state.get("walk_active"):
             break
-        d.step("這步我懂了。")
+        d.step(L["got"])
     finished = not d.state.get("walk_active") and d.state.get("phase") == "writeup_request"
-    metrics["walkthrough"] = round((entered + finished) / 2, 4)
-    print(f"  [A6] walkthrough 進入 {'✓' if entered else '✗'} 收尾 {'✓' if finished else '✗'}")
+    metrics["walkthrough" + sfx] = round((entered + finished) / 2, 4)
+    print(f"  [A6/{lang}] walkthrough 進入 {'✓' if entered else '✗'} 收尾 {'✓' if finished else '✗'}")
 
     sq = sum(1 for r in all_replies if len(_QMARK.findall(r)) <= 1)
-    metrics["single_question"] = round(sq / len(all_replies), 4)
+    metrics["single_question" + sfx] = round(sq / len(all_replies), 4)
     return items
 
 
 # ── Tier 2：Claude 逐題評審 ──────────────────────────────────────────────────────
-JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明題、正確參考解，以及蘇格拉底式助教在三種情境下的回覆。請逐則審查。
+JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明題、正確參考解，以及蘇格拉底式助教在三種情境下的回覆（回覆可能是中文或英文，兩者同標準審查）。請逐則審查。
 
 【題目】{statement}
 
@@ -281,21 +311,23 @@ JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明
 對每一則回覆判定：
 - math_ok：回覆中所有數學陳述是否**全部正確**（一句錯就 false；引導問題本身沒有數學斷言則為 true）
 - caught（僅 S2）：助教是否指到了學生嘗試中「真正的錯誤」（見埋錯說明；只點到皮毛或指錯地方算 false）
-- score：引導品質 1-5（蘇格拉底原則：不奉送、一問一等、指向正確下一步）
+- reveal_ok：透露拿捏是否恰當。好教學原則：學生真的卡住時透露一點想法/方向是好的；但**不該把整份解法或最終結論直接奉送**，也不該在學生還沒卡住時就過早爆雷。沒有不當透露＝true；奉送答案或過早爆太多＝false。
+- score：引導品質 1-5（蘇格拉底原則：適時而不過度的引導、一問一等、指向正確下一步、尊重學生自己的思路）
 - issue：一句話說明扣分或錯誤處（沒有就空字串）
 
 只輸出一個 JSON 物件，格式：
-{{"S1": {{"math_ok": true, "score": 4, "issue": ""}}, "S2": {{"math_ok": true, "caught": true, "score": 4, "issue": ""}}, "S3": {{"math_ok": true, "score": 4, "issue": ""}}}}
+{{"S1": {{"math_ok": true, "reveal_ok": true, "score": 4, "issue": ""}}, "S2": {{"math_ok": true, "caught": true, "reveal_ok": true, "score": 4, "issue": ""}}, "S3": {{"math_ok": true, "reveal_ok": true, "score": 4, "issue": ""}}}}
 （缺某情境就省略該鍵）不要輸出任何其他文字。"""
 
 
-def tier2_judge(items: list, metrics: dict) -> None:
-    problems = _load_problems()
+def tier2_judge(items: list, metrics: dict, lang: str = "zh") -> None:
+    problems = _load_problems(lang)
+    sfx = f"_{lang}"
     by_pid: dict = {}
     for it in items:
         by_pid.setdefault(it["id"], {})[it["scenario"]] = it
 
-    math_ok = catch_ok = catch_n = 0
+    math_ok = catch_ok = catch_n = reveal_ok = reveal_n = 0
     scores, judged = [], 0
     for pid, scen in by_pid.items():
         p = problems[pid]
@@ -315,7 +347,7 @@ def tier2_judge(items: list, metrics: dict) -> None:
             statement=p["statement"], proof=p["reference_proof"], blocks="\n\n".join(blocks)))
         verdict = parse_json_obj(out)
         if not verdict:
-            print(f"  [{pid}] 評審失敗（跳過，不計入）")
+            print(f"  [{pid}/{lang}] 評審失敗（跳過，不計入）")
             continue
         for sname, v in verdict.items():
             if not isinstance(v, dict):
@@ -324,17 +356,22 @@ def tier2_judge(items: list, metrics: dict) -> None:
             math_ok += bool(v.get("math_ok"))
             if isinstance(v.get("score"), (int, float)):
                 scores.append(float(v["score"]))
+            if "reveal_ok" in v:
+                reveal_n += 1
+                reveal_ok += bool(v.get("reveal_ok"))
             if sname == "S2":
                 catch_n += 1
                 catch_ok += bool(v.get("caught"))
             if not v.get("math_ok") or (sname == "S2" and not v.get("caught")):
-                print(f"  [{pid}/{sname}] ✗ {v.get('issue', '')[:80]}")
-        print(f"  [{pid}] 評審完成")
+                print(f"  [{pid}/{lang}/{sname}] ✗ {v.get('issue', '')[:80]}")
+        print(f"  [{pid}/{lang}] 評審完成")
     if judged:
-        metrics["judge_math_ok"] = round(math_ok / judged, 4)
-        metrics["judge_score"] = round(sum(scores) / len(scores) / 5, 4) if scores else 0.0
+        metrics["judge_math_ok" + sfx] = round(math_ok / judged, 4)
+        metrics["judge_score" + sfx] = round(sum(scores) / len(scores) / 5, 4) if scores else 0.0
     if catch_n:
-        metrics["judge_s2_catch"] = round(catch_ok / catch_n, 4)
+        metrics["judge_s2_catch" + sfx] = round(catch_ok / catch_n, 4)
+    if reveal_n:
+        metrics["judge_reveal_ok" + sfx] = round(reveal_ok / reveal_n, 4)
 
 
 # ── Tier 3：Claude 扮學生的多輪對話 + 整場評審 ───────────────────────────────────
@@ -346,7 +383,7 @@ STUDENT_PROMPT = """你在測試一個蘇格拉底式數學助教。你扮演一
 {history}
 
 請產生學生的下一句回覆（1-3 句、口語、符合人格；真的被引導到理解才說懂，不要無腦附和；
-若助教的話有數學問題，你可以提出疑問）。只輸出學生要說的話，不要任何其他文字。"""
+若助教的話有數學問題，你可以提出疑問）。{lang_note}只輸出學生要說的話，不要任何其他文字。"""
 
 DIALOGUE_JUDGE_PROMPT = """你是嚴格的數學教學評審。審查以下完整的引導對話。
 
@@ -363,34 +400,38 @@ DIALOGUE_JUDGE_PROMPT = """你是嚴格的數學教學評審。審查以下完�
 只輸出 JSON：{{"math_ok": true, "guidance": 4, "issue": ""}}"""
 
 
-def tier3_generate(tok, model) -> list:
+def tier3_generate(tok, model, lang: str = "zh") -> list:
     """Claude 扮學生跑多輪對話，只生成不評（評分在 tier3_judge，支援 --rejudge）。"""
     from tutor_driver import TutorDriver
-    problems = _load_problems()
+    problems = _load_problems(lang)
+    lang_note = ("Reply in English (the student speaks English)." if lang == "en"
+                 else "用繁體中文回覆。")
     records = []
     for pid, persona in DIALOGUE_CASES:
         p = problems[pid]
         d = TutorDriver(tok, model, dict(p), backstop=False)
         reply = d.start()
         history = [("助教", reply)]
-        print(f"  [{pid}] 對話開始（{persona[:4]}…）")
+        print(f"  [{pid}/{lang}] 對話開始（{persona[:4]}…）")
         for _ in range(DIALOGUE_TURNS):
             h_txt = "\n".join(f"{who}：{txt}" for who, txt in history)
             stu = claude_call(STUDENT_PROMPT.format(
-                persona=persona, statement=p["statement"], history=h_txt), timeout=300)
+                persona=persona, statement=p["statement"], history=h_txt,
+                lang_note=lang_note), timeout=300)
             if not stu:
-                print(f"  [{pid}] 學生生成失敗，提前結束")
+                print(f"  [{pid}/{lang}] 學生生成失敗，提前結束")
                 break
             history.append(("學生", stu.strip().strip('"')))
             reply = d.step(history[-1][1])
             history.append(("助教", reply))
         records.append({"id": pid, "persona": persona, "history": history,
-                        "verdict": None})
+                        "lang": lang, "verdict": None})
     return records
 
 
-def tier3_judge(records: list, metrics: dict) -> None:
-    problems = _load_problems()
+def tier3_judge(records: list, metrics: dict, lang: str = "zh") -> None:
+    problems = _load_problems(lang)
+    sfx = f"_{lang}"
     math_ok_n, guidance, judged = 0, [], 0
     for rec in records:
         p = problems[rec["id"]]
@@ -403,14 +444,70 @@ def tier3_judge(records: list, metrics: dict) -> None:
             math_ok_n += bool(verdict.get("math_ok"))
             if isinstance(verdict.get("guidance"), (int, float)):
                 guidance.append(float(verdict["guidance"]))
-            print(f"  [{rec['id']}] math_ok={verdict.get('math_ok')} "
+            print(f"  [{rec['id']}/{lang}] math_ok={verdict.get('math_ok')} "
                   f"guidance={verdict.get('guidance')} {str(verdict.get('issue', ''))[:60]}")
         else:
-            print(f"  [{rec['id']}] 評審失敗（跳過，不計入）")
+            print(f"  [{rec['id']}/{lang}] 評審失敗（跳過，不計入）")
     if judged:
-        metrics["judge_dialogue_math_ok"] = round(math_ok_n / judged, 4)
+        metrics["judge_dialogue_math_ok" + sfx] = round(math_ok_n / judged, 4)
     if guidance:
-        metrics["judge_dialogue_guidance"] = round(sum(guidance) / len(guidance) / 5, 4)
+        metrics["judge_dialogue_guidance" + sfx] = round(sum(guidance) / len(guidance) / 5, 4)
+
+
+# ── S4：學生用不同但正確的證法 → 助教是否順著學生邏輯（不硬拉回參考解）─────────────
+S4_STUDENT_PROMPT = """你在測試一個數學助教。針對下面題目，請你扮演學生，提出一個「與下面參考解不同、但邏輯正確」的證明方向（只講你的方法思路與你打算怎麼進行，2-4 句），並請助教幫你依你的方向繼續。{lang_note}
+
+【題目】{statement}
+【參考解（這是助教手上的版本，但你的方法和它不同）】{proof}
+
+只輸出你（學生）要說的話，不要其他文字。"""
+
+S4_JUDGE_PROMPT = """你是數學教學評審。學生提出了一個與助教參考解不同、但正確的證明方向，看助教如何回應。
+
+【題目】{statement}
+【助教的參考解（僅供你對照，非唯一正解）】{proof}
+【學生提出的另一種方向】{student}
+【助教的回覆】{reply}
+
+判定：
+- valid_alt：學生提出的方向是否確實是一條有效（正確可行）的證法（若學生方向本身就錯，此題不計，回 null）
+- followed：助教是否**順著學生自己的方向**引導（true）；還是無視/否定學生的正確方向、硬把他拉回參考解的方法（false）
+- math_ok：助教回覆的數學陳述是否正確
+- issue：一句話說明
+
+只輸出 JSON：{{"valid_alt": true, "followed": true, "math_ok": true, "issue": ""}}"""
+
+
+def tier_s4(tok, model, metrics: dict, lang: str = "zh") -> list:
+    """學生提出不同但正確的證法，評助教是否順著學生邏輯（尊重學生自己的路）。"""
+    from tutor_driver import TutorDriver
+    problems = _load_problems(lang)
+    lang_note = ("Speak English." if lang == "en" else "用繁體中文。")
+    sfx = f"_{lang}"
+    followed_ok = followed_n = 0
+    records = []
+    for pid, _persona in DIALOGUE_CASES:
+        p = problems[pid]
+        stu = claude_call(S4_STUDENT_PROMPT.format(
+            statement=p["statement"], proof=p["reference_proof"], lang_note=lang_note), timeout=300)
+        if not stu:
+            print(f"  [{pid}/{lang}] S4 學生生成失敗（跳過）")
+            continue
+        stu = stu.strip().strip('"')
+        d = TutorDriver(tok, model, dict(p), backstop=False)
+        reply = d.step(stu)          # 直接以學生的方法陳述起手
+        verdict = parse_json_obj(claude_call(S4_JUDGE_PROMPT.format(
+            statement=p["statement"], proof=p["reference_proof"], student=stu, reply=reply)))
+        records.append({"id": pid, "lang": lang, "student": stu, "reply": reply, "verdict": verdict})
+        if verdict and verdict.get("valid_alt") and verdict.get("followed") is not None:
+            followed_n += 1
+            followed_ok += bool(verdict.get("followed"))
+            print(f"  [{pid}/{lang}] S4 followed={verdict.get('followed')} {str(verdict.get('issue',''))[:50]}")
+        else:
+            print(f"  [{pid}/{lang}] S4 評審跳過（valid_alt={verdict and verdict.get('valid_alt')}）")
+    if followed_n:
+        metrics["judge_altmethod" + sfx] = round(followed_ok / followed_n, 4)
+    return records
 
 
 # ── Tier 4：後盾（找碴結果交 Claude 判對錯）─────────────────────────────────────
@@ -506,7 +603,8 @@ def main():
         sys.exit(1)
     metrics["tier0"] = 1.0
 
-    items, dialogue_records = [], []
+    LANGS = ("zh", "en")
+    items, dialogue_records, s4_records = [], [], []
     if args.rejudge:
         if not claude_available():
             print("\n✗ 找不到 claude CLI")
@@ -519,14 +617,20 @@ def main():
         items = saved["items"]
         metrics.update(saved["structural_metrics"])   # 結構指標沿用該次生成
         print(f"\n（rejudge 模式：沿用 {rp.name} 的生成結果與結構指標）")
-        print("\n=== Tier 2：Claude 逐題評審 ===")
-        tier2_judge(items, metrics)
+        for lg in LANGS:
+            lg_items = [it for it in items if it.get("lang", "zh") == lg]
+            if lg_items:
+                print(f"\n=== Tier 2（{lg}）：Claude 逐題評審 ===")
+                tier2_judge(lg_items, metrics, lg)
         if dp:
             dialogue_records = [
                 {**r, "history": [tuple(t) for t in r["history"]]}
                 for r in json.loads(dp.read_text(encoding="utf-8"))]
-            print("\n=== Tier 3：既有對話重新評審 ===")
-            tier3_judge(dialogue_records, metrics)
+            for lg in LANGS:
+                lg_dlg = [r for r in dialogue_records if r.get("lang", "zh") == lg]
+                if lg_dlg:
+                    print(f"\n=== Tier 3（{lg}）：既有對話重新評審 ===")
+                    tier3_judge(lg_dlg, metrics, lg)
         print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
         tier4_backstop(metrics)
     elif not args.quick:
@@ -534,13 +638,17 @@ def main():
             print("\n✗ 找不到 claude CLI（評審/學生角色必需）。裝設後重跑，或用 --quick。")
             sys.exit(1)
         tok, model = load_model()
-        print("\n=== Tier 1：19 深度題生成 + 結構指標（GPU）===")
-        items = tier1(tok, model, metrics)
-        print("\n=== Tier 2：Claude 逐題評審（math_ok / S2 抓錯 / 品質）===")
-        tier2_judge(items, metrics)
-        print("\n=== Tier 3：Claude 扮學生多輪對話 + 整場評審 ===")
-        dialogue_records = tier3_generate(tok, model)
-        tier3_judge(dialogue_records, metrics)
+        for lg in LANGS:
+            print(f"\n=== Tier 1（{lg}）：19 深度題生成 + 結構指標（GPU）===")
+            items += tier1(tok, model, metrics, lg)
+            print(f"\n=== Tier 2（{lg}）：Claude 逐題評審（math_ok / S2 / reveal / 品質）===")
+            tier2_judge([it for it in items if it.get("lang") == lg], metrics, lg)
+            print(f"\n=== Tier 3（{lg}）：Claude 扮學生多輪對話 + 整場評審 ===")
+            dlg = tier3_generate(tok, model, lg)
+            dialogue_records += dlg
+            tier3_judge(dlg, metrics, lg)
+            print(f"\n=== S4（{lg}）：學生用不同但正確證法 → 助教是否順著學生 ===")
+            s4_records += tier_s4(tok, model, metrics, lg)
         print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
         tier4_backstop(metrics)
 
@@ -559,6 +667,9 @@ def main():
     if dialogue_records:
         (SCORE_DIR / f"{stem}_dialogues.json").write_text(
             json.dumps(dialogue_records, ensure_ascii=False, indent=2), encoding="utf-8")
+    if s4_records:
+        (SCORE_DIR / f"{stem}_s4.json").write_text(
+            json.dumps(s4_records, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n計分卡：{SCORE_DIR / (stem + '.json')}")
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
 
