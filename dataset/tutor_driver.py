@@ -661,8 +661,14 @@ class TutorDriver:
         return self._tutor_turn()
 
     def step(self, student_text: str) -> str:
+        # 語言跟隨「學生」而非題目：學生訊息夠長且語言明確不同 → 切換 session 語言
+        # （支援「英文題＋中文學生」等混合，以及對話中途換語言；短訊息不切以免誤判）。
         if "lang" not in self.state:             # 未經 start() 直接 step 時補判語言
             self.state["lang"] = detect_lang(student_text)
+        else:
+            _s = re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", student_text)
+            if len([c for c in _s if not c.isspace()]) >= 12:
+                self.state["lang"] = detect_lang(student_text)
         self._detect_phase(student_text)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(student_text)
