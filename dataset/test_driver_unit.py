@@ -370,6 +370,28 @@ check("學生改講中文（夠長）→ 切換 lang=zh", dm2.state.get("lang") 
 dm2.step("ok")
 check("短訊息不觸發誤切（維持 zh）", dm2.state.get("lang") == "zh")
 
+print("[12] 回問保底：措辭輪換＋連續缺問句不硬補")
+
+
+class _NoQStub(TutorDriver):
+    """生成與重生成都不含問句 → 每輪都走保底附加路徑。"""
+
+    def _generate(self, level):
+        return f"Good, that completes the argument (turn {len(self.messages)})."
+
+    def _regen(self, level, note):
+        return f"Nice work, the proof is complete (turn {len(self.messages)})."
+
+
+nq = _NoQStub(tok=None, model=_StubModel(), problem=dict(_en_prob))
+r1 = nq.start(opener="Please guide me on this problem, I want to try it myself.")
+check("首輪保底附上追問（第 1 種措辭）", r1.rstrip().endswith("should start?"))
+r2 = nq.step("Here is my full attempt with all steps written out, please take a look at the whole thing and tell me.")
+check("上一輪已補過 → 連續缺問句不再硬補", not r2.rstrip().endswith("?"))
+r3 = nq.step("Thanks! I also double-checked the boundary case works, and I feel much more confident about it now.")
+check("隔一輪再缺問句 → 換第 2 種措辭", r3.rstrip().endswith("next?"))
+check("fb_idx 已輪轉到 2", nq.state.get("fb_idx") == 2)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

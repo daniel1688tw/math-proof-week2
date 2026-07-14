@@ -240,6 +240,19 @@ WALKTHROUGH_RETRY_NOTE_EN = (
 _TEACH_CHECK_EN = "Can you restate the reasoning of this step in your own words?"
 _TEACH_CHECK_ZH = "這一步的推理你能自己複述一遍嗎？"
 
+# 回問保底的固定追問：輪換措辭（雙語基準發現固定同一句連補多輪會被評審扣分——
+# 學生已完成證明時尤其突兀）。連續兩輪都缺問句則不再硬補（多半是對話已自然收尾）。
+_FALLBACK_QS = (
+    " 那你覺得，下一步該從哪裡下手？",
+    " 依你看，接下來哪個條件最值得先用？",
+    " 你想先從哪個方向試試看？",
+)
+_FALLBACK_QS_EN = (
+    " So where do you think the next step should start?",
+    " Which condition do you think is worth using next?",
+    " What direction would you like to try from here?",
+)
+
 
 def is_stuck(student_text: str) -> bool:
     """學生回覆是否屬於「答不出來」。長回覆（有實質嘗試）不算卡住。
@@ -580,8 +593,15 @@ class TutorDriver:
                     reply = regen
                     log.regenerated = True
                 else:
-                    reply = reply.rstrip() + (" So where do you think the next step should start?"
-                                              if en else " 那你覺得，下一步該從哪裡下手？")
+                    # 上一輪才剛補過保底句 → 這輪不再硬補（避免對話收尾時連輪追問）；
+                    # 其餘情況輪換措辭補上（不會連續出現同一句）。
+                    prev = self.state["turns"][-1].guards if self.state["turns"] else []
+                    if "fallback" not in prev:
+                        log.guards.append("fallback")
+                        pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
+                        i = self.state.get("fb_idx", 0)
+                        reply = reply.rstrip() + pool[i % len(pool)]
+                        self.state["fb_idx"] = i + 1
 
         # 重複回問保底：與近 3 輪助教回覆相同 → 加強指示重生成一次（中英共用）
         if self._repeats_previous(reply):
