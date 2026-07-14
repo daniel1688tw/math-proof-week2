@@ -52,11 +52,33 @@ JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
 JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
+S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."
 _QMARK = re.compile(r"[?？]")
 
 DEEP_IDS = [f"H{i}" for i in range(1, 9)] + [f"M{i}" for i in range(1, 6)] + \
            [f"X{i}" for i in range(1, 7)]
 ESC_IDS = ["A6", "C8", "E4"]
+
+
+def dumps_full_solution(reply: str, proof: str, statement: str,
+                        n: int = 15, ratio: float = 0.5) -> bool:
+    """回覆是否「大量搬運參考解」＝真有害洩漏（整段抄答案）。
+
+    教學原則（使用者 2026-07-14）：學生卡住時透露一點參考解是好教學，不該硬擋；
+    只有把解法大部分搬進回覆才算有害。計算 reply 的 n-gram 中屬於「解法專屬
+    （proof 有、statement 無）」的比例，超過 ratio 才判為 dump。小透露比例低 → 放行，
+    是否恰當交給 Claude 評審（reveal_ok）。"""
+    from tutor_driver import _normalize
+    a, b, s = _normalize(reply), _normalize(proof), _normalize(statement)
+    if len(a) < n:
+        return False
+    proof_grams = {b[i: i + n] for i in range(len(b) - n + 1)}
+    proof_grams -= {s[i: i + n] for i in range(len(s) - n + 1)}   # 排除題幹複述
+    a_grams = [a[i: i + n] for i in range(len(a) - n + 1)]
+    if not a_grams:
+        return False
+    hit = sum(1 for g in a_grams if g in proof_grams)
+    return hit / len(a_grams) >= ratio
 # Tier 3 多輪對話：題 × 學生人格（Claude 扮演）
 DIALOGUE_CASES = [
     ("H5", "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來"),
@@ -71,8 +93,9 @@ def claude_available() -> bool:
     return shutil.which("claude") is not None
 
 
-def claude_call(prompt: str, timeout: int = 420, retries: int = 3) -> str | None:
-    """呼叫 claude CLI；同帳號併發/速率限制會造成陣發性失敗，重試＋退避是必要的。"""
+def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None:
+    """呼叫 claude CLI；同帳號併發/速率限制會造成陣發性失敗，重試＋退避是必要的。
+    退避加長（同帳號被 Claude Code 併發佔用時，短退避不足以讓限流視窗恢復）。"""
     import time
     exe = shutil.which("claude")
     if not exe:
@@ -80,7 +103,7 @@ def claude_call(prompt: str, timeout: int = 420, retries: int = 3) -> str | None
     last_err = ""
     for attempt in range(retries):
         if attempt:
-            time.sleep(15 * attempt)          # 退避 15s / 30s
+            time.sleep(min(30 * attempt, 120))   # 退避 30/60/90/120/120s，讓限流視窗恢復
         try:
             r = subprocess.run(
                 [exe, "-p", "--model", JUDGE_MODEL, "--output-format", "text"],
@@ -173,19 +196,22 @@ def load_model():
 
 def tier1(tok, model, metrics: dict) -> list:
     """回傳 items：每筆 {id, scenario, reply, ...} 供 Tier 2 評審。"""
-    from tutor_driver import TutorDriver, is_spoonfeeding, leaks_reference
+    from tutor_driver import TutorDriver, is_spoonfeeding
     problems = _load_problems()
     att = json.loads((HERE / "held_out_attempts.json").read_text(encoding="utf-8"))
     items, all_replies = [], []
 
+    # 結構檢查用軟化的「整段搬答案」判定取代硬性 leaks_reference（教學原則：小透露不算退步，
+    # 恰當與否交給 Claude 評審 reveal_ok）。
     s1_ok = s3_ok = 0
     for pid in DEEP_IDS:
         p = problems[pid]
+        stmt = p.get("statement", "")
         d = TutorDriver(tok, model, dict(p), backstop=False)
         r1 = d.start()
         all_replies.append(r1)
         ok1 = bool(_QMARK.search(r1)) and not is_spoonfeeding(r1) \
-            and not leaks_reference(r1, p["reference_proof"])
+            and not dumps_full_solution(r1, p["reference_proof"], stmt)
         s1_ok += ok1
         items.append({"id": pid, "scenario": "S1", "reply": r1})
 
@@ -193,7 +219,7 @@ def tier1(tok, model, metrics: dict) -> list:
         r3 = d3.start(opener=S3_OPENER)
         all_replies.append(r3)
         ok3 = d3.state.get("phase") == "refuse_leak" and bool(_QMARK.search(r3)) \
-            and not leaks_reference(r3, p["reference_proof"])
+            and not dumps_full_solution(r3, p["reference_proof"], stmt)
         s3_ok += ok3
         items.append({"id": pid, "scenario": "S3", "reply": r3})
 

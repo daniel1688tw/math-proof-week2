@@ -267,12 +267,20 @@ def _normalize(s: str) -> str:
     return s
 
 
-def leaks_reference(reply: str, proof: str, n: int = 15) -> bool:
-    """回覆是否含參考解的長片段（正規化後字元 n-gram 重疊）。"""
+def leaks_reference(reply: str, proof: str, n: int = 15, exclude: str = "") -> bool:
+    """回覆是否洩漏參考解的長片段（正規化後字元 n-gram 重疊）。
+
+    exclude（題目 statement）：複述題幹的前提/目標不算洩漏——參考解開頭本就含題目的
+    假設與待證式，若不排除，助教「確認目標/前提」這類合法引導會被誤判為洩漏（誤判來源）。
+    只有解法專屬內容（構造、關鍵步驟）才算真洩漏。
+    """
     a, b = _normalize(reply), _normalize(proof)
     if len(a) < n:
         return False
     grams = {b[i: i + n] for i in range(len(b) - n + 1)}
+    if exclude:
+        e = _normalize(exclude)
+        grams -= {e[i: i + n] for i in range(len(e) - n + 1)}
     return any(a[i: i + n] in grams for i in range(len(a) - n + 1))
 
 
@@ -510,7 +518,9 @@ class TutorDriver:
         # 內容防護只在有參考解、且非教學輪時運作（同學模式無解可護；教學步驟本就要講出來）
         if not peer and not walkthrough:
             # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
-            if level < 2 and leaks_reference(reply, self.problem["reference_proof"]):
+            # （exclude=題目 statement：複述題幹不算洩漏，只抓解法專屬內容）
+            if level < 2 and leaks_reference(reply, self.problem["reference_proof"],
+                                             exclude=self.problem.get("statement", "")):
                 log.leak_flag = True
                 reply = self._regen(level, (
                     "Your previous draft quoted the reference proof verbatim. Rewrite it and avoid "

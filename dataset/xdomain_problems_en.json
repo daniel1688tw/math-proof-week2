@@ -1,0 +1,80 @@
+[
+  {
+    "id": "X1",
+    "domain": "discrete mathematics",
+    "topic": "strong induction (Fibonacci upper bound)",
+    "statement": "Let the Fibonacci sequence be $F_1=F_2=1$, $F_n=F_{n-1}+F_{n-2}$ ($n\\ge3$). Prove that $F_n<2^n$ for all $n\\ge1$.",
+    "reference_proof": "**Base cases** (the recurrence uses the two preceding terms, so two base cases are needed): $F_1=1<2=2^1$ and $F_2=1<4=2^2$.\n\n**Inductive step (strong induction)**: Let $n\\ge3$ and assume $F_m<2^m$ for all $1\\le m<n$. Then\n$$F_n=F_{n-1}+F_{n-2}<2^{n-1}+2^{n-2}=3\\cdot2^{n-2}<4\\cdot2^{n-2}=2^n.$$\n\nBy the principle of strong induction, $F_n<2^n$ for all $n\\ge1$. $\\blacksquare$\n\n(Note: with ordinary induction assuming only $F_k<2^k$, the estimate for $F_{k-1}$ in the inductive step has no justification; the correct approach is strong induction, or an assumption covering two adjacent terms, and two base cases must be verified.)",
+    "attempt": "$F_1=1<2^1$ holds. Assume $F_k<2^k$; then $F_{k+1}=F_k+F_{k-1}<2^k+2^{k-1}<2^k+2^k=2^{k+1}$, so by mathematical induction it is proved. Is this correct?",
+    "attempt_error": "A single induction hypothesis covers only F_k, yet the argument also uses F_{k-1}<2^{k-1} (unjustified); and only one base case is verified (a two-term recurrence needs two), while at k=1, F_{k-1}=F_0 is even undefined.",
+    "hint_ladder": [
+      "In the inductive step, how many preceding terms does the recurrence for $F_n$ use? Consider whether an induction hypothesis about only one term is enough.",
+      "Use strong induction: assume the claim for all terms below $n$; and note that when the recurrence uses two terms, two base cases must be verified."
+    ]
+  },
+  {
+    "id": "X2",
+    "domain": "discrete mathematics",
+    "topic": "pigeonhole principle",
+    "statement": "Take any $n+1$ integers ($n\\ge1$). Prove that among them there must exist two whose difference is divisible by $n$.",
+    "reference_proof": "Consider the remainder of each integer upon division by $n$. The possible remainders are $\\{0,1,\\dots,n-1\\}$, that is $n$ values.\n\nWith $n+1$ integers but only $n$ remainder classes, by the pigeonhole principle two of the numbers $a,b$ ($a\\ne b$) fall in the same remainder class, i.e. $a\\equiv b\\pmod n$.\n\nHence $a-b\\equiv0\\pmod n$, i.e. $n\\mid a-b$. $\\blacksquare$\n\n(Common pitfall: the remainders are $0$ to $n-1$, that is $n$ of them, not $0$ to $n$ ($n+1$ of them) — a remainder upon division by $n$ can never equal $n$.)",
+    "attempt": "I want to classify these numbers by remainder upon division by $n$: the remainder could be $0$ to $n$, that is $n+1$ values, so the $n+1$ numbers might each have a distinct remainder, and then no two would be congruent. I think the hypothesis is insufficient and we should take $n+2$ numbers instead. Is this correct?",
+    "attempt_error": "The number of remainder classes is wrong: remainders mod n are 0 to n-1, i.e. n classes (a remainder can't equal n); placing n+1 numbers into n classes forces a repeat, so the hypothesis is in fact sufficient.",
+    "hint_ladder": [
+      "Try classifying these $n+1$ numbers by some property so that there are exactly $n$ classes.",
+      "Pigeonhole principle: consider the remainder of each number mod $n$ — there are only $n$ possible remainders but $n+1$ numbers."
+    ]
+  },
+  {
+    "id": "X3",
+    "domain": "discrete mathematics",
+    "topic": "graph theory (handshake lemma)",
+    "statement": "Prove that in any finite simple graph $G=(V,E)$, the number of vertices of odd degree is even.",
+    "reference_proof": "**Sum of degrees**: each edge has exactly two endpoints and contributes $1$ to each of their degrees, so\n$$\\sum_{v\\in V}\\deg(v)=2|E|,$$\nwhich is even (the handshake lemma).\n\n**Grouping**: split $V$ into the odd-degree set $O$ and the even-degree set $P$:\n$$\\sum_{v\\in O}\\deg(v)=2|E|-\\sum_{v\\in P}\\deg(v).$$\nThe right side is an even number minus (a sum of evens = even), so $\\sum_{v\\in O}\\deg(v)$ is even.\n\n**Counting**: every vertex in $O$ has odd degree, and a sum of an odd number of odd numbers is odd while a sum of an even number of odd numbers is even. Since the total is even, $|O|$ must be even. $\\blacksquare$",
+    "attempt": "Each edge has two endpoints, so the sum of all vertex degrees equals the number of edges $|E|$. Suppose the number of odd-degree vertices is odd; then a sum of an odd number of odd numbers is odd, and adding the even sum of the even-degree vertices is still odd, but $|E|$ could be even — a contradiction. So the number of odd-degree vertices is even. Is my reasoning correct?",
+    "attempt_error": "The sum of degrees should be 2|E| (each edge contributes 2), not |E|; and \"|E| could be even\" yields no contradiction — the argument works precisely because the total always equals 2|E| and is thus even, so the original reasoning is logically incomplete.",
+    "hint_ladder": [
+      "First ask yourself: how much does each edge contribute to the total sum of all vertex degrees?",
+      "Handshake lemma: the degree sum equals twice the number of edges and is thus even; then split the vertices by parity of degree and compare the two groups."
+    ]
+  },
+  {
+    "id": "X4",
+    "domain": "linear algebra",
+    "topic": "eigenvectors for distinct eigenvalues are linearly independent",
+    "statement": "Let $A$ be a square matrix with two distinct eigenvalues $\\lambda_1\\ne\\lambda_2$, and let $v_1,v_2$ be corresponding eigenvectors. Prove that $\\{v_1,v_2\\}$ is linearly independent.",
+    "reference_proof": "Suppose $c_1v_1+c_2v_2=0$ ... (1). Goal: $c_1=c_2=0$.\n\nLeft-multiply (1) by $A$, using $Av_i=\\lambda_iv_i$:\n$$c_1\\lambda_1v_1+c_2\\lambda_2v_2=0\\ \\cdots\\ (2)$$\n\nCompute $(2)-\\lambda_1\\times(1)$ to eliminate $v_1$:\n$$c_2(\\lambda_2-\\lambda_1)v_2=0.$$\n\nSince $\\lambda_2\\ne\\lambda_1$ (distinct eigenvalues) and $v_2\\ne0$ (an eigenvector is nonzero by definition), we get $c_2=0$.\n\nSubstituting back into (1): $c_1v_1=0$, and since $v_1\\ne0$, $c_1=0$.\n\nBoth coefficients are zero, so $\\{v_1,v_2\\}$ is linearly independent. $\\blacksquare$\n\n(Note: \"both vectors are nonzero\" does not imply linear independence — e.g. $v_2=2v_1$; the proof must use that the eigenvalues are distinct.)",
+    "attempt": "$v_1,v_2$ are eigenvectors, so by definition both are nonzero. Since both vectors are nonzero, the linear combination $c_1v_1+c_2v_2=0$ has only the solution $c_1=c_2=0$, so they are linearly independent. Is this correct?",
+    "attempt_error": "\"Nonzero vectors must be linearly independent\" is false (when v_2=2v_1 both are nonzero yet linearly dependent); the argument never uses the key condition lambda_1 != lambda_2 — an unused hypothesis usually signals a gap.",
+    "hint_ladder": [
+      "Besides the original linear-combination equation, could you apply $A$ once more to obtain a second equation?",
+      "Eliminate one vector by combining the two equations: multiply the original by one eigenvalue and subtract — this step uses that the eigenvalues are distinct."
+    ]
+  },
+  {
+    "id": "X5",
+    "domain": "linear algebra",
+    "topic": "rank-nullity theorem (nilpotent condition)",
+    "statement": "Let $V$ be an $n$-dimensional vector space and $T:V\\to V$ a linear map with $T^2=0$. Prove that $\\operatorname{rank}(T)\\le\\dfrac n2$.",
+    "reference_proof": "**Inclusion**: for any $v\\in V$, $T(Tv)=T^2v=0$, so $Tv\\in\\ker(T)$. This holds for all $v$, i.e.\n$$\\operatorname{Im}(T)\\subseteq\\ker(T).$$\n\n**Dimension comparison**: the subspace inclusion gives $\\operatorname{rank}(T)=\\dim\\operatorname{Im}(T)\\le\\dim\\ker(T)=\\operatorname{nullity}(T)$.\n\n**Rank-nullity theorem**: $\\operatorname{rank}(T)+\\operatorname{nullity}(T)=n$, so\n$$\\operatorname{rank}(T)\\le\\operatorname{nullity}(T)=n-\\operatorname{rank}(T)\\ \\Longrightarrow\\ 2\\operatorname{rank}(T)\\le n\\ \\Longrightarrow\\ \\operatorname{rank}(T)\\le\\frac n2.\\ \\blacksquare$$",
+    "attempt": "$T^2=0$ means the kernel is contained in the image, i.e. $\\ker(T)\\subseteq\\operatorname{Im}(T)$, so $\\operatorname{nullity}(T)\\le\\operatorname{rank}(T)$. By rank-nullity $\\operatorname{rank}+\\operatorname{nullity}=n$, giving $\\operatorname{rank}(T)\\ge\\dfrac n2$. Is this correct?",
+    "attempt_error": "The inclusion direction is reversed: T^2=0 gives Im(T) subset of Ker(T) (any Tv is sent to 0 by T), not Ker subset of Im; so the conclusion's inequality is also reversed (correct is rank <= n/2).",
+    "hint_ladder": [
+      "$T^2=0$ says \"applying $T$ once and then again gives zero\" — what inclusion does this force between the image and the kernel of $T$?",
+      "Rank-nullity: $\\operatorname{rank}+\\operatorname{nullity}=n$; combine with $\\operatorname{Im}(T)\\subseteq\\ker(T)$ to compare the two dimensions."
+    ]
+  },
+  {
+    "id": "X6",
+    "domain": "linear algebra",
+    "topic": "eigenvalues of a real symmetric matrix are real",
+    "statement": "Let $A$ be an $n\\times n$ real symmetric matrix. Prove that every eigenvalue of $A$ is real.",
+    "reference_proof": "Suppose $Av=\\lambda v$ with $v\\ne0$ (allow $\\lambda\\in\\mathbb C$ and $v\\in\\mathbb C^n$ for now). Write $v^*=\\bar v^{\\,T}$ (conjugate transpose).\n\n**Left-multiply by $v^*$**:\n$$v^*Av=\\lambda\\,v^*v.$$\n\n**$v^*Av$ is real**: it is a $1\\times1$ scalar, so its conjugate transpose equals its value, and $A$ real symmetric $\\Rightarrow A^*=\\bar A^{\\,T}=A^T=A$, hence\n$$\\overline{v^*Av}=(v^*Av)^*=v^*A^*v=v^*Av,$$\ni.e. $v^*Av$ equals its own conjugate and is therefore real.\n\n**$v^*v$ is a positive real**: $v^*v=\\sum_i|v_i|^2>0$ (since $v\\ne0$).\n\nHence $\\lambda=\\dfrac{v^*Av}{v^*v}$ is a real number divided by a positive real, so it is real. $\\blacksquare$\n\n(Common pitfall: using the transpose $v^T$ instead of the conjugate transpose — $v$ may be complex, and $v^Tv$ can be $0$ or complex, e.g. $v=(1,i)^T$ gives $v^Tv=0$, and the argument collapses.)",
+    "attempt": "Suppose $Av=\\lambda v$ with $v\\ne0$. Left-multiply both sides by $v^T$ to get $v^TAv=\\lambda v^Tv$. Since $v^Tv=\\|v\\|^2>0$ and $v^TAv$ is a real number, $\\lambda=\\dfrac{v^TAv}{v^Tv}$ is real. Is this correct?",
+    "attempt_error": "The eigenvector v may be complex: v^Tv is not necessarily ||v||^2 and can be 0 or complex (e.g. v=(1,i)^T gives v^Tv=0), and v^TAv need not be real. One must use the conjugate transpose v* and first argue that v*Av equals its own conjugate.",
+    "hint_ladder": [
+      "The eigenvalue may first need to be treated as complex and the eigenvector as a complex vector — in that case, is there a difference between \"transpose\" and \"conjugate transpose\"?",
+      "Left-multiply $Av=\\lambda v$ by the conjugate transpose of $v$, then show the resulting scalar equals its own conjugate (this uses that $A$ is real symmetric)."
+    ]
+  }
+]
