@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "我想用一個稍微不同的方式來做：我打算把 $h(t) = e^t - 1 - t$ 這整個函數拿來用均值定理，而不是只對 $e^t$ 用。我的想法是，$h(0) = 0$，然後對 $h$ 在 $[0, x]$ 上套均值定理，得到 $h(x) - h(0) = h'(c)(x - 0)$ 對某個 $c \\in (0, x)$，這樣 $e^x - 1 - x = h'(c) \\cdot x$。只要能說明 $h'(c) > 0$，就能推出 $e^x - 1 - x > 0$，也就是 $e^x > 1 + x$ 了。可以請你幫我從這個方向繼續引導嗎？我在想 $h'(t)$ 到底等於什麼、為什麼它在 $c > 0$ 時會大於零，這部分我還沒完全想清楚。",
+    "reply": "很好，這其實是均值定理的一種「更廣義」用法。那我們先算出 $h'(t)$ 是什麼，再看它在 $c>0$ 時的符號。你會怎麼算 $h'(t)$？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用泰勒展開加上積分餘項的方式來做。具體來說，我打算從 $\\cos x$ 的積分表達式出發——先對 $\\cos t\\le1$ 做一次積分得到 $\\sin x$ 的上界，再對那個上界做第二次積分，最終得到 $\\cos x$ 的下界。這樣就不需要研究 $g(x)$ 的單調性，而是直接用積分的單調性推出不等式。老師，你覺得我這個方向可以嗎？能幫我從「對 $\\cos t\\le1$ 積分」這一步開始引導我嗎？",
+    "reply": "可以。先對 $\\cos t\\le1$ 進行一次積分，你能得到什麼關於 $\\sin x$ 的不等式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "我想用**反證法**來做。假設 $\\{v_1, v_2\\}$ 線性相依，那麼其中一個向量一定可以用另一個的純量倍表示，也就是存在某個純量 $k$ 使得 $v_2 = kv_1$。接著我打算對這個等式兩邊同乘矩陣 $A$，利用特徵向量的定義分別展開兩邊，看看 $\\lambda_1 \\ne \\lambda_2$ 的條件會帶來什麼矛盾。老師，我這樣的思路方向對嗎？可以請您帶我繼續推下去嗎？",
+    "reply": "方向正確。對 $v_2=kv_1$ 左乘 $A$ 後，左右兩邊各展開成什麼樣的式子？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I'm thinking of defining $g(x) = e^x - 1 - x$ and using the MVT indirectly through monotonicity: if I can show $g'(x) = e^x - 1 > 0$ for all $x > 0$, then $g$ is strictly increasing on $(0, \\infty)$, and since $g(0) = 0$, it follows that $g(x) > 0$ for $x > 0$. The key step I need is proving $e^x > 1$ for $x > 0$, which I think I can get by applying MVT to $e^t$ on $[0, x]$ — but I'm not sure how to set that sub-step up cleanly without it collapsing into the standard proof. Could you help me figure out how to rigorously establish $e^x > 1$ for $x > 0$ using MVT, so I can then feed it into the monotonicity argument?",
+    "reply": "That's a very clean path. To establish $e^x > 1$ for $x > 0$ via MVT, apply it to $f(t)=e^t$ on $[0,x]$. What does this give you directly, and why is that enough?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I'm thinking of using an iterated integration argument rather than analyzing a single auxiliary function. My plan is: start from the obvious fact that $1 - \\cos t \\ge 0$ for all $t$, integrate that inequality over $[0, x]$ to get $x - \\sin x \\ge 0$ (i.e., $\\sin x \\le x$), and then integrate *that* inequality once more over $[0, x]$ to land directly on $1 - \\cos x \\le \\frac{x^2}{2}$. I'd need to handle negative $x$ separately, probably by a symmetry/substitution argument. Could you help me make sure the two integration steps are set up correctly and that the negative-$x$ case is airtight?",
+    "reply": "The integrations work, but you're integrating $1-\\cos t$ over $[0,x]$, which gives $x-\\sin x\\ge0$. To get $1-\\cos x\\le\\frac{x^2}{2}$, you need to integrate something else. What would you integrate over $[0,x]$ to get $x-\\sin x$ in the first place?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "學生的兩步積分計畫完全正確（∫₀ˣ(1−cos t)dt 得 x−sin x≥0，再積分 sin t≤t 得 1−cos x≤x²/2），但助教說「要得到 1−cos x≤x²/2 需要積分別的東西」並反問「積什麼才能得到 x−sin x」，這既否定了正確的第二步、又把方向拉離學生已說清楚的計畫，數學判斷有誤且未順著學生方向引導。"
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I think I want to try this by contradiction directly on the independence condition, without multiplying by A at all. My idea is: assume for contradiction that $v_1$ and $v_2$ are linearly dependent, so one must be a scalar multiple of the other — say $v_2 = kv_1$ for some scalar $k \\neq 0$. Then I'd apply $A$ to both sides and use the eigenvector equations to derive that $\\lambda_1 = \\lambda_2$, contradicting our hypothesis. Could you help me work through the details of that derivation and make sure I'm not missing any cases?",
+    "reply": "That's a very clean approach! Let's go through it carefully. You're assuming $v_2 = kv_1$ and applying $A$ to both sides. What happens when you compute $A(v_2)$ using both the assumption and the eigenvector property?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

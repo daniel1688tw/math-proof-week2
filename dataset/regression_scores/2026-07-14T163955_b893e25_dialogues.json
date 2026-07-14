@@ -1,0 +1,386 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先固定 $x>0$，考慮函數 $f(t)=e^t$ 在區間 $[0,x]$ 上的平均變化率。它等於什麼？"
+      ],
+      [
+        "學生",
+        "平均變化率……就是 $\\frac{f(x)-f(0)}{x-0}$ 嗎？所以是 $\\frac{e^x - 1}{x}$？"
+      ],
+      [
+        "助教",
+        "正是。這個平均變化率又等於區間內某點的瞬時變化率，也就是 $f'(c)$。那 $f'(c)$ 是什麼？"
+      ],
+      [
+        "學生",
+        "$f'(t) = e^t$，所以 $f'(c) = e^c$？但……這個 $c$ 是哪裡來的，它在哪個範圍裡？"
+      ],
+      [
+        "助教",
+        "這正是均值定理要給你的。$c$ 落在哪個區間，才能保證 $e^c>1$ 進而推出 $e^x>1+x$？"
+      ],
+      [
+        "學生",
+        "啊……$c$ 在 $(0,x)$ 裡面？所以 $c>0$，那 $e^c > e^0 = 1$？這樣就有 $\\frac{e^x-1}{x} = e^c > 1$，然後兩邊乘以 $x$（$x>0$ 所以不用換向）就得到 $e^x - 1 > x$？"
+      ],
+      [
+        "助教",
+        "完全正確。關鍵是「平均變化率 = 某點瞬時變化率」，而那個 $c$ 的位置才讓你比較出 $e^c>1$。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "啊那……「下一步」是指寫出完整的結論嗎？就是把剛才推出的 $e^x - 1 > x$ 移項寫成 $e^x > 1 + x$？感覺好像就這樣了耶，有這麼簡單嗎？"
+      ],
+      [
+        "助教",
+        "是的，你已經把整個證明的骨架都搭好了。現在只剩下把最後一步寫出來，你覺得應該怎麼寫？"
+      ],
+      [
+        "學生",
+        "那就……$e^x - 1 > x$，所以 $e^x > 1 + x$，這樣？感覺就是移個項而已，我以為均值定理的題目會很難，沒想到這步超簡單的耶。"
+      ],
+      [
+        "助教",
+        "這正是均值定理的魅力：它把「平均」和「瞬時」連起來，讓你用最簡單的方式得到一個看似複雜的不等式。你現在對它的價值有更清楚的認識了。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "欸……助教你剛剛問的「下一步」是什麼意思？我覺得證明已經完成了啊——均值定理給 $c\\in(0,x)$，所以 $e^c>1$，再推出 $e^x>1+x$，這樣不就結束了嗎？還有什麼「下一步」？"
+      ],
+      [
+        "助教",
+        "「下一步」其實是問你自己：你現在寫出的證明，有沒有漏掉均值定理本身要求的那個前提？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "第五輪助教說完結語後又問「下一步該從哪裡下手？」，與學生已完成證明的情境完全脫節，且相同問句在第六輪再次出現，屬於明顯的狀態失憶與重複拋問，破壞引導連貫性。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先定義輔助函數 $g(x)=\\cos x-1+\\dfrac{x^2}{2}$。它的目標是什麼樣的符號？"
+      ],
+      [
+        "學生",
+        "目標是證明 $g(x)\\ge0$ 對所有實數成立嘛。那接下來是不是要對 $g$ 微分找極值？"
+      ],
+      [
+        "助教",
+        "正是。求導後會得到什麼樣的函數，它在 $x=0$ 的值是多少？"
+      ],
+      [
+        "學生",
+        "$g'(x) = -\\sin x + x$，所以 $g'(0) = 0$。這樣就知道 $x=0$ 是個臨界點，但我還要再對一次才能確認是極小值對吧？"
+      ],
+      [
+        "助教",
+        "完全正確。那二階導數 $g''(x)$ 的符號是什麼，能幫你說出 $g$ 在 $x=0$ 取得最小值嗎？"
+      ],
+      [
+        "學生",
+        "$g''(x) = -\\cos x + 1$，然後 $g''(0) = 0$……等一下，這樣二階導數測試不是無效嗎？我需要再往下看才能判斷吧？"
+      ],
+      [
+        "助教",
+        "對，你已經自己發現了這個細節。這題的關鍵是「二階導數非負」能保證什麼，即使 $g''(0)=0$？"
+      ],
+      [
+        "學生",
+        "喔我懂了——$g''(x) = 1 - \\cos x \\ge 0$ 對所有實數成立，所以 $g'$ 是單調不減的。因為 $g'(0) = 0$，這就代表 $g'(x) \\le 0$（當 $x < 0$）且 $g'(x) \\ge 0$（當 $x > 0$），所以 $g$ 在 $x = 0$ 確實取到全域最小值。然後 $g(0) = \\cos 0 - 1 + 0 = 0$，所以 $g(x) \\ge 0$ 對所有 $x$ 成立，證完了！"
+      ],
+      [
+        "助教",
+        "完全正確。你不僅寫出了完整的證明，還主動指出了「二階導數非負」這個條件如何讓我們跳過二階導數測試的陷阱。這題你已經完全掌握。"
+      ],
+      [
+        "學生",
+        "謝謝！不過我想確認一件事——助教說我「跳過了二階導數測試的陷阱」，但我覺得我們其實沒有跳過，而是改用 $g'$ 的單調性來論證，這兩件事是不同的吧？另外助教最後說「這題你已經完全掌握」，是不是可以讓我自己把完整證明從頭寫一遍，確認我真的沒漏掉什麼步驟？"
+      ],
+      [
+        "助教",
+        "當然可以。現在你自己已經清楚整個流程了，那就把完整證明寫出來，我來審閱。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "這個問題很奇怪……我剛才不是已經說我要把完整證明從頭寫一遍了嗎，助教怎麼又反問我「下一步從哪裡下手」？我直接寫吧：令 $g(x) = \\cos x - 1 + \\frac{x^2}{2}$，計算 $g''(x) = 1 - \\cos x \\ge 0$ 對所有實數成立，故 $g'$ 單調不減；又 $g'(0) = 0$，故 $x < 0$ 時 $g'(x) \\le 0$、$x > 0$ 時 $g'(x) \\ge 0$，即 $g$ 在 $x = 0$ 取全域最小值；最後 $g(0) = 0$，故 $g(x) \\ge 0$ 對所有實數成立，即 $\\cos x \\ge 1 - \\frac{x^2}{2}$。"
+      ],
+      [
+        "助教",
+        "這篇證明非常乾淨。唯一可以更嚴謹的是：「$g'$ 單調不減」這個事實，是靠 $g''\\ge0$ 本身提供的，還是需要額外引用定理？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生明確說要「自己把完整證明從頭寫一遍」後，助教卻多餘反問「下一步從哪裡下手」，造成學生困惑；且最後一輪助教在學生已寫出完整證明後又追問理論依據，雖屬合理深化但略顯奉送下一個問題而非等學生先確認理解。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "先寫下 $c_1v_1+c_2v_2=0$ 這個線性組合等於零的假設。接著，對它做什麼樣的操作，才能把 $v_1$ 和 $v_2$ 分開來處理？"
+      ],
+      [
+        "學生",
+        "嗯，我覺得可以兩邊同乘 $A$？因為 $Av_i = \\lambda_i v_i$，這樣應該可以把特徵值帶進去，然後就能區分 $v_1$ 和 $v_2$ 了。"
+      ],
+      [
+        "助教",
+        "正是。左乘 $A$ 後得到 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$，再怎麼操作能消掉 $v_1$？"
+      ],
+      [
+        "學生",
+        "我想想……如果把第一個式子乘以 $\\lambda_1$，然後跟第二個式子相減，就可以把 $c_1\\lambda_1v_1$ 消掉？所以應該是從 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$ 中減去 $\\lambda_1$ 乘以原式 $c_1v_1+c_2v_2=0$，得到 $c_2(\\lambda_2-\\lambda_1)v_2=0$？"
+      ],
+      [
+        "助教",
+        "完全正確。這裡 $\\lambda_2\\ne\\lambda_1$ 是關鍵，它保證 $c_2=0$，否則 $v_2$ 可能是 $v_1$ 的倍數。你清楚這一步的必要性了嗎？"
+      ],
+      [
+        "學生",
+        "等等，助教說「否則 $v_2$ 可能是 $v_1$ 的倍數」——這個我不太懂，$v_2$ 是不是 $v_1$ 的倍數跟 $c_2$ 是不是零有什麼關係？我只知道 $v_2\\ne 0$，所以從 $c_2(\\lambda_2-\\lambda_1)v_2=0$ 再加上 $\\lambda_2\\ne\\lambda_1$ 就能推 $c_2=0$，這樣就夠了吧？"
+      ],
+      [
+        "助教",
+        "你說得對，只要 $\\lambda_2\\ne\\lambda_1$，$c_2=0$ 就成立。那為什麼助教還要特別提醒「否則 $v_2$ 可能是 $v_1$ 的倍數」呢？"
+      ],
+      [
+        "學生",
+        "我想了一下，感覺助教那句話有點奇怪？$v_2$ 是不是 $v_1$ 的倍數，這跟我們現在推 $c_2=0$ 的邏輯好像沒有直接關係耶。我只需要 $v_2\\ne 0$ 跟 $\\lambda_2\\ne\\lambda_1$ 就可以推出 $c_2=0$，助教說的「否則」是在講哪種情況？"
+      ],
+      [
+        "助教",
+        "「否則」指的是 $\\lambda_2=\\lambda_1$ 的情形。當 $\\lambda_2=\\lambda_1$，$c_2(\\lambda_2-\\lambda_1)v_2=0$ 就變成 $0=0$，無法得出 $c_2=0$，此時 $v_2$ 確實可能只是 $v_1$ 的倍數。所以相異特徵值的條件是必要的。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "喔，我懂了！當 $\\lambda_2=\\lambda_1$ 時係數就消掉了，所以確實沒辦法推 $c_2=0$。那接下來應該用 $c_2=0$ 代回原式 $c_1v_1+c_2v_2=0$，就得到 $c_1v_1=0$，再因為 $v_1\\ne 0$ 就能推出 $c_1=0$，這樣就完成了吧？不過……我本來以為非零向量自己就一定線性獨立，現在才意識到「兩個非零向量線性獨立」還需要特別證明，不能直接說「$v_1,v_2$ 都非零所以獨立」？"
+      ],
+      [
+        "助教",
+        "思路已經完整了。現在請把完整證明一步步寫出來，我會幫你審閱。"
+      ],
+      [
+        "學生",
+        "好，我來試試寫完整的證明。假設 $c_1v_1+c_2v_2=0$，兩邊左乘 $A$ 得 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$，再從這式減去 $\\lambda_1$ 乘以原式，得到 $c_2(\\lambda_2-\\lambda_1)v_2=0$。因為 $\\lambda_1\\ne\\lambda_2$ 所以 $\\lambda_2-\\lambda_1\\ne 0$，又 $v_2\\ne 0$，所以 $c_2=0$；代回原式得 $c_1v_1=0$，因為 $v_1\\ne 0$ 所以 $c_1=0$。這樣 $c_1=c_2=0$，所以 $\\{v_1,v_2\\}$ 線性獨立！"
+      ],
+      [
+        "助教",
+        "完全正確。你清楚「相異特徵值」是必要的，也明白「兩個非零向量未必線性獨立」這個常見誤解。這題你掌握得很徹底。 那你覺得，下一步該從哪裡下手？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "最後學生完成完整證明後，助教多餘地追問「下一步該從哪裡下手？」，對話已收尾卻又開啟新問題，邏輯上突兀。"
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT applies to functions on an interval. What function and interval should we pick to get something involving $e^x$ and $1+x$?"
+      ],
+      [
+        "學生",
+        "Hmm, I'm not sure... maybe $f(x) = e^x$? But I don't know what interval to use or how that connects to $1+x$."
+      ],
+      [
+        "助教",
+        "Try applying the MVT to $f(t)=e^t$ on the interval $[0,x]$. What does the theorem say will happen?"
+      ],
+      [
+        "學生",
+        "Oh okay, so MVT says there exists some $c$ in $(0, x)$ where $f'(c) = \\frac{f(x) - f(0)}{x - 0}$... so that's $e^c = \\frac{e^x - 1}{x}$? But I'm not sure how that gives me $e^x > 1 + x$."
+      ],
+      [
+        "助教",
+        "That's great! Now, since $c$ is between $0$ and $x$, and both are positive, what can you say about $e^c$ compared to $1$?"
+      ],
+      [
+        "學生",
+        "Oh, since $c > 0$, we have $e^c > e^0 = 1$! So... $e^c > 1$, and that means $\\frac{e^x - 1}{x} > 1$, so $e^x - 1 > x$, which gives $e^x > 1 + x$? Wait, that actually works!"
+      ],
+      [
+        "助教",
+        "Yes, that's exactly it. You just needed to connect the MVT result to the positivity of $c$. That was the missing link. Well done. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "I think we're actually done? Like, we just proved it — we showed $e^c > 1$ because $c > 0$, and that gave us $e^x > 1 + x$. So... is there a next step, or is the proof complete?"
+      ],
+      [
+        "助教",
+        "The proof is complete as written. You correctly applied MVT to $f(t)=e^t$ on $[0,x]$, used $c>0$ to get $e^c>1$, and then multiplied both sides by $x$ to reach the desired inequality. No further steps are needed."
+      ],
+      [
+        "學生",
+        "Oh nice, so the key was just knowing that $c > 0$ forces $e^c > 1$, and the rest falls out of the MVT equation. That's actually cleaner than I expected — I thought we'd need more steps. Thanks!"
+      ],
+      [
+        "助教",
+        "You're very welcome. It's easy to underestimate how much a single fact like \"$c>0$\" can do. Keep going — you've got this. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, didn't we just finish the proof? You asked \"where does the next step start\" again, but... I thought the proof was complete? Is there something else we need to do that I'm missing?"
+      ],
+      [
+        "助教",
+        "No, the proof is indeed complete. You correctly applied MVT, used $c>0$ to get $e^c>1$, and derived $e^x>1+x$. There's no further work needed. You've just proven the inequality. So where do you think the next step should start?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 2,
+      "issue": "助教在學生已完成證明後連問三次「So where do you think the next step should start?」，造成學生困惑，明顯是重複機械輸出的 bug，嚴重損害對話品質。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A good starting point is to define a new function $g(x)=\\cos x-1+\\dfrac{x^2}{2}$ and prove $g(x)\\ge0$. What's the value of $g(0)$, and what can we say about its derivative at zero?"
+      ],
+      [
+        "學生",
+        "g(0) = cos(0) - 1 + 0 = 0, and g'(x) = -sin(x) + x, so g'(0) = 0 too. Both zero — so that's like a minimum candidate at x=0?"
+      ],
+      [
+        "助教",
+        "Yes, exactly. To confirm this is indeed the global minimum, we'd want to know something about the second derivative. What is $g''(x)$, and what does its sign tell us?"
+      ],
+      [
+        "學生",
+        "g''(x) = -cos(x) + 1, and since cos(x) ≤ 1 for all x, we get g''(x) ≥ 0 everywhere — so g is convex on all of ℝ. Combined with g'(0) = 0, that means x=0 is a global minimum, so g(x) ≥ g(0) = 0 for all x. Done!"
+      ],
+      [
+        "助教",
+        "Perfect. You've just completed a full proof by defining a suitable auxiliary function, using the second derivative test to establish convexity, and leveraging symmetry around the critical point. That's a very clean approach. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, I think we're actually done? The proof is complete — we showed g(x) ≥ 0 for all x, which is exactly what we needed. Unless you mean starting the writeup as a formal proof?"
+      ],
+      [
+        "助教",
+        "Yes, that's exactly right. You've now written out the complete proof in a way that's both rigorous and clear. Well done."
+      ],
+      [
+        "學生",
+        "Thanks! Yeah I think the key insight was that convexity + a critical point at zero forces the global minimum to be right there. I'll write it up cleanly."
+      ],
+      [
+        "助教",
+        "That's precisely the insight. You've internalized the method now. Good work."
+      ],
+      [
+        "學生",
+        "Sounds good, I'll write it up. One small thing — when we conclude \"g'(0) = 0 and g is convex implies x=0 is a global minimum,\" should I explicitly cite that a convex function achieves its global minimum at any critical point, or is that considered obvious enough to state without justification at this level?"
+      ],
+      [
+        "助教",
+        "It's probably safe to state it as a known fact here. The main point is recognizing the auxiliary function and the role of convexity. You've got the structure down. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Yeah, \"a convex function with a critical point achieves its global minimum there\" is standard enough — I'll include it as a one-line justification rather than proof. And I think \"the next step\" is just the writeup at this point, right? We've literally finished the math."
+      ],
+      [
+        "助教",
+        "Exactly. You've now completed the entire proof. The key takeaway is the auxiliary function trick: define $g(x)=\\cos x-1+x^2/2$, observe $g(0)=g'(0)=0$, use $g''\\ge0$ to get convexity, and invoke the known result about convex functions. That's it."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生第二輪已自行完成完整證明後，助教仍多次用「So where do you think the next step should start?」製造虛假開放感，而非乾脆收尾或推進自寫證明。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start with the assumption of linear dependence: suppose $c_1v_1+c_2v_2=0$. What happens if you left-multiply this equation by $A$?"
+      ],
+      [
+        "學生",
+        "Oh, if I multiply by $A$, then $A(c_1v_1 + c_2v_2) = 0$, so $c_1Av_1 + c_2Av_2 = 0$. Since $v_1, v_2$ are eigenvectors, that becomes $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$. Hmm, so now I have two equations — does that mean I can just subtract them to get something useful?"
+      ],
+      [
+        "助教",
+        "Yes, subtracting gives a new equation involving only one eigenvector. Can you do that subtraction and explain why it works?"
+      ],
+      [
+        "學生",
+        "If I subtract $\\lambda_2$ times the first equation from the second... wait, let me think. I have $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$ and $c_1 v_1 + c_2 v_2 = 0$. If I multiply the second by $\\lambda_2$ and subtract, I get $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$. Since $\\lambda_1 \\ne \\lambda_2$, that means $c_1 = 0$... but wait, doesn't that only work if $v_1 \\ne 0$? Can I just assume that?"
+      ],
+      [
+        "助教",
+        "Yes, you can assume $v_1\\ne0$ because an eigenvector is defined to be nonzero. So $c_1=0$, and then going back to the original equation, what do you get for $c_2$?"
+      ],
+      [
+        "學生",
+        "Oh right, if $c_1 = 0$ then the original equation just becomes $c_2 v_2 = 0$, and since $v_2$ is also nonzero by definition, we get $c_2 = 0$ too. So both constants are zero, which means $\\{v_1, v_2\\}$ is linearly independent — wait, but doesn't this only prove it for *these specific* $c_1, c_2$? Like, I feel like we assumed $c_1 v_1 + c_2 v_2 = 0$ at the start, so aren't we going in circles?"
+      ],
+      [
+        "助教",
+        "Exactly — you're right to be cautious. The key is that we started with the *assumption* of linear dependence (i.e., existence of some nontrivial combination equaling zero), and used it to derive $c_1=c_2=0$. That contradiction proves that no such nontrivial combination exists. So the set is linearly independent. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Oh I see, so we're not going in circles — the argument is: *if* there's a nontrivial combination, then we can force both constants to be zero, which contradicts them being nontrivial. That makes the contradiction explicit. But actually, I want to make sure I understand — when you say \"nontrivial,\" you mean at least one of $c_1, c_2$ is nonzero, right? So deriving $c_1 = c_2 = 0$ kills that assumption entirely?"
+      ],
+      [
+        "助教",
+        "Yes, that's the crux. The assumption of a nontrivial linear dependence leads to both coefficients being zero, which is a contradiction. Therefore, no such dependence exists. That's the full proof. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Got it, yeah — if both $c_1$ and $c_2$ must be zero, then by definition there's no nontrivial linear combination that equals zero, so the set is linearly independent. I think the proof is actually complete now? Like, the \"next step\" is just... writing it up cleanly?"
+      ],
+      [
+        "助教",
+        "Yes, you've got it. The key insight was to use the eigenvalue property to create a second equation, then subtract to eliminate one vector. The contradiction from assuming a nontrivial combination is exactly what proves linear independence. You're ready to write the clean version."
+      ],
+      [
+        "學生",
+        "Okay, I think I can write it up. Actually, one thing I want to double-check: when we conclude $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$ and say $c_1 = 0$ because $\\lambda_1 \\neq \\lambda_2$ and $v_1 \\neq 0$ — does that reasoning require that scalars times nonzero vectors are nonzero? Like, is that a property we can just cite, or do we need to prove it?"
+      ],
+      [
+        "助教",
+        "That's a great question. The property that $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$ implies $c_1=0$ relies on the field being a domain (like real or complex numbers), where nonzero scalars times nonzero vectors remain nonzero. In those fields, yes, you can divide and conclude $c_1=0$. So the proof holds under standard assumptions."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "末輪重複 'So where do you think the next step should start?' 問了兩次，且最後一輪確認近乎奉送（直接告知推論依賴 field 是 domain，未先讓學生思考）。"
+    }
+  }
+]
