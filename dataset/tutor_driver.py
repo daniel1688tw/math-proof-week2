@@ -354,6 +354,13 @@ class TutorDriver:
         return (self.problem.get("grounding") == "unverified"
                 or not self.problem.get("reference_proof"))
 
+    def _ladder(self) -> list:
+        """依 session 語言選提示梯（en 優先用 hint_ladder_en，缺則回退中文梯）。
+        三處（等級 2 注入、禁算式白名單、walkthrough 進入條件）必須用同一把梯，
+        否則英文 session 會出現「注入 en 提示、卻拿 zh 梯當白名單/算長度」的不一致。"""
+        key = "hint_ladder_en" if self.lang == "en" else "hint_ladder"
+        return self.problem.get(key) or self.problem.get("hint_ladder") or []
+
     def _ensure_teach_steps(self) -> list:
         """取得教學步驟：題目自帶 → Ollama 切分 → 確定性段落切分保底。"""
         steps = self.problem.get("teach_steps")
@@ -435,8 +442,7 @@ class TutorDriver:
             if phase in ("review", "rectify"):
                 instr += self._backstop_block()
         elif level == 2:
-            key = "hint_ladder_en" if en else "hint_ladder"
-            ladder = self.problem.get(key) or self.problem.get("hint_ladder") or []
+            ladder = self._ladder()
             idx = min(self.state["ladder_idx"], max(len(ladder) - 1, 0))
             if ladder:
                 hint = ladder[idx]
@@ -474,19 +480,23 @@ class TutorDriver:
         enc = self.tok.apply_chat_template(
             msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True
         ).to(self.model.device)
+        max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
         with torch.no_grad():
             out = self.model.generate(
-                **enc, max_new_tokens=self.max_new_tokens, do_sample=False,
+                **enc, max_new_tokens=max_new, do_sample=False,
                 repetition_penalty=1.05,
                 pad_token_id=self.tok.pad_token_id or self.tok.eos_token_id,
             )
-        return enforce_single_question(
-            self.tok.decode(out[0][enc["input_ids"].shape[1]:],
-                            skip_special_tokens=True).strip())
+        text = self.tok.decode(out[0][enc["input_ids"].shape[1]:],
+                               skip_special_tokens=True).strip()
+        # 教學輪允許「講解＋確認問題」多問句結構，重生成也不可截斷
+        if self.state.get("phase") == "walkthrough":
+            return text
+        return enforce_single_question(text)
 
     def _allowed_equation_src(self) -> str:
         """等級 2 算式檢查的白名單來源：題目敘述＋當前提示＋學生說過的話。"""
-        ladder = self.problem.get("hint_ladder") or []
+        ladder = self._ladder()
         idx = min(self.state["ladder_idx"], max(len(ladder) - 1, 0))
         hint = ladder[idx] if ladder else ""
         student = "".join(m["content"] for m in self.messages if m["role"] == "user")
@@ -638,7 +648,7 @@ class TutorDriver:
             self.state["stuck_count"] = 0
             return
         # 進入條件：提示梯已用盡（至少給過一輪等級 2）且學生再度連卡兩次
-        ladder_len = max(len(self.problem.get("hint_ladder") or []), 1)
+        ladder_len = max(len(self._ladder()), 1)
         if (self.state["stuck_count"] >= 2
                 and self.state["ladder_idx"] >= ladder_len
                 and self.state.get("phase") is None):
