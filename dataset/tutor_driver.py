@@ -81,7 +81,8 @@ _STUCK_RE = re.compile(
 )
 _STUCK_EN_RE = re.compile(
     r"i don'?t know|no idea|no clue|not sure|stuck|confused|"
-    r"can'?t (figure|see|think)|i'?m lost|(another|more|give me a) hint",
+    r"can'?t (figure|see|think|do)|i can'?t\.?$|(completely|totally)? ?lost|"
+    r"(another|more|give me a) hint",
     re.I,
 )
 _QMARK_RE = re.compile(r"[?？]")
