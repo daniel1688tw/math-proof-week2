@@ -240,6 +240,15 @@ WALKTHROUGH_RETRY_NOTE_EN = (
 _TEACH_CHECK_EN = "Can you restate the reasoning of this step in your own words?"
 _TEACH_CHECK_ZH = "這一步的推理你能自己複述一遍嗎？"
 
+# 收尾偵測：學生致謝或宣告完成 → 對話自然結束，回問保底整段停用
+# （雙語基準評審一致指出：學生已完成證明後任何形式的追問都是扣分項）。
+_DONE_RE = re.compile(
+    r"謝謝|感謝|沒有?其他問題|完成了|搞定了|清楚了|"
+    r"thank(s| you)|i'?m (all )?done|that('|’| i)s all|no (more|further) questions|"
+    r"(proof|argument) is (now )?complete",
+    re.I,
+)
+
 # 回問保底的固定追問：輪換措辭（雙語基準發現固定同一句連補多輪會被評審扣分——
 # 學生已完成證明時尤其突兀）。連續兩輪都缺問句則不再硬補（多半是對話已自然收尾）。
 _FALLBACK_QS = (
@@ -575,9 +584,13 @@ class TutorDriver:
                     "絕對不要寫出任何等式或不等式，讓學生自己動筆推。"))
                 log.regenerated = True
 
-        # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾
+        # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾；
+        # 但學生已致謝/宣告完成 → 對話收尾，不強迫再問
+        last_user = next((m["content"] for m in reversed(self.messages)
+                          if m["role"] == "user"), "")
         needs_q = (walkthrough or peer
-                   or (level < 2 and phase in (None, "refuse_leak")))
+                   or (level < 2 and phase in (None, "refuse_leak"))) \
+            and not (phase is None and _DONE_RE.search(last_user))
         if needs_q and not _QMARK_RE.search(reply):
             log.guards.append("no_question")
             if walkthrough:                   # 教學輪確定性補上該步的確認問題

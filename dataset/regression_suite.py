@@ -50,6 +50,10 @@ ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v6")
 PY = sys.executable
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
 JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）
+# 樣本數少的 judge 指標，單題改判的跳動就超過 0.05（s2_catch 僅 14 題，1 題 = 0.071）。
+# 容忍度須蓋過「同輸入、評審單題改判」的雜訊，否則守門會反覆誤殺（2026-07-14 實測：
+# S2-en 生成逐字相同仍被判退步）。仍能抓到 2 題以上的真實退步。
+JUDGE_EPSILON_OVERRIDE = {"judge_s2_catch": 0.08}
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
 S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."
@@ -568,7 +572,10 @@ def compare_with_baseline(metrics: dict) -> bool:
         if k not in base:
             print(f"  [新增] {k} = {v}")
             continue
-        eps = JUDGE_EPSILON if k.startswith("judge_") else 0.0
+        eps = 0.0
+        if k.startswith("judge_"):
+            eps = next((e for pre, e in JUDGE_EPSILON_OVERRIDE.items()
+                        if k.startswith(pre)), JUDGE_EPSILON)
         good = v >= base[k] - eps
         print(f"  [{'✓' if good else '✗ 退步'}] {k}: {base[k]} → {v}")
         ok = ok and good

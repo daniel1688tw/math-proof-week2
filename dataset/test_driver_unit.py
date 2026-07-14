@@ -388,9 +388,15 @@ r1 = nq.start(opener="Please guide me on this problem, I want to try it myself."
 check("首輪保底附上追問（第 1 種措辭）", r1.rstrip().endswith("should start?"))
 r2 = nq.step("Here is my full attempt with all steps written out, please take a look at the whole thing and tell me.")
 check("上一輪已補過 → 連續缺問句不再硬補", not r2.rstrip().endswith("?"))
-r3 = nq.step("Thanks! I also double-checked the boundary case works, and I feel much more confident about it now.")
+r3 = nq.step("I double-checked the boundary case works too, and here is the cleaned-up version of that part.")
 check("隔一輪再缺問句 → 換第 2 種措辭", r3.rstrip().endswith("next?"))
 check("fb_idx 已輪轉到 2", nq.state.get("fb_idx") == 2)
+r4 = nq.step("Thanks, that's all — my proof is now complete and I have no further questions.")
+check("學生致謝宣告完成 → 不再追問", not r4.rstrip().endswith("?"))
+nqz = _NoQStub(tok=None, model=_StubModel(), problem=probs["A6"])
+nqz.start(opener="請引導我，我想自己試試看。")
+rz = nqz.step("謝謝，我都清楚了，沒有其他問題。")
+check("中文致謝收尾 → 不再追問", not rz.rstrip().endswith("？") and not rz.rstrip().endswith("?"))
 
 print()
 if FAIL:
