@@ -1,0 +1,386 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先看要證什麼：$e^x$ 與 $1+x$ 的差為正。這能用哪個定理把「差」轉成導數乘間距？"
+      ],
+      [
+        "學生",
+        "嗯⋯⋯均值定理？就是那個 f(b)-f(a) = f'(c)(b-a) 的那個？但我不太確定怎麼把 e^x 跟 1+x 的差套進去⋯⋯"
+      ],
+      [
+        "助教",
+        "很好，你已經知道要用均值定理了。設 $f(t)=e^t$、區間 $[0,x]$，$f(0)$ 和 $f(x)$ 分別是什麼？"
+      ],
+      [
+        "學生",
+        "喔，$f(0)$ 就是 $e^0=1$，$f(x)$ 就是 $e^x$⋯⋯所以 $f(x)-f(0)$ 剛好就是 $e^x-1$？然後套進均值定理就是 $e^x-1=e^c \\cdot x$？但這跟 $1+x$ 有什麼關係我還不太懂。"
+      ],
+      [
+        "助教",
+        "正是關鍵。既然 $e^x-1=e^c x$，而 $c$ 是介於 $0$ 與 $x$ 的某個值，你能說出 $e^c$ 的大小嗎？"
+      ],
+      [
+        "學生",
+        "因為 $c$ 在 $0$ 和 $x$ 之間，$x>0$ 的話，$c$ 也是正的⋯⋯所以 $e^c > e^0 = 1$？那 $e^x - 1 = e^c \\cdot x > 1 \\cdot x = x$，就代表 $e^x > 1 + x$！欸這樣就證完了？"
+      ],
+      [
+        "助教",
+        "完全正確。你把均值定理套進去後，靠「$c>0$ 使 $e^c>1$」這個細節把指數不等式逼出來了，這一步你自己就想通了。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "啊，我覺得就証完了耶？你說「下一步」是指什麼，我還需要做什麼嗎⋯⋯是要整理成正式的証明嗎？"
+      ],
+      [
+        "助教",
+        "是的，整理成正式的証明就是最後一步。你現在已經掌握了全部的邏輯，自己把它寫出來吧。"
+      ],
+      [
+        "學生",
+        "好，我試試看⋯⋯設 $f(t)=e^t$，在 $[0,x]$ 上用均值定理，存在 $c\\in(0,x)$ 使得 $e^x - 1 = e^c \\cdot x$。因為 $c>0$ 所以 $e^c > 1$，所以 $e^x - 1 > x$，也就是 $e^x > 1+x$。這樣算是完整的証明了嗎？"
+      ],
+      [
+        "助教",
+        "完全正確，而且邏輯非常乾淨。你把「均值定理給出等式」、「$c>0$ 提供不等式」兩個步驟都清楚地寫出來了。這題你已經完全掌握。 依你看，接下來哪個條件最值得先用？"
+      ],
+      [
+        "學生",
+        "欸等一下，「接下來哪個條件最值得先用？」是什麼意思？這題我感覺已經證完了，沒有「接下來」吧⋯⋯你說的是別的題目嗎？還是這題還有什麼我沒考慮到的地方？"
+      ],
+      [
+        "助教",
+        "抱歉，我剛才的「接下來」是誤導，這題你已經完全解決了。你對均值定理的應用非常熟練，連「$c>0$ 使 $e^c>1$」這個關鍵細節都能自己提出來。這題你已經完全掌握。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "學生宣告完成後助教仍追問「下一步」兩次，製造不必要的困惑，最後一輪道歉收尾略顯冗長。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先考慮構造一個函數來比較兩邊的差。設 $g(x)=\\cos x-1+\\dfrac{x^2}{2}$，要證什麼？"
+      ],
+      [
+        "學生",
+        "要證 $g(x)\\ge0$ 對所有實數成立嘛。那我想對 $g$ 微分，$g'(x)=-\\sin x+x$，再繼續對這個找最小值⋯⋯感覺要再微分一次？"
+      ],
+      [
+        "助教",
+        "正是。對 $g'$ 二次微分得到 $g''$，它的符號告訴你什麼，進而決定 $g$ 的單調性？"
+      ],
+      [
+        "學生",
+        "$g''(x)=1-\\cos x$，因為 $\\cos x\\le1$ 所以 $g''(x)\\ge0$，這代表 $g'$ 是遞增的。那因為 $g'(0)=0$，$g'$ 在 $x>0$ 時就是正的、$x<0$ 時是負的——所以 $g$ 在 $x=0$ 有最小值！"
+      ],
+      [
+        "助教",
+        "完全正確。你用「二階導數非負 ⇒ $g'$ 單調遞增」這個想法，自己走完整個證明。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "啊對，$g(0)=\\cos0-1+0=0$，所以最小值是 $0$，就直接得到 $g(x)\\ge0$ 了！那證明就完整了吧？"
+      ],
+      [
+        "助教",
+        "是的，你自己把「構造差函數 + 二階導數判別最小值」這個標準手法走通了。很好。"
+      ],
+      [
+        "學生",
+        "嗯，這招確實蠻漂亮的——把不等式問題轉成「差函數的最小值」，然後用兩層微分把最小值點定位出來。感覺以後遇到類似的 $f(x) \\ge g(x)$ 都可以這樣做？"
+      ],
+      [
+        "助教",
+        "正是。你已經掌握了這個標準手法的核心：構造差、微分到二階、用 $g''\\ge0$ 定位最小值。這招以後會再用到很多次。 依你看，接下來哪個條件最值得先用？"
+      ],
+      [
+        "學生",
+        "等等，助教問的「接下來哪個條件最值得先用」——但我們剛剛不是已經把證明做完了嗎？$g(0)=0$、$g$ 在 $x=0$ 有最小值，所以 $g(x)\\ge0$，不等式就證出來了啊。還有什麼「下一個條件」需要用？"
+      ],
+      [
+        "助教",
+        "沒錯，現在整個證明已經完整了。你甚至能自己說出「這個手法適用於哪些類似題型」，這比掌握單一技巧更難得。"
+      ],
+      [
+        "學生",
+        "哈，對！那種「差函數+兩層微分」的框架感覺真的很通用。好啦，這題算是徹底搞清楚了，謝謝！"
+      ],
+      [
+        "助教",
+        "不客氣，你自己把證明走通了，這才是最重要的。繼續加油，你已經能自己造出很多類似的題目了。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生宣告完成後（「證明就完整了吧？」），助教確認後卻立即追問「接下來哪個條件最值得先用？」，方向錯亂且製造不必要混亂；隨後雖自行修正，但已打斷學生的完成感並降低引導連貫性。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "先從要證的線性組合出發：若 $c_1v_1+c_2v_2=0$，想證什麼？"
+      ],
+      [
+        "學生",
+        "想證 $c_1=c_2=0$ 吧？但我覺得這好像很直接啊，因為 $v_1,v_2$ 都是非零向量，非零向量不就一定線性獨立嗎？"
+      ],
+      [
+        "助教",
+        "「非零向量不一定線性獨立」，反例就是 $v_2=2v_1$。這裡多了一個條件：$\\lambda_1\\ne\\lambda_2$，它能提供什麼？"
+      ],
+      [
+        "學生",
+        "喔對，$v_2=2v_1$ 這樣確實兩個都非零但就不獨立了。那 $\\lambda_1\\ne\\lambda_2$ 的話……我想想，是不是可以對那個 $c_1v_1+c_2v_2=0$ 左右乘 $A$？乘完會得到 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$，這樣就多一條式子了。"
+      ],
+      [
+        "助教",
+        "正是。有了這兩個式子，你能用什麼運算消掉一個變數，只留下關於另一個的方程嗎？"
+      ],
+      [
+        "學生",
+        "嗯，把第二條式子乘以 $\\lambda_1$ 再減掉第一條？這樣 $c_1$ 那項就會消掉，變成 $c_2(\\lambda_2-\\lambda_1)v_2=0$。因為 $\\lambda_1\\ne\\lambda_2$ 所以 $(\\lambda_2-\\lambda_1)\\ne 0$，又 $v_2$ 是特徵向量所以非零，那不就得到 $c_2=0$ 了嗎？"
+      ],
+      [
+        "助教",
+        "完全正確。關鍵是「相異特徵值」提供了消元所需的非零因子，而「非零向量」本身還不足以保證獨立。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "喔那就把 $c_2=0$ 代回第一條式子 $c_1v_1+c_2v_2=0$，就剩下 $c_1v_1=0$，因為 $v_1$ 非零所以 $c_1=0$。這樣就證完了！"
+      ],
+      [
+        "助教",
+        "正確，整個證明的骨架你已經自己走通了。你清楚知道「相異特徵值」這個條件在其中扮演了什麼角色。"
+      ],
+      [
+        "學生",
+        "嗯嗯，感覺這題的核心就是靠「相異特徵值」製造出可以消元的條件，光說向量非零是不夠的。我有點好奇，如果是三個相異特徵值對應三個特徵向量，是不是也可以用類似的方式一個一個消掉來證獨立？"
+      ],
+      [
+        "助教",
+        "那是更進一步的問題，但方向完全正確。你可以試著把「兩個向量」的證法擴展到三個，看看會不會需要額外的假設。 依你看，接下來哪個條件最值得先用？"
+      ],
+      [
+        "學生",
+        "我覺得還是先用「相異特徵值」這個條件，因為上面證兩個的時候就是靠它消元的。但三個的話，我是不是要假設 $\\lambda_1,\\lambda_2,\\lambda_3$ 兩兩相異？還是只需要某幾個不同就夠了？"
+      ],
+      [
+        "助教",
+        "這正是你自己的觀察力。兩個相異特徵值足以保證兩個向量獨立，三個的話則需要「每對都相異」，也就是兩兩相異。你已經自己把層次理清楚了。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT says that on $[0,x]$, the difference of values equals the derivative at some interior point times the interval. What is $f(t)=e^t$'s derivative?"
+      ],
+      [
+        "學生",
+        "Um... the derivative of $e^t$ is just $e^t$ itself, right? That's like the one thing I actually remember from calculus."
+      ],
+      [
+        "助教",
+        "Good — so $e^x-e^0=e^c(x-0)$. Rearranging gives $e^x-1=e^c x$. Since $c>0$, what is $e^c$?"
+      ],
+      [
+        "學生",
+        "Oh wait, since c is between 0 and x, and x is positive, c has to be greater than 0... so e^c is greater than e^0, which is 1. So e^c is bigger than 1?"
+      ],
+      [
+        "助教",
+        "Exactly. With $e^c>1$ and $x>0$, what does $e^c x$ compare to $x$?"
+      ],
+      [
+        "學生",
+        "Oh! If e^c is bigger than 1, and x is positive, then e^c times x has to be bigger than just x alone. So e^c x > x."
+      ],
+      [
+        "助教",
+        "Completely correct. The key was \"some $c$ in $(0,x)$\" — because $c>0$, $e^c>1$, and the rest follows. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Oh, I think I see it now... if e^c x > x, and we showed that e^x - 1 = e^c x, then that means e^x - 1 > x, so e^x > 1 + x? Is that the whole proof?"
+      ],
+      [
+        "助教",
+        "Yes — each step is exactly what the MVT gave you plus one small deduction. You walked it through yourself completely."
+      ],
+      [
+        "學生",
+        "Wow, I actually did? I kind of can't believe that worked out so cleanly — like, the MVT just hands you that c exists and everything else just falls into place. Thanks for not just telling me the answer straight away."
+      ],
+      [
+        "助教",
+        "That's precisely the point of the MVT — it gives you the existence of $c$ and you fill in the rest yourself. You've got a very clear grasp of it now."
+      ],
+      [
+        "學生",
+        "Yeah, I guess I do! Though honestly I'm still a little fuzzy on one thing — the MVT guarantees that c exists somewhere in (0, x), but how do we know it's not exactly 0? Like, does it matter if c equals 0?"
+      ],
+      [
+        "助教",
+        "Good catch — you're thinking about the endpoint. Does the MVT say anything about where $c$ is located?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose value at zero is zero and whose derivative is nonnegative — making zero its minimum. What would that function be?"
+      ],
+      [
+        "學生",
+        "Oh, so define $f(x) = \\cos x - 1 + \\frac{x^2}{2}$, then $f(0) = 0$ and we need $f(x) \\ge 0$ everywhere. That works if $f$ has a global minimum at zero, which means showing $f'(x) = 0$ at $x=0$ and $f''(0) > 0$... wait, that only gives a local min. How do we get global?"
+      ],
+      [
+        "助教",
+        "Exactly. With $f''\\ge0$, $f'$ is increasing — and $f'(0)=0$ — so $f$ decreases before and increases after zero. Where does the global minimum occur?"
+      ],
+      [
+        "學生",
+        "Right, if $f'$ is increasing and $f'(0) = 0$, then $f' < 0$ for $x < 0$ and $f' > 0$ for $x > 0$, so $f$ is decreasing then increasing — global min at $x = 0$. And since $f(0) = 0$, that means $f(x) \\ge 0$ everywhere, done!"
+      ],
+      [
+        "助教",
+        "Completely correct. The key was \"increasing $f'$ plus $f'(0)=0$\" giving the global minimum — not just the local second derivative test. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Hmm, I think the proof is already done? Like, we showed $f''(x) = -\\cos x + 1 \\ge 0$ for all $x$... wait, is that actually true? $1 - \\cos x \\ge 0$ holds since $\\cos x \\le 1$ always, so yes. So the chain is complete — the assistant's question feels like it's asking me to write it up formally?"
+      ],
+      [
+        "助教",
+        "Correct — you've walked through every step yourself. You even caught that $f''\\ge0$ is needed to establish the increasing nature of $f'$, which is what makes the global minimum argument valid. Well done."
+      ],
+      [
+        "學生",
+        "Thanks! Yeah I think I've got it — the whole argument hinges on $f'' \\ge 0$ implying $f'$ is monotone, which then forces the global min structure. I could write it up cleanly now."
+      ],
+      [
+        "助教",
+        "That's exactly the spirit of a complete proof. You're very thorough."
+      ],
+      [
+        "學生",
+        "Cool, I'll write it up then. One thing I want to make sure I state clearly is that $f'' = 1 - \\cos x \\ge 0$ follows directly from $\\cos x \\le 1$, not from any Taylor expansion or separate estimate — since we're proving a cosine inequality, I don't want to accidentally assume something circular."
+      ],
+      [
+        "助教",
+        "Correct — stating the basis of each inequality is what keeps a proof self-contained. You're very careful. Which condition do you think is worth using next?"
+      ],
+      [
+        "學生",
+        "Hmm, the assistant's question \"which condition do you think is worth using next?\" is a bit confusing — the proof is already complete, there's no \"next condition\" to pick. I think I've nailed all the pieces: $f'' = 1 - \\cos x \\ge 0$ because $\\cos x \\le 1$, so $f'$ is increasing, so $f'(0) = 0$ makes $x=0$ the global min, so $f(x) \\ge f(0) = 0$ everywhere. I'm just going to write it up now."
+      ],
+      [
+        "助教",
+        "The complete proof is yours. You've walked through every step yourself — that's what makes it truly yours."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生已明確宣告完成後，助教仍繼續提問（'Which condition do you think is worth using next?'），造成學生困惑並需自行說明證明已結束。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Here's the starting point: suppose $c_1v_1+c_2v_2=0$. What happens when you left-multiply this equation by $A$?"
+      ],
+      [
+        "學生",
+        "Oh okay, so we apply A to both sides — left side becomes $c_1 Av_1 + c_2 Av_2 = c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2$, and right side stays 0. So now we have $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$. And since $v_1, v_2$ are eigenvectors they're nonzero, so doesn't that already mean they have to be linearly independent? Like, nonzero vectors are always independent, right?"
+      ],
+      [
+        "助教",
+        "That's a common misconception. Two nonzero vectors need not be linearly independent — $v_2$ might equal $2v_1$. What extra condition do distinct eigenvalues provide?"
+      ],
+      [
+        "學生",
+        "Oh right, that was dumb of me — two vectors pointing in the same direction are definitely not independent. Um, so distinct eigenvalues... I guess it means $\\lambda_1 \\neq \\lambda_2$, but I'm not sure how that forces $v_1$ and $v_2$ to point in different directions? Like, can't two different eigenvalues still have eigenvectors that are parallel?"
+      ],
+      [
+        "助教",
+        "Exactly. After applying $A$, you have two equations: the original and the transformed one. Combining them, what do you get?"
+      ],
+      [
+        "學生",
+        "Hmm, combining them... so I have $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$ and $c_1 v_1 + c_2 v_2 = 0$. If I multiply the second one by $\\lambda_1$ I get $c_1\\lambda_1 v_1 + c_2\\lambda_1 v_2 = 0$, and then subtracting from the first gives $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$. Is that what you mean?"
+      ],
+      [
+        "助教",
+        "Completely correct. The distinct eigenvalue condition is precisely what makes $c_2$ vanish — without it, $v_1$ and $v_2$ could still be parallel. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Oh! So since $\\lambda_2 - \\lambda_1 \\neq 0$ (because the eigenvalues are distinct) and $v_2 \\neq 0$, we're forced to have $c_2 = 0$. And then plugging back into $c_1 v_1 + c_2 v_2 = 0$ gives $c_1 v_1 = 0$, which means $c_1 = 0$ too since $v_1$ is nonzero. So both constants are zero — that's literally the definition of linear independence!"
+      ],
+      [
+        "助教",
+        "Completely correct. You walked through the whole thing yourself — the key was realizing that \"nonzero vectors\" isn't enough, and distinct eigenvalues supply the crucial extra condition. Well done."
+      ],
+      [
+        "學生",
+        "Thanks! Yeah, it's actually kind of elegant — I was totally hung up on thinking nonzero vectors were automatically independent, but the whole trick was using the two equations together to isolate each coefficient. I feel like I actually get it now, not just the steps but *why* the distinctness matters."
+      ],
+      [
+        "助教",
+        "That's exactly what understanding means. You've got it."
+      ],
+      [
+        "學生",
+        "Haha yeah, I'll definitely remember this one — I feel like \"use two equations and subtract\" is such a clean move. Is this the same idea behind how you'd prove eigenvectors for *more* than two distinct eigenvalues are independent, like by induction or something?"
+      ],
+      [
+        "助教",
+        "Good question — you're already seeing the general pattern. With more distinct eigenvalues, you'd build up by induction: \"the first two are independent, and adding another one preserves independence via the same trick\". That's a very mature perspective. Which condition do you think is worth using next?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  }
+]

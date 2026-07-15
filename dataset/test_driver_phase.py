@@ -25,7 +25,7 @@ sys.path.insert(0, str(HERE))
 from tutor_driver import TutorDriver, load_problems_with_ladders  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("DRIVER_ADAPTER", "qlora_adapter_v6")
+ADAPTER_DIR = HERE / os.environ.get("DRIVER_ADAPTER", "qlora_adapter_v8")
 OUT_DIR = HERE / "eval_out_v6"
 
 COMPLETION_WORDS = re.compile(r"完全正確|你已經完整|證明完成|掌握得很好")

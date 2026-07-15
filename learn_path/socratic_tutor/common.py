@@ -32,5 +32,5 @@ HERE = _HERE
 _DATASET_DIR = os.path.abspath(os.path.join(HERE, "..", "..", "dataset"))
 TRAIN_JSONL = os.environ.get("TRAIN_JSONL", os.path.join(_DATASET_DIR, "train.jsonl"))
 VAL_JSONL = os.environ.get("VAL_JSONL", os.path.join(_DATASET_DIR, "val.jsonl"))
-# 訓練輸出：預設寫到新目錄，避免覆蓋現行部署中的 qlora_adapter_v6
+# 訓練輸出：預設寫到新目錄，避免覆蓋現行部署中的 qlora_adapter_v8
 ADAPTER_DIR = os.environ.get("ADAPTER_DIR", os.path.join(_DATASET_DIR, "qlora_adapter_new"))

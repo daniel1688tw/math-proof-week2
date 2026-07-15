@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """eval_hard.py — 數學系等級難題測試：一致收斂、二階導數鏈式單調性、一致連續乘積、
 Darboux 定理、Chebyshev 積分不等式。這些技巧**都不在 50 道訓練題的範圍**，用來測試
-微調模型（預設 qlora_adapter_v6，可用 HARD_ADAPTER 覆寫）是否能把訓練學到的「引導行為」類推到陌生的證明技巧上，
+微調模型（預設 qlora_adapter_v8，可用 HARD_ADAPTER 覆寫）是否能把訓練學到的「引導行為」類推到陌生的證明技巧上，
 而非僅是記住訓練題的具體套路。
 
 跑兩件事：
@@ -29,7 +29,7 @@ sys.path.insert(0, str(HERE))
 from build import SYSTEM_TEMPLATE  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("HARD_ADAPTER", "qlora_adapter_v6")
+ADAPTER_DIR = HERE / os.environ.get("HARD_ADAPTER", "qlora_adapter_v8")
 OUT_DIR = HERE / "eval_out_hard"
 
 OPENER = "我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？"

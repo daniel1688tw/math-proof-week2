@@ -31,7 +31,7 @@ sys.path.insert(0, str(HERE))
 from tutor_driver import TurnLog, TutorDriver, load_problems_with_ladders  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("ADAPTER", "qlora_adapter_v6")
+ADAPTER_DIR = HERE / os.environ.get("ADAPTER", "qlora_adapter_v8")
 
 
 def load_model():

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "老師，我想用不同的函數來套均值定理。我打算令 $g(x) = e^x - 1 - x$，注意到 $g(0)=0$。然後直接對 $g$ 在 $[0,x]$ 上用 Lagrange 均值定理，得到存在 $c\\in(0,x)$ 使得 $g(x)-g(0)=g'(c)\\cdot x$，而 $g'(t)=e^t-1$。因為 $c>0$，所以 $g'(c)=e^c-1>0$，再乘以 $x>0$ 就能得到 $g(x)>0$，也就是 $e^x>1+x$。請問我這個方向對嗎？可以請你幫我確認每一步是否有問題？",
+    "reply": "完全正確，而且你的構造比標準版本更自然。你能解釋為何 $g$ 的選擇能直接給出要證的不等式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用 Taylor 展開加上積分餘項的角度來處理這題。具體來說，我打算把 $\\cos x$ 寫成帶積分形式的餘項展開式，也就是利用\n$$\\cos x = 1 - \\frac{x^2}{2} + \\int_0^x \\frac{(x-t)^2}{2}\\cos t\\,\\sin t\\cdots$$\n之類的積分餘項，直接說明餘項非負。不過我對確切的積分餘項公式不太確定，大概是 $\\cos x = 1 - \\frac{x^2}{2} + R(x)$，然後用積分表示 $R(x)$ 並估計它的符號。老師可以幫我沿這個積分餘項的方向走嗎？",
+    "reply": "當然可以。你打算用積分餘項來證 $\\cos x\\ge1-x^2/2$，那餘項 $R(x)$ 的符號是什麼，你能給出一個估計嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "我想用反證法來做這題。假設 $\\{v_1, v_2\\}$ 線性相依，那就存在不全為零的純量使得 $v_2 = kv_1$（因為兩個向量線性相依等價於其中一個是另一個的倍數）。接著我打算把 $Av_2 = \\lambda_2 v_2$ 代入，把 $v_2 = kv_1$ 換進去，看能不能推出 $\\lambda_1 = \\lambda_2$，這樣就和題目的假設矛盾了。可以請助教沿著這個反證方向帶我走嗎？",
+    "reply": "完全正確，這是標準的反證路線。把 $v_2=kv_1$ 代進 $Av_2=\\lambda_2v_2$ 後，你能得到什麼關係式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I'm thinking of applying the MVT to a different function — specifically, let me define $g(t) = e^t - 1 - t$, and look at this function directly on the interval $[0, x]$. I notice $g(0) = 0$, and if I apply MVT to $g$ itself, I get $g(x) - g(0) = g'(c)(x - 0)$ for some $c \\in (0, x)$. Since $g'(t) = e^t - 1$ and $c > 0$ means $e^c > 1$, so $g'(c) > 0$, which would give me $g(x) > 0$ directly. Could you help me make this argument more rigorous and check if I'm missing anything?",
+    "reply": "Your route works too — applying MVT to $g$ is equivalent to applying it to $f=t\\mapsto e^t$ and comparing slopes. Rigorously: what is $g'(c)$'s sign, and how does that give $g(x)>0$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I'd like to try a Taylor series / integral remainder approach. My idea is to write the exact Taylor remainder for $\\cos x$ expanded to second order — specifically, use the integral form of the remainder, which gives $\\cos x = 1 - \\frac{x^2}{2} + R_2(x)$ where $R_2(x) = \\int_0^x \\frac{(x-t)^2}{2}\\cos t\\, dt$ or something along those lines. Then I just need to show that remainder is non-negative, which follows because... well, I'm not 100% sure the integrand stays non-negative — could you help me figure out whether this remainder form actually works, and if so, how to bound it to conclude $R_2(x) \\ge 0$?",
+    "reply": "The integral remainder route is completely valid — you're clearly thinking in terms of error estimates. To establish the sign of $R_2(x)$, what must you assume about the cosine factor inside the integral?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I want to try a different approach using the contrapositive. My idea is: assume for contradiction that $\\{v_1, v_2\\}$ is linearly dependent, meaning one vector is a scalar multiple of the other, say $v_2 = k v_1$ for some scalar $k \\neq 0$. Then I can apply $A$ to both sides and use the eigenvector equations to derive that $\\lambda_1 = \\lambda_2$, contradicting our hypothesis. Could you guide me through this direction — specifically, once I write $A v_2 = A(k v_1)$, what should I compare to conclude the eigenvalues must be equal?",
+    "reply": "Exactly. Applying $A$ gives $A v_2 = k A v_1$. Using the eigenvector equations, what do the left sides become, and how does that force $\\lambda_1$ and $\\lambda_2$ to relate?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

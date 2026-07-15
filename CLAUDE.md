@@ -1,6 +1,6 @@
 # week3 — 蘇格拉底式高等數學證明引導助教
 
-本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v6`）
+本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v8`，雙語）
 ＋ 對話驅動程式（`tutor_driver.py`）。這是經過 v2→v6 六輪迭代與三路線正面對決後判定的
 最佳部署形態（判定依據：`dataset/eval_out_final/FINAL_VERDICT.md`）。
 
@@ -50,7 +50,7 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
               │  · 審閱/糾錯輪 ──► 審閱後盾（review_backstop.py，Ollama 思考型找碴）
               │                    缺漏清單注入 system；不在線自動降級（REVIEW_BACKSTOP=0 關）
               ▼
-         qlora_adapter_v6 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
+         qlora_adapter_v8 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
               │
               ▼
          後處理：單問句截斷、洩漏 15-gram 檢查、on-track 防奉送、
@@ -77,7 +77,7 @@ week3/
 │   ├── review_backstop.py            # 審閱後盾（Ollama 思考型找碴，可降級）
 │   ├── auto_reference.py             # ★ 自動備課管線（生成→驗證→修補→教學步驟切分）
 │   ├── interactive_turn.py           # 逐輪互動 CLI（維護 session 狀態檔）
-│   ├── qlora_adapter_v6/             # ★ 部署 adapter（權重不進 git）
+│   ├── qlora_adapter_v8/             # ★ 部署 adapter（權重不進 git）
 │   ├── held_out.json / held_out_attempts.json / hard_math_major.json / adv_test_problem.json  # 評估題
 │   ├── xdomain_problems.json         # 跨領域評估題（離散×3 + 線代×3，XDOMAIN_ADAPTER 覆寫）
 │   ├── eval_heldout_v3.py            # 三情境回歸（裸模型，HELDOUT_ADAPTER 覆寫）
@@ -115,9 +115,9 @@ conda run -n lora_project --live-stream python dataset\validate.py
 conda run -n lora_project --live-stream python dataset\test_dataset.py
 ```
 
-### 重新訓練（產出新版 adapter，不覆蓋 v6）
+### 重新訓練（產出新版 adapter，不覆蓋 v8）
 ```powershell
-$env:ADAPTER_DIR = "week3\dataset\qlora_adapter_v7"   # 預設是 qlora_adapter_new
+$env:ADAPTER_DIR = "week3\dataset\qlora_adapter_v9"   # 預設是 qlora_adapter_new
 $env:MAX_LEN = "640"; $env:EPOCHS = "3"; $env:GRAD_ACCUM = "8"; $env:EVAL_STEPS = "20"
 $env:OPTIM = "adamw_8bit"          # ★ 不要用 paged_adamw_8bit（abrupt kill 後 init error）
 $env:NEFTUNE_ALPHA = "5"

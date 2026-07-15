@@ -46,7 +46,7 @@ sys.path.insert(0, str(HERE))
 SCORE_DIR = HERE / "regression_scores"
 BASELINE = HERE / "regression_baseline.json"
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v6")
+ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v8")
 PY = sys.executable
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
 JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）

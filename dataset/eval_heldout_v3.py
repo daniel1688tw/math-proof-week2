@@ -30,7 +30,7 @@ sys.path.insert(0, str(HERE))
 from build import SYSTEM_TEMPLATE  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("HELDOUT_ADAPTER", "qlora_adapter_v6")
+ADAPTER_DIR = HERE / os.environ.get("HELDOUT_ADAPTER", "qlora_adapter_v8")
 OUT_DIR = HERE / os.environ.get("HELDOUT_OUT", "eval_out_v3")
 
 SCENARIOS = {
