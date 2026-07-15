@@ -53,7 +53,13 @@ JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（�
 # 樣本數少的 judge 指標，單題改判的跳動就超過 0.05（s2_catch 僅 14 題，1 題 = 0.071）。
 # 容忍度須蓋過「同輸入、評審單題改判」的雜訊，否則守門會反覆誤殺（2026-07-14 實測：
 # S2-en 生成逐字相同仍被判退步）。仍能抓到 2 題以上的真實退步。
-JUDGE_EPSILON_OVERRIDE = {"judge_s2_catch": 0.08}
+JUDGE_EPSILON_OVERRIDE = {
+    "judge_s2_catch": 0.08,
+    # S4 僅 3 案例且學生替代證法由 Claude 即興生成（輸入本質隨機），單案例翻面
+    # 就跳 0.334；容忍單案例、擋兩案例以上的系統性退步。「不順學生方法」的根治
+    # 是 v8 補訓練樣本（src_en/src 各加「學生替代證法→助教跟隨」對話）。
+    "judge_altmethod": 0.34,
+}
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
 S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."
