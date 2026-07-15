@@ -117,6 +117,12 @@ def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None
             last_err = str(e)[:200]
             continue
         out = (r.stdout or "").strip()
+        # 限額/限流錯誤會以正常 stdout 回傳（2026-07-15 實測：「You've hit your limit ·
+        # resets 1:10am」被當成學生回覆寫進對話，污染整場 Tier 3）。必須當失敗重試。
+        if out and re.search(r"hit your limit|usage limit|rate limit|overloaded|"
+                             r"quota exceeded|too many requests", out, re.I):
+            last_err = out[:200]
+            continue
         if out:
             return out
         last_err = (r.stderr or "").strip()[:200] or f"exit={r.returncode}, 空輸出"
