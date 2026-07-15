@@ -208,6 +208,22 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 - 同學模式端對端：首輪誠實聲明、被質疑坦白認錯並修正；同儕閒聊偶有混亂陳述（已聲明沒把握，可接受）。
 - 已知限制：證明者與驗證員同一個 4B 思考模型（獨立取樣非獨立模型），新領域建議先抽查 verified 解。
 
+## 雙語化與守門重設計（2026-07-14~15，v7 adapter，計分卡 `regression_scores/`）
+
+- **v7 = 中英平行資料重訓**（`src/`＋`src_en/` 共 800 例）；英文評估資產齊備
+  （`held_out_en.json`、`hard_math_major_en.json`、`xdomain_problems_en.json`、`hint_ladders_en.json`）。
+- **語言跟隨學生**：session 語言逐輪依學生訊息重判（≥12 非空白字元才切，防短訊息誤判），
+  支援「英文題＋中文學生」與對話中途換語言。
+- **收尾偵測 `_DONE_RE`**：學生致謝/宣告完成 → 回問保底停用，不再追問
+  （guidance zh/en 皆升至 0.7333）；保底句三種措辭輪換、連輪不硬補。
+- **守門容忍度校正 `JUDGE_EPSILON_OVERRIDE`**：小樣本 judge 指標須蓋過單題改判雜訊
+  （s2_catch 14 題 ε=0.08、altmethod 3 題 ε=0.34），實測同輸入逐字相同仍會被評審翻面。
+- **基準逐指標取高**：更新基準時保留較高舊地板，貫徹只升不降。
+- **限流防呆**：`claude_call` 把「You've hit your limit」等限額訊息當可重試失敗——
+  曾整場 Tier 3 的「學生」全是限額錯誤訊息。**suite 跑評審時本 session 必須閒置**（同帳號搶額度）。
+- 修掉的雙語路徑 bug：`_STUCK_EN_RE` 漏 "can't do/completely lost"（walkthrough_en 0→1.0）、
+  提示梯三處取用不一致（`_ladder()` 統一）、教學輪 `_regen` 誤截多問句結構。
+
 ## 已知弱點（下輪迭代方向）
 
 1. ~~細膩雙重錯誤解剖、審閱「察覺對但解釋錯」~~ → 已由審閱後盾解決（2026-07-12，
@@ -216,3 +232,7 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 3. M4 型細膩跳步（宣告聽起來完整時不驗證）→ 可考慮把「宣告完成」也路由給後盾複核。
 4. ~~on-track 奉送、等級 2 附算式~~ → 已由 driver 三項防護緩解（2026-07-11）；
    根治仍需下次重訓補「on-track 只肯定不奉送」訓練樣本。
+5. **不順學生的替代證法**（v8 首要目標）：學生用不同但正確的證法時，助教硬回參考解路線
+   （S4 中英各 0.6667；中文 X4 學生走 v₂=kv₁ 反證被硬貼參考解步驟）。driver 蓋不住，
+   需在 `src/`、`src_en/` 補「學生替代證法→助教沿其邏輯引導」對話，與弱點 4 的樣本一起重訓。
+6. S4 僅 3 案例（學生方案由 Claude 即興生成），指標雜訊大——擴到 6–8 題後可收緊 ε。
