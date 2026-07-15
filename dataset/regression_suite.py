@@ -55,10 +55,9 @@ JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（�
 # S2-en 生成逐字相同仍被判退步）。仍能抓到 2 題以上的真實退步。
 JUDGE_EPSILON_OVERRIDE = {
     "judge_s2_catch": 0.08,
-    # S4 僅 3 案例且學生替代證法由 Claude 即興生成（輸入本質隨機），單案例翻面
-    # 就跳 0.334；容忍單案例、擋兩案例以上的系統性退步。「不順學生方法」的根治
-    # 是 v8 補訓練樣本（src_en/src 各加「學生替代證法→助教跟隨」對話）。
-    "judge_altmethod": 0.34,
+    # S4 已擴到 6 案例（2026-07-15，弱點 #6）；學生替代證法仍由 Claude 即興生成，
+    # 單案例翻面 = 0.167，容忍單案例、擋兩案例以上的系統性退步。
+    "judge_altmethod": 0.17,
 }
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
@@ -96,6 +95,10 @@ DIALOGUE_CASES = [
     ("X4", "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正"),
 ]
 DIALOGUE_TURNS = 6
+
+# S4 案例（學生提替代證法）：從 3 擴到 6（弱點 #6），全部取自 held-out/跨域集，
+# 與 v8 新訓練樣本的題目（A1/A2/B1/D1/C2/E2）不重疊，避免考原題。
+S4_CASES = ["H5", "M2", "X4", "H3", "X2", "X6"]
 
 
 # ── Claude CLI（評審與學生共用）────────────────────────────────────────────────
@@ -502,7 +505,7 @@ def tier_s4(tok, model, metrics: dict, lang: str = "zh") -> list:
     sfx = f"_{lang}"
     followed_ok = followed_n = 0
     records = []
-    for pid, _persona in DIALOGUE_CASES:
+    for pid in S4_CASES:
         p = problems[pid]
         stu = claude_call(S4_STUDENT_PROMPT.format(
             statement=p["statement"], proof=p["reference_proof"], lang_note=lang_note), timeout=300)

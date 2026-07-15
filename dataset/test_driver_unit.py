@@ -398,6 +398,30 @@ nqz.start(opener="請引導我，我想自己試試看。")
 rz = nqz.step("謝謝，我都清楚了，沒有其他問題。")
 check("中文致謝收尾 → 不再追問", not rz.rstrip().endswith("？") and not rz.rstrip().endswith("?"))
 
+print("[13] 宣告完成 → 口頭交稿路由審閱（弱點 #3）")
+dc = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+dc.generated_levels = []
+dc.start(opener="請引導我。")
+dc.step("設 a_n = n^(1/n) − 1，由二項式定理 n ≥ C(n,2)a_n²，解出 a_n ≤ √(2/(n−1))，夾擠得 a_n→0，"
+        "所以極限是 1，這樣就證完了。")
+check("長論證＋宣告證完 → review", dc.state.get("phase") == "review")
+dc2 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+dc2.generated_levels = []
+dc2.start(opener="請引導我。")
+dc2.step("證完了！")
+check("短宣告無內容 → 不路由 review", dc2.state.get("phase") != "review")
+dc3 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+dc3.generated_levels = []
+dc3.start(opener="Please guide me through this one.")
+dc3.step("Thanks so much for your help today — my proof is now complete and I have no further questions at all.")
+check("致謝式收尾（含 thanks）→ 不當交稿", dc3.state.get("phase") != "review")
+dc4 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+dc4.generated_levels = []
+dc4.start(opener="Please guide me through this one.")
+dc4.step("Setting a_n = n^(1/n) − 1, the binomial theorem gives n ≥ C(n,2)a_n², hence a_n ≤ √(2/(n−1)) → 0 "
+         "by squeezing, so the limit equals 1, and that completes the proof.")
+check("英文長論證＋宣告 → review", dc4.state.get("phase") == "review")
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

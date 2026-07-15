@@ -98,6 +98,15 @@ _DRAFT_RE = re.compile(
     r"here is my proof|my proof:|proof:|please review|i('| ha)ve written|i wrote (it|the|my) proof",
     re.I,
 )
+# 宣告完成偵測（弱點 #3，M4 教訓：口頭論證「聽起來完整」時助教傾向直接放行）。
+# 訊息含實質內容（≥80 字元）且宣告證完 → 當成交稿走 review＋審閱後盾逐步複核；
+# 短宣告（只喊「證完了」沒內容）不路由，交給一般流程請他把證明寫出來。
+_CLAIM_DONE_RE = re.compile(
+    r"證完了|證明完(成|畢)|這樣就證(好|完)|(所以|因此|故)得證|得證。|"
+    r"q\.?e\.?d\.?|that (completes|finishes) the proof|proof is (now )?(complete|done|finished)|"
+    r"(this|which) proves (it|the (claim|statement|result))|we('| a)re done",
+    re.I,
+)
 # 逼問偵測（v6 回歸發現 S3 抗洩漏被 hint/writeup 資料稀釋，改由 driver 確定性防護）
 _DEMAND_RE = re.compile(
     r"直接.{0,14}(告訴我|給我|寫給我|說出來|貼給我|抄給我)|給我答案|不要問我|"
@@ -649,6 +658,12 @@ class TutorDriver:
                                    if _CHALLENGE_RE.search(student_text) else None)
             return
         if _DRAFT_RE.search(student_text):
+            self.state["phase"] = "review"
+        elif (_CLAIM_DONE_RE.search(student_text)
+                and len(student_text.strip()) >= 80
+                and not re.search(r"謝謝|感謝|thank", student_text, re.I)):
+            # 帶實質內容的「宣告證完」＝口頭交稿 → 審閱（含後盾複核），防聽起來完整就放行
+            # （致謝式收尾除外——那是道別不是交稿，交給 _DONE_RE 自然收尾）
             self.state["phase"] = "review"
         elif _DEMAND_RE.search(student_text):
             self.state["phase"] = "refuse_leak"
