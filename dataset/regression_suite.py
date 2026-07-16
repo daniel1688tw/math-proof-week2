@@ -44,11 +44,15 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 SCORE_DIR = HERE / "regression_scores"
-BASELINE = HERE / "regression_baseline.json"
+# 基準檔按評審後端分開：不同裁判的尺不可互比（gemini 首跑會自建 gemini 尺的基準）
+_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")
+BASELINE = HERE / ("regression_baseline.json" if _BACKEND == "claude"
+                   else f"regression_baseline_{_BACKEND}.json")
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
 ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v8")
 PY = sys.executable
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
+JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")   # claude | gemini
 JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）
 # 樣本數少的 judge 指標，單題改判的跳動就超過 0.05（s2_catch 僅 14 題，1 題 = 0.071）。
 # 容忍度須蓋過「同輸入、評審單題改判」的雜訊，否則守門會反覆誤殺（2026-07-14 實測：
@@ -103,15 +107,27 @@ S4_CASES = ["H5", "M2", "X4", "H3", "X2", "X6"]
 
 # ── Claude CLI（評審與學生共用）────────────────────────────────────────────────
 def claude_available() -> bool:
-    return shutil.which("claude") is not None
+    return shutil.which(JUDGE_BACKEND) is not None
+
+
+def _judge_cmd() -> list | None:
+    """評審後端指令（JUDGE_BACKEND=claude|gemini）。兩者皆為 headless、stdin 餵 prompt。
+    gemini：獨立 Google 額度，與 Claude Code session 完全解耦（2026-07-16 起支援，
+    動機：同帳號搶額度反覆污染評審，且換裁判可破除「Claude 教、Claude 評」循環）。"""
+    exe = shutil.which(JUDGE_BACKEND)
+    if not exe:
+        return None
+    if JUDGE_BACKEND == "gemini":
+        return [exe, "-p", "-m", os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")]
+    return [exe, "-p", "--model", JUDGE_MODEL, "--output-format", "text"]
 
 
 def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None:
-    """呼叫 claude CLI；同帳號併發/速率限制會造成陣發性失敗，重試＋退避是必要的。
-    退避加長（同帳號被 Claude Code 併發佔用時，短退避不足以讓限流視窗恢復）。"""
+    """呼叫評審 CLI（後端依 JUDGE_BACKEND）；同帳號併發/速率限制會造成陣發性失敗，
+    重試＋退避是必要的。退避加長（短退避不足以讓限流視窗恢復）。"""
     import time
-    exe = shutil.which("claude")
-    if not exe:
+    cmd = _judge_cmd()
+    if not cmd:
         return None
     last_err = ""
     for attempt in range(retries):
@@ -119,8 +135,7 @@ def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None
             time.sleep(min(30 * attempt, 120))   # 退避 30/60/90/120/120s，讓限流視窗恢復
         try:
             r = subprocess.run(
-                [exe, "-p", "--model", JUDGE_MODEL, "--output-format", "text"],
-                input=prompt, capture_output=True, text=True,
+                cmd, input=prompt, capture_output=True, text=True,
                 encoding="utf-8", errors="replace", timeout=timeout)
         except (subprocess.TimeoutExpired, OSError) as e:
             last_err = str(e)[:200]
@@ -129,13 +144,14 @@ def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None
         # 限額/限流錯誤會以正常 stdout 回傳（2026-07-15 實測：「You've hit your limit ·
         # resets 1:10am」被當成學生回覆寫進對話，污染整場 Tier 3）。必須當失敗重試。
         if out and re.search(r"hit your limit|usage limit|rate limit|overloaded|"
-                             r"quota exceeded|too many requests", out, re.I):
+                             r"quota exceeded|too many requests|resource.?exhausted|429",
+                             out, re.I):
             last_err = out[:200]
             continue
         if out:
             return out
         last_err = (r.stderr or "").strip()[:200] or f"exit={r.returncode}, 空輸出"
-    print(f"    （claude CLI 連續 {retries} 次失敗：{last_err}）")
+    print(f"    （{JUDGE_BACKEND} CLI 連續 {retries} 次失敗：{last_err}）")
     return None
 
 
@@ -497,13 +513,11 @@ S4_JUDGE_PROMPT = """你是數學教學評審。學生提出了一個與助教�
 只輸出 JSON：{{"valid_alt": true, "followed": true, "math_ok": true, "issue": ""}}"""
 
 
-def tier_s4(tok, model, metrics: dict, lang: str = "zh") -> list:
-    """學生提出不同但正確的證法，評助教是否順著學生邏輯（尊重學生自己的路）。"""
+def tier_s4_generate(tok, model, lang: str = "zh") -> list:
+    """S4 生成：Claude 出替代證法起手、助教回應；只存材料不評分（評分在 tier_s4_judge）。"""
     from tutor_driver import TutorDriver
     problems = _load_problems(lang)
     lang_note = ("Speak English." if lang == "en" else "用繁體中文。")
-    sfx = f"_{lang}"
-    followed_ok = followed_n = 0
     records = []
     for pid in S4_CASES:
         p = problems[pid]
@@ -515,18 +529,32 @@ def tier_s4(tok, model, metrics: dict, lang: str = "zh") -> list:
         stu = stu.strip().strip('"')
         d = TutorDriver(tok, model, dict(p), backstop=False)
         reply = d.step(stu)          # 直接以學生的方法陳述起手
+        records.append({"id": pid, "lang": lang, "student": stu, "reply": reply, "verdict": None})
+        print(f"  [{pid}/{lang}] S4 生成完成")
+    return records
+
+
+def tier_s4_judge(records: list, metrics: dict, lang: str = "zh") -> None:
+    """S4 評分：可對既存記錄重評（--rejudge 也涵蓋 S4）。"""
+    problems = _load_problems(lang)
+    sfx = f"_{lang}"
+    followed_ok = followed_n = 0
+    for r in records:
+        if r.get("lang", "zh") != lang:
+            continue
+        p = problems[r["id"]]
         verdict = parse_json_obj(claude_call(S4_JUDGE_PROMPT.format(
-            statement=p["statement"], proof=p["reference_proof"], student=stu, reply=reply)))
-        records.append({"id": pid, "lang": lang, "student": stu, "reply": reply, "verdict": verdict})
+            statement=p["statement"], proof=p["reference_proof"],
+            student=r["student"], reply=r["reply"])))
+        r["verdict"] = verdict
         if verdict and verdict.get("valid_alt") and verdict.get("followed") is not None:
             followed_n += 1
             followed_ok += bool(verdict.get("followed"))
-            print(f"  [{pid}/{lang}] S4 followed={verdict.get('followed')} {str(verdict.get('issue',''))[:50]}")
+            print(f"  [{r['id']}/{lang}] S4 followed={verdict.get('followed')} {str(verdict.get('issue',''))[:50]}")
         else:
-            print(f"  [{pid}/{lang}] S4 評審跳過（valid_alt={verdict and verdict.get('valid_alt')}）")
+            print(f"  [{r['id']}/{lang}] S4 評審跳過（valid_alt={verdict and verdict.get('valid_alt')}）")
     if followed_n:
         metrics["judge_altmethod" + sfx] = round(followed_ok / followed_n, 4)
-    return records
 
 
 # ── Tier 4：後盾（找碴結果交 Claude 判對錯）─────────────────────────────────────
@@ -615,7 +643,10 @@ def main():
     ap.add_argument("--quick", action="store_true", help="只跑 Tier 0")
     ap.add_argument("--update-baseline", action="store_true")
     ap.add_argument("--rejudge", action="store_true",
-                    help="讀最近一次的 *_replies.json / *_dialogues.json 重新評審（不重跑 GPU 生成）")
+                    help="讀最近一次的 *_replies.json / *_dialogues.json / *_s4.json 重新評審（不重跑 GPU 生成）")
+    ap.add_argument("--gen-only", action="store_true",
+                    help="只生成並存檔（GPU + Claude 扮學生），完全不評審——之後用 --rejudge 補評。"
+                         "把耗額度的評審與耗 GPU 的生成拆開，評審失敗可無限便宜重來。")
     args = ap.parse_args()
 
     metrics: dict = {}
@@ -653,6 +684,13 @@ def main():
                 if lg_dlg:
                     print(f"\n=== Tier 3（{lg}）：既有對話重新評審 ===")
                     tier3_judge(lg_dlg, metrics, lg)
+        sp = _latest("*_s4.json")
+        if sp:
+            s4_records = json.loads(sp.read_text(encoding="utf-8"))
+            for lg in LANGS:
+                if any(r.get("lang", "zh") == lg for r in s4_records):
+                    print(f"\n=== S4（{lg}）：既有記錄重新評審 ===")
+                    tier_s4_judge(s4_records, metrics, lg)
         print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
         tier4_backstop(metrics)
     elif not args.quick:
@@ -663,19 +701,26 @@ def main():
         for lg in LANGS:
             print(f"\n=== Tier 1（{lg}）：19 深度題生成 + 結構指標（GPU）===")
             items += tier1(tok, model, metrics, lg)
-            print(f"\n=== Tier 2（{lg}）：Claude 逐題評審（math_ok / S2 / reveal / 品質）===")
-            tier2_judge([it for it in items if it.get("lang") == lg], metrics, lg)
-            print(f"\n=== Tier 3（{lg}）：Claude 扮學生多輪對話 + 整場評審 ===")
+            if not args.gen_only:
+                print(f"\n=== Tier 2（{lg}）：Claude 逐題評審（math_ok / S2 / reveal / 品質）===")
+                tier2_judge([it for it in items if it.get("lang") == lg], metrics, lg)
+            print(f"\n=== Tier 3（{lg}）：Claude 扮學生多輪對話 ===")
             dlg = tier3_generate(tok, model, lg)
             dialogue_records += dlg
-            tier3_judge(dlg, metrics, lg)
-            print(f"\n=== S4（{lg}）：學生用不同但正確證法 → 助教是否順著學生 ===")
-            s4_records += tier_s4(tok, model, metrics, lg)
-        print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
-        tier4_backstop(metrics)
+            if not args.gen_only:
+                tier3_judge(dlg, metrics, lg)
+            print(f"\n=== S4（{lg}）：學生用不同但正確證法（生成）===")
+            s4 = tier_s4_generate(tok, model, lg)
+            s4_records += s4
+            if not args.gen_only:
+                tier_s4_judge(s4, metrics, lg)
+        if not args.gen_only:
+            print("\n=== Tier 4：審閱後盾（Ollama + Claude 判定）===")
+            tier4_backstop(metrics)
 
     record = {"timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
-              "commit": _git_sha(), "judge_model": JUDGE_MODEL, "metrics": metrics}
+              "commit": _git_sha(), "judge_model": JUDGE_MODEL,
+              "judge_backend": JUDGE_BACKEND, "metrics": metrics}
     SCORE_DIR.mkdir(exist_ok=True)
     stem = f"{record['timestamp'].replace(':', '')}_{record['commit']}"
     (SCORE_DIR / f"{stem}.json").write_text(
@@ -695,6 +740,9 @@ def main():
     print(f"\n計分卡：{SCORE_DIR / (stem + '.json')}")
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
 
+    if args.gen_only:
+        print("\n（gen-only 模式：生成材料已全部存檔，之後用 --rejudge 補評審，不做基準比較）")
+        return
     ok = compare_with_baseline(metrics)
     if ok and not args.quick and (args.update_baseline or not BASELINE.exists()):
         BASELINE.write_text(json.dumps(record, ensure_ascii=False, indent=2),
