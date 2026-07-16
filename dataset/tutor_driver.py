@@ -156,7 +156,8 @@ PHASE_INSTRUCTIONS = {
         "引用定理的前提沒驗證、引用的事實沒交代依據（例如比較對象為何收斂）、"
         "嚴格與非嚴格不等號混用、特例未排除、量詞順序錯誤。"
         "找到後挑最重要的一個，用一個問題指出、讓他自行修正；正確的步驟不要質疑；"
-        "只有在完全沒有缺漏時才可確認完成。"
+        "只有在完全沒有缺漏時才可確認完成——確認完成後就肯定收尾，"
+        "不要拋出延伸問題、變形題或新題目（完成即收手）。"
     ),
 }
 
@@ -185,7 +186,8 @@ PHASE_INSTRUCTIONS_EN = {
         "justification (e.g. why a comparison series converges), strict vs non-strict inequalities "
         "mixed up, special cases not excluded, quantifier order errors. Pick the most important gap and "
         "point to it with one question so the student fixes it themselves; do not question correct "
-        "steps; only confirm completion when there is no gap at all."
+        "steps; only confirm completion when there is no gap at all — and once you confirm completion, "
+        "close with the affirmation; do not pose extension questions, variants, or new problems."
     ),
 }
 
