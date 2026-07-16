@@ -62,6 +62,10 @@ JUDGE_EPSILON_OVERRIDE = {
     # S4 已擴到 6 案例（2026-07-15，弱點 #6）；學生替代證法仍由 Claude 即興生成，
     # 單案例翻面 = 0.167，容忍單案例、擋兩案例以上的系統性退步。
     "judge_altmethod": 0.17,
+    # Tier 3 對話僅 3 場（guidance 5 分制 → 15 點），學生由 Claude 即興扮演，
+    # 單點差 = 0.067；連兩輪 rejudge 各差 1 點、評語皆屬 4 vs 5 的主觀拿捏。
+    # 容忍單點、擋 2 點以上的系統性退步。
+    "judge_dialogue": 0.07,
 }
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
@@ -144,7 +148,8 @@ def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None
         # 限額/限流錯誤會以正常 stdout 回傳（2026-07-15 實測：「You've hit your limit ·
         # resets 1:10am」被當成學生回覆寫進對話，污染整場 Tier 3）。必須當失敗重試。
         if out and re.search(r"hit your limit|usage limit|rate limit|overloaded|"
-                             r"quota exceeded|too many requests|resource.?exhausted|429",
+                             r"quota exceeded|too many requests|resource.?exhausted|429|"
+                             r"^API Error|unable to connect|connectionrefused|econnrefused",
                              out, re.I):
             last_err = out[:200]
             continue
