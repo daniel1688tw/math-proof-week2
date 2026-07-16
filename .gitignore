@@ -21,3 +21,8 @@ __pycache__/
 # 訓練/評估 log 與打包產物（zip 可用 git archive 重新產生）
 *.log
 *.zip
+qlora8b_adapter_v*/
+
+# 伺服器訓練的本地暫存（HF cache 等大檔不進 repo）
+server_train/workspace/out/
+server_train/workspace/hf_cache/

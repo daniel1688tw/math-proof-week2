@@ -488,14 +488,56 @@ class TutorDriver:
             instr = level_map[level]
         return sys_txt + "\n\n" + instr
 
-    def _generate(self, level: int) -> str:
+    def _raw_generate(self, msgs: list, max_new: int) -> str:
+        """實際生成：本機模型，或 REMOTE_GEN_URL 指定的遠端推論服務（大模型放伺服器
+        GPU、其餘流程照舊——評估 8B 等本機載不動的模型時用，走 SSH tunnel）。"""
+        # 遠端生成模式一：REMOTE_GEN_SSH=user@host（推薦）。經 ssh exec + 伺服器端 curl
+        # 打 localhost 推論服務。不走 port-forward——實測 WireGuard VPN 對 forward 通道的
+        # 大 payload 會強制斷線（MTU 問題），而 ssh exec 通道與 scp 同路、穩定。
+        remote_ssh = os.environ.get("REMOTE_GEN_SSH")
+        if remote_ssh:
+            import subprocess
+            import time
+            port = os.environ.get("REMOTE_GEN_PORT", "8899")
+            body = json.dumps({"messages": msgs, "max_new_tokens": max_new})
+            last = ""
+            for attempt in range(5):
+                if attempt:
+                    time.sleep(15)
+                r = subprocess.run(
+                    ["ssh", remote_ssh,
+                     f"curl -s -m 170 -X POST http://localhost:{port}/generate "
+                     f"-H 'Content-Type: application/json' -d @-"],
+                    input=body, capture_output=True, text=True,
+                    encoding="utf-8", timeout=200)
+                try:
+                    return json.loads(r.stdout)["text"].strip()
+                except (json.JSONDecodeError, KeyError):
+                    last = (r.stderr or r.stdout or "")[:200]
+            raise RuntimeError(f"遠端生成（ssh {remote_ssh}）連續 5 次失敗：{last}")
+        # 遠端生成模式二：REMOTE_GEN_URL（直連 HTTP；區網內或 tunnel 穩定時用）
+        remote = os.environ.get("REMOTE_GEN_URL")
+        if remote:
+            import time
+            import urllib.error
+            import urllib.request
+            body = json.dumps({"messages": msgs, "max_new_tokens": max_new}).encode("utf-8")
+            last = None
+            for attempt in range(5):
+                if attempt:
+                    time.sleep(15)
+                try:
+                    req = urllib.request.Request(
+                        remote, data=body, headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=180) as r:
+                        return json.loads(r.read().decode("utf-8"))["text"].strip()
+                except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+                    last = e
+            raise RuntimeError(f"遠端生成連續 5 次失敗（{remote}）：{last}")
         import torch
-        msgs = [{"role": "system", "content": self._system(level)}] + self.messages
         enc = self.tok.apply_chat_template(
             msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True
         ).to(self.model.device)
-        # 教學輪要「講解＋確認問題」，給多一點生成空間
-        max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
         with torch.no_grad():
             out = self.model.generate(
                 **enc, max_new_tokens=max_new, do_sample=False,
@@ -505,23 +547,18 @@ class TutorDriver:
         return self.tok.decode(out[0][enc["input_ids"].shape[1]:],
                                skip_special_tokens=True).strip()
 
+    def _generate(self, level: int) -> str:
+        msgs = [{"role": "system", "content": self._system(level)}] + self.messages
+        # 教學輪要「講解＋確認問題」，給多一點生成空間
+        max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
+        return self._raw_generate(msgs, max_new)
+
     def _regen(self, level: int, note: str) -> str:
         """以加強約束的 system 重生成一次（greedy 下改變輸入才會改變輸出）。"""
-        import torch
         stronger = self._system(level) + f"\n（注意：{note}）"
         msgs = [{"role": "system", "content": stronger}] + self.messages
-        enc = self.tok.apply_chat_template(
-            msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True
-        ).to(self.model.device)
         max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
-        with torch.no_grad():
-            out = self.model.generate(
-                **enc, max_new_tokens=max_new, do_sample=False,
-                repetition_penalty=1.05,
-                pad_token_id=self.tok.pad_token_id or self.tok.eos_token_id,
-            )
-        text = self.tok.decode(out[0][enc["input_ids"].shape[1]:],
-                               skip_special_tokens=True).strip()
+        text = self._raw_generate(msgs, max_new)
         # 教學輪允許「講解＋確認問題」多問句結構，重生成也不可截斷
         if self.state.get("phase") == "walkthrough":
             return text

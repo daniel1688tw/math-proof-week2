@@ -232,6 +232,11 @@ def _load_problems(lang: str = "zh") -> dict:
 
 
 def load_model():
+    # 遠端生成模式（REMOTE_GEN_URL）：模型在伺服器 GPU 上，本機不載——8B 等大模型評估用
+    remote = os.environ.get("REMOTE_GEN_URL") or os.environ.get("REMOTE_GEN_SSH")
+    if remote:
+        print(f"（遠端生成：{remote}，本機不載模型）")
+        return None, None
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
     from peft import PeftModel
