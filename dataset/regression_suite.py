@@ -609,11 +609,18 @@ def tier4_backstop(metrics: dict) -> None:
 
 
 # ── 基準比較 ──────────────────────────────────────────────────────────────────
-def compare_with_baseline(metrics: dict) -> bool:
+def compare_with_baseline(metrics: dict, check_missing: bool = True) -> str:
+    """回傳 'pass' / 'fail' / 'incomplete'。
+
+    incomplete：基準有、本次卻缺的指標（限額打斷評審會整批缺失）——缺失不是通過，
+    也不是退步，是「評審沒做完」，可用 --rejudge 補評後再判。judge_backstop 例外
+    （Ollama 不在線時本來就不計入）。"""
     if not BASELINE.exists():
         print("\n（無基準檔——完整跑通過後本次成績將寫入為初始基準）")
-        return True
+        return "pass"
     base = json.loads(BASELINE.read_text(encoding="utf-8"))["metrics"]
+    missing = ([k for k in base if k not in metrics and k != "judge_backstop"]
+               if check_missing else [])
     ok = True
     print("\n=== 與基準比較（確定性指標零容忍；judge_* 容忍 ε=%.2f）===" % JUDGE_EPSILON)
     for k, v in metrics.items():
@@ -627,7 +634,10 @@ def compare_with_baseline(metrics: dict) -> bool:
         good = v >= base[k] - eps
         print(f"  [{'✓' if good else '✗ 退步'}] {k}: {base[k]} → {v}")
         ok = ok and good
-    return ok
+    if missing:
+        print(f"  [✗ 缺失] 基準有、本次未產出：{missing}（評審被打斷？用 --rejudge 補評）")
+        return "incomplete"
+    return "pass" if ok else "fail"
 
 
 def _git_sha() -> str:
@@ -748,12 +758,15 @@ def main():
     if args.gen_only:
         print("\n（gen-only 模式：生成材料已全部存檔，之後用 --rejudge 補評審，不做基準比較）")
         return
-    ok = compare_with_baseline(metrics)
-    if ok and not args.quick and (args.update_baseline or not BASELINE.exists()):
+    status = compare_with_baseline(metrics, check_missing=not args.quick)
+    if status == "pass" and not args.quick and (args.update_baseline or not BASELINE.exists()):
         BASELINE.write_text(json.dumps(record, ensure_ascii=False, indent=2),
                             encoding="utf-8")
         print(f"基準已更新：{BASELINE}")
-    if not ok:
+    if status == "incomplete":
+        print("\n△ 評審不完整（限額/連線中斷）：生成已存檔，稍後 --rejudge 補評")
+        sys.exit(2)
+    if status == "fail":
         print("\n✗ 回歸失敗：有指標低於基準")
         sys.exit(1)
     print("\n✓ 回歸通過：全部指標 ≥ 基準")
