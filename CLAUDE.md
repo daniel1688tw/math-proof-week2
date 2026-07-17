@@ -141,8 +141,13 @@ conda run -n lora_project --live-stream python dataset\eval_svt_e2e.py          
 ```powershell
 python dataset\regression_suite.py --quick     # 單元+資料集（~1 分鐘）
 python dataset\regression_suite.py             # 完整：Claude 當評審+學生（GPU+claude CLI，~1.5hr）
+python dataset\regression_suite.py --gen-only  # 只生成存檔不評審（省額度，之後 --rejudge 補評）
+python dataset\regression_suite.py --rejudge   # 讀存檔重新評審（不重跑 GPU；含 S4）
 python dataset\regression_suite.py --update-baseline   # 確認進步後抬高基準
+python dataset\auto_gate.py --max-iters 3      # 外圈自動迭代：退件→修 driver→重評，直到全過或上限
 ```
+退出碼：0=通過、1=退步、**2=評審不完整（限額打斷）**——生成已存檔，額度恢復後
+`--rejudge` 補評即可（auto_gate 會自動記進度接續，Claude Pro 額度中斷不會賠掉整輪）。
 任何指標低於 `dataset/regression_baseline.json` → exit 1，**不可推送**。
 確定性指標（洩漏/拒絕/單問句/升級/教學收尾）零容忍；judge_* 指標容忍 ε=0.05。
 計分卡與對話記錄存 `dataset/regression_scores/`（進 git，留版本歷史）。
