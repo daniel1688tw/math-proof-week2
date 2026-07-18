@@ -159,6 +159,11 @@ PHASE_INSTRUCTIONS = {
         "只有在完全沒有缺漏時才可確認完成——確認完成後就肯定收尾，"
         "不要拋出延伸問題、變形題或新題目（完成即收手）。"
     ),
+    "closed": (
+        "本輪指示：這道證明已經完成並確認過了。學生只是補充感想或反思，"
+        "請用一兩句溫暖地回應、肯定他的收穫即可。不要再拋出任何新問題、"
+        "不要提出替代證法、變形題或延伸方向；若他沒有新的數學問題就自然收尾。"
+    ),
 }
 
 PHASE_INSTRUCTIONS_EN = {
@@ -188,6 +193,12 @@ PHASE_INSTRUCTIONS_EN = {
         "point to it with one question so the student fixes it themselves; do not question correct "
         "steps; only confirm completion when there is no gap at all — and once you confirm completion, "
         "close with the affirmation; do not pose extension questions, variants, or new problems."
+    ),
+    "closed": (
+        "This turn: the proof is already complete and confirmed. The student is only adding a remark or "
+        "reflection. Respond warmly in one or two sentences, affirming what they took away. Do NOT ask "
+        "any new question, do NOT propose an alternative proof, a variant, or an extension; if they have "
+        "no further mathematical question, simply close."
     ),
 }
 
@@ -700,12 +711,20 @@ class TutorDriver:
             return
         if _DRAFT_RE.search(student_text):
             self.state["phase"] = "review"
+        elif (self.state.get("writeup_asked")
+                and len(student_text.strip()) >= 120
+                and not _DEMAND_RE.search(student_text)
+                and not re.search(r"謝謝|感謝|thank", student_text, re.I)):
+            # 已請學生寫證明後，他送出的長訊息＝證明本體 → 進審閱
+            # （否則模型會被 writeup 保底帶去叫他重寫剛寫完的證明——弱點 #7 的 H5 型 bug）
+            self.state["phase"] = "review"
         elif (_CLAIM_DONE_RE.search(student_text)
                 and len(student_text.strip()) >= 80
                 and not re.search(r"謝謝|感謝|thank", student_text, re.I)):
             # 帶實質內容的「宣告證完」＝口頭交稿 → 審閱（含後盾複核），防聽起來完整就放行
             # （致謝式收尾除外——那是道別不是交稿，交給 _DONE_RE 自然收尾）
             self.state["phase"] = "review"
+            self.state["done_closed"] = True      # 之後非質疑輪走 closed，不再推替代法
         elif _DEMAND_RE.search(student_text):
             self.state["phase"] = "refuse_leak"
         elif _ATTEMPT_RE.search(student_text):
@@ -713,6 +732,12 @@ class TutorDriver:
         elif _UNDERSTOOD_RE.search(student_text) and not self.state.get("writeup_asked"):
             self.state["phase"] = "writeup_request"
             self.state["writeup_asked"] = True
+        elif (self.state.get("done_closed")
+                and not _CHALLENGE_RE.search(student_text)
+                and not _QMARK_RE.search(student_text)):
+            # 證明已確認完成，學生只是補感想/反思（無提問）→ 收尾模式（不開新問題、不推延伸）
+            # （學生若反過來質疑或有新問句，落到一般流程照常回應）
+            self.state["phase"] = "closed"
         else:
             self.state["phase"] = None
 

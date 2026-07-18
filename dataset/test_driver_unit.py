@@ -105,6 +105,27 @@ check("正常回答 → phase 清空", d2.state["phase"] is None)
 d2.step("我寫好了，請幫我審閱：證明：……")
 check("交草稿優先於其他偵測 → review", d2.state["phase"] == "review")
 sys_r = d2._system(0)
+
+# 收尾偵測修復（弱點 #7）：H5 型「請學生寫證明後、他真的寫出來」與 M2 型「完成後推替代法」
+d5 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d5.generated_levels = []
+d5.start(opener="我懂了，這個思路我完全理解了。")
+check("宣告理解 → writeup_request", d5.state["phase"] == "writeup_request")
+d5.step("好，我來寫。證明：令 f(t)=e^t 在 [0,x] 上連續且可微，由 MVT 存在 c 使 "
+        "e^x-1=e^c·x，因 c>0 故 e^c>1，於是 e^x-1>x，得 e^x>1+x，證畢。")
+check("寫證明後的長訊息 → review（不再叫他重寫）", d5.state["phase"] == "review")
+
+d6 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d6.generated_levels = []
+d6.start(opener="所以我們就證完了，對吧？最小值是 0 且在 x=0 取得，因此對所有 x 都成立。")
+check("實質宣告證完 → review 且 arm done_closed",
+      d6.state["phase"] == "review" and d6.state.get("done_closed"))
+d6.step("嗯，這樣整個就串起來了。不過我發現我剛才對 x≤0 那段講得有點含糊，其實應該更明確說明。")
+check("完成後的反思閒聊 → closed（不推替代法）", d6.state["phase"] == "closed")
+check("closed 指示禁新問題／替代法",
+      "不要再拋出任何新問題" in d6._system(0) and "替代證法" in d6._system(0))
+d6.step("你確定這樣就對了嗎？")
+check("完成後學生反過來質疑 → 不走 closed", d6.state["phase"] != "closed")
 d2.state["phase"] = "refuse_leak"
 sys_leak = d2._system(0)
 check("refuse_leak 指示含『拒絕』與『問一個』", "拒絕" in sys_leak and "問一個" in sys_leak)

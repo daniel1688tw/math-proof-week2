@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "我想試試用輔助函數的方式來做。我定義 $h(x) = e^x - 1 - x$，目標是證明對所有 $x>0$ 有 $h(x)>0$。我注意到 $h(0)=0$，然後 $h'(x)=e^x-1$。我的想法是對 $h$ 本身套用均值定理，而不是直接對 $e^x$ 套，這樣感覺更直接。請問依我這個方向，接下來該怎麼推？",
+    "reply": "你的輔助函數路線很清晰。既然 $h(0)=0$，若對 $h$ 在 $[0,x]$ 用均值定理，會得到什麼等式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用「逐步積分」的方向來做。我的出發點是一個直覺上很簡單的事實：$\\cos t \\le 1$ 對所有實數 $t$ 成立。我打算把這個不等式從 $0$ 積分到 $x$，得到關於 $\\sin x$ 的估計，然後再積分一次，就能把 $\\cos x$ 和 $1 - \\dfrac{x^2}{2}$ 連起來——完全不需要討論函數的極值，只用積分的單調性。不過我對「$x < 0$ 的時候積分方向要翻轉」這個細節還不太確定，可以請你引導我從第一步的積分開始做嗎？",
+    "reply": "你的想法很有創意，而且「積分兩次」確實能湊出目標。先從最簡單的一步開始：把 $\\cos t\\le1$ 從 $0$ 積到 $x$，會得到什麼關係式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "我想用**反證法**來做。假設 $\\{v_1,v_2\\}$ 線性相依，那根據線性相依的定義，其中一個向量可以表示成另一個的純量倍，也就是 $v_2 = kv_1$（某個純量 $k$）。然後我打算對 $v_2$ 套用特徵值的定義式 $Av_2 = \\lambda_2 v_2$，再把 $v_2 = kv_1$ 代進去，看看這樣能不能推出 $\\lambda_1 = \\lambda_2$ 的矛盾。請問我這個方向可以走嗎？如果可以，接下來推導我該注意什麼地方？",
+    "reply": "完全可行，反證法是標準路線。把 $v_2=kv_1$ 代進 $Av_2=\\lambda_2v_2$ 後，你會得到什麼等式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "我想用「閉集合」的角度來證明。因為 $f$ 連續，所以 $f^{-1}(\\{0\\})$ 是 $\\mathbb{R}$ 中的閉集合；而題目告訴我們所有有理數都在這個集合裡，也就是 $\\mathbb{Q}\\subseteq f^{-1}(\\{0\\})$。我打算用有理數在 $\\mathbb{R}$ 中稠密這件事，說明這個閉集合的閉包就是整個 $\\mathbb{R}$，從而得到 $f^{-1}(\\{0\\})=\\mathbb{R}$，即 $f\\equiv0$。\n\n可以請助教幫我看看這個思路，引導我把「稠密 $\\Rightarrow$ 閉包是全空間 $\\Rightarrow$ 閉集合等於全空間」這幾步串起來嗎？",
+    "reply": "思路完全正確，而且「閉集合含稠密集 $\\Rightarrow$ 等於全空間」正是分析中常用的閉包論證。你能把「稠密 $\\Rightarrow$ 閉包是全空間」這一步寫成一句話嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "老師，我想用一個排序的方向來試試看。我的想法是：先把這 $n+1$ 個整數從小到大排成 $a_1 \\le a_2 \\le \\cdots \\le a_{n+1}$，然後觀察 $a_2 - a_1,\\ a_3 - a_1,\\ \\ldots,\\ a_{n+1} - a_1$ 這 $n$ 個差值，看有沒有哪個剛好被 $n$ 整除，或者兩個差值相等（這樣相減就能得到被 $n$ 整除的差）。我覺得這個方向應該可以繞開直接講「餘數」，但我不太確定怎麼把「兩個差值相等」的情況和「差可被 $n$ 整除」嚴格連起來。可以請老師順著這個思路帶我走嗎？",
+    "reply": "排序方向很自然，而且「差值相等」正是要抓的線索。你能說說，為什麼「兩個差值相等」會讓我們得到一個被 $n$ 整除的數？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "老師，我想試試用「實對稱矩陣可正交對角化」這個角度來證明。具體來說，我打算先說明實對稱矩陣必定可以被一組**實的**正交基底對角化（也就是存在實正交矩陣 $P$ 使得 $P^TAP$ 是對角矩陣），那麼對角線上的元素就是 $A$ 的特徵值，而它們是從實矩陣的特徵方程式算出來的，應該都是實數。請問老師可以沿著我這個方向引導我嗎？",
+    "reply": "你的想法很自然，而且「可正交對角化」確實能給出實特徵值。但要嚴謹地把「可對角化」這個假設用到特徵值上，還需要先確認什麼前提？",
+    "verdict": {
+      "valid_alt": null,
+      "followed": null,
+      "math_ok": null,
+      "issue": "學生方向循環論證：實對稱矩陣可正交對角化（譜定理）的標準證明本身須先建立「特徵值皆為實數」，不能反過來以譜定理推導特徵值為實數，論證無效。"
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I'm thinking of applying the MVT to $g(t) = \\ln(1+t)$ instead. Since $\\ln(1+t)$ is continuous on $[0, x]$ and differentiable on $(0, x)$, the MVT gives $\\ln(1+x) - \\ln 1 = \\frac{1}{1+c} \\cdot x$ for some $c \\in (0, x)$. Because $c > 0$, the factor $\\frac{1}{1+c}$ is strictly less than 1, so I'd get $\\ln(1+x) < x$, and then exponentiating both sides should give me $1+x < e^x$. Could you help me make this argument rigorous — I'm not totally sure how to justify the final exponentiation step or whether I'm missing any conditions?",
+    "reply": "The route you've chosen is completely valid — you've correctly applied the MVT to $\\ln(1+t)$ and used the factor $\\frac1{1+c}<1$. To make the exponentiation step rigorous, what must you verify about the function involved?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I was thinking of using repeated integration rather than analyzing a helper function. My idea is to start from the basic fact that $\\cos t \\le 1$ for all real $t$, then integrate once over $[0, x]$ to get an upper bound on $\\sin x$, and integrate a second time to squeeze out the inequality for $\\cos x$ itself. For negative $x$ I'd probably just use the fact that cosine is even so the same bound carries over by symmetry. Could you help me make this two-integration argument rigorous — specifically, how do I handle the direction of the inequalities when $x < 0$ in the first integration step?",
+    "reply": "The direction of the inequality during integration is preserved, so integrating $\\cos t\\le1$ over $[0,x]$ gives $\\int_0^x\\cos t\\,dt\\le\\int_0^x1\\,dt$ — what does that give you for $\\sin x$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I want to try a contrapositive approach instead. My idea is: assume for contradiction that $\\{v_1, v_2\\}$ is linearly dependent, which for two vectors means one must be a scalar multiple of the other, so say $v_2 = k v_1$ for some scalar $k$. Then I'd apply $A$ to both sides and use the eigenvector equations to derive that $\\lambda_1$ must equal $\\lambda_2$, contradicting our assumption of distinct eigenvalues. Could you guide me through formalizing this argument — especially how to handle the case and make sure I'm not missing any steps?",
+    "reply": "The contrapositive route is completely valid and very clean. Starting from $v_2=kv_1$, what happens when you apply $A$ to both sides?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "I'd like to try a different approach using the ε-δ definition of continuity directly, rather than going through sequences. My idea is: for any real number $a$ and any $\\varepsilon > 0$, continuity gives me a $\\delta > 0$ such that $|x - a| < \\delta$ implies $|f(x) - f(a)| < \\varepsilon$. Since rationals are dense, I can always find a rational $q$ with $|q - a| < \\delta$, which forces $|f(a)| = |f(a) - f(q)| < \\varepsilon$. Because $\\varepsilon$ was arbitrary, $f(a) = 0$.\n\nCould you help me make this argument more rigorous? I'm a bit unsure whether the step where I write $|f(a)| = |f(a) - f(q)|$ is fully justified, and whether I need to be more careful about how I pick that rational $q$.",
+    "reply": "The core of your argument is correct — the step $|f(a)|=|f(a)-f(q)|$ is perfectly justified by the triangle identity. For the density part: since $q$ is any rational close enough to $a$, does its value actually matter, or is it sufficient that some such $q$ exists?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I'm thinking of sorting the $n+1$ integers first — call them $a_1 \\le a_2 \\le \\cdots \\le a_{n+1}$ after sorting — and then looking at the $n$ consecutive differences $d_i = a_{i+1} - a_i$ for $i = 1, \\dots, n$. Each $d_i \\ge 0$, and their sum telescopes to $a_{n+1} - a_1$. My idea is: if any single $d_i$ is already divisible by $n$ we're done, and if none is, I want to argue that some partial sum $d_i + d_{i+1} + \\cdots + d_j = a_{j+1} - a_i$ must still be divisible by $n$ — essentially by looking at how these differences accumulate modulo $n$. Could you help me make the \"none of the $d_i$ is divisible by $n$\" case precise and see whether the partial-sum idea actually works?",
+    "reply": "The sorting route is a valid path, and the partial-sum argument is promising. To make it watertight: what is the total sum of the $n$ differences $d_1+\\cdots+d_n$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教順著學生方向且肯定此路可行，但提示「總和是什麼」方向略偏：真正關鍵是對 n+1 個前綴和 S_0=0, S_1, …, S_n 用鴿巢原理，而非只考慮總和 S_n；不過數學陳述本身無誤。"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "I was thinking of separating everything into real and imaginary parts instead of using the conjugate transpose. If $\\lambda = a + bi$ and $v = \\mathbf{x} + i\\mathbf{y}$ with $\\mathbf{x}, \\mathbf{y} \\in \\mathbb{R}^n$, then the equation $Av = \\lambda v$ should split into two real equations involving $A\\mathbf{x}$ and $A\\mathbf{y}$. My plan is to use those two equations together with the symmetry of $A$ — specifically, something like taking dot products and using $A^T = A$ — to force $b = 0$. Could you guide me through how to set up those real/imaginary equations and what inner product manipulation to try next?",
+    "reply": "The real/imaginary split is a valid route, but it runs into a problem: the two resulting equations don't automatically give you the same eigenvalue. What do you get when you take the dot product of $A\\mathbf{x}-a\\mathbf{x}$ with $\\mathbf{x}$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "學生的方向完全可行（交叉內積：實部方程點乘 y、虛部方程點乘 x，由對稱性 y^TAx=x^TAy 立得 b(|x|²+|y|²)=0，故 b=0）；但助教誤稱「兩條方程不會自動給出同一個特徵值」——分拆出的兩式本就同出一個 λ=a+bi，不存在此問題；助教給的提示方向（(Ax-ax)·x）也偏離學生明確要求的交叉內積操作，實為否定後硬導其他路徑。"
+    }
+  }
+]

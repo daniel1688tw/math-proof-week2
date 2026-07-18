@@ -49,7 +49,7 @@ _BACKEND = os.environ.get("JUDGE_BACKEND", "claude")
 BASELINE = HERE / ("regression_baseline.json" if _BACKEND == "claude"
                    else f"regression_baseline_{_BACKEND}.json")
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v8")
+ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v9")
 PY = sys.executable
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
 JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")   # claude | gemini
@@ -66,6 +66,10 @@ JUDGE_EPSILON_OVERRIDE = {
     # 單點差 = 0.067；連兩輪 rejudge 各差 1 點、評語皆屬 4 vs 5 的主觀拿捏。
     # 容忍單點、擋 2 點以上的系統性退步。
     "judge_dialogue": 0.07,
+    # reveal_ok 與 s2_catch 同型（確定性 greedy 生成、Claude 評審、n≈13）：單題翻面 = 0.077。
+    # 實測同一批 S2 文本五輪判分 0.833–0.942 從未再現基準 1.0（分母亦隨評審漏填 reveal 鍵浮動），
+    # 純評審雜訊。基準 1.0 是幸運高點（弱點 #6 教訓）；容忍單題、擋 2 題以上系統性洩漏。
+    "judge_reveal_ok": 0.08,
 }
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"

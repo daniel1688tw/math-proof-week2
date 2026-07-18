@@ -1,0 +1,378 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先想：要證 $e^x>1+x$，等價於證什麼樣的量為正？"
+      ],
+      [
+        "學生",
+        "嗯……$e^x - 1 - x$ 要大於零？就是這樣嗎？"
+      ],
+      [
+        "助教",
+        "很好，這個差商正是均值定理能處理的形式。把它當成哪個函數在 $[0,x]$ 的平均變化率？"
+      ],
+      [
+        "學生",
+        "嗯……差商的話，是不是 $f(x) = e^x - 1 - x$ 這個函數？但助教說「平均變化率」，那應該是 $\\frac{f(x)-f(0)}{x-0}$ 之類的？可是這樣算出來還是 $\\frac{e^x-1-x}{x}$，我不確定這跟均值定理怎麼接上去……"
+      ],
+      [
+        "助教",
+        "換個角度：均值定理直接作用在哪個函數上，會得到一個等式？"
+      ],
+      [
+        "學生",
+        "啊……直接作用在 $f(t) = e^t$ 上？那均值定理說存在某個 $c \\in (0,x)$ 使得 $e^x - e^0 = e^c \\cdot (x-0)$，就是 $e^x - 1 = e^c \\cdot x$……可是這樣跟 $1+x$ 怎麼比？"
+      ],
+      [
+        "助教",
+        "對了，現在你有 $e^x - 1 = e^c x$。因為 $c>0$，$e^c$ 是什麼？"
+      ],
+      [
+        "學生",
+        "哦！$c>0$ 所以 $e^c>e^0=1$……那 $e^c \\cdot x > 1 \\cdot x = x$，所以 $e^x - 1 > x$，就是 $e^x > 1+x$！等等，這樣就直接得到了？感覺好像漏掉了什麼步驟，但數學上好像真的就這樣……"
+      ],
+      [
+        "助教",
+        "完全正確。核心是「把均值定理用在 $e^t$ 上，得到含 $e^c$ 的等式，再用 $c>0$ 把 $e^c$ 大於 $1$ 提出來」。你自己的推導很乾淨，沒有跳步。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "啊，那我是說……我覺得好像已經做完了耶？就是均值定理用在 $e^t$ 上，然後用 $c>0$ 所以 $e^c>1$，然後就推出來了。助教問「下一步」是說要把證明寫整齊嗎？還是還有什麼地方我沒想到的？"
+      ],
+      [
+        "助教",
+        "「寫整齊」是下一步的事，但你現在的邏輯是完整的。你會不會問：如果把均值定理用在 $f(t)=e^t$ 上，那個 $c$ 真的是存在的嗎？"
+      ],
+      [
+        "學生",
+        "哦……對耶，均值定理本身有條件的！$e^t$ 在 $[0,x]$ 上是連續的，而且可微，這兩個條件都滿足，所以那個 $c$ 是保證存在的。我當時直接就用了，沒有想到要確認這一步……那這樣條件補上去，整個證明就完整了？"
+      ],
+      [
+        "助教",
+        "正是。完整版的證明是：「均值定理適用（連續可微）→ 得到 $e^x-1=e^c x$ → $c>0$ 故 $e^c>1$ → $e^x-1>x$」。你現在自己把每一步都檢視過，這比抄一個證明要牢靠得多。 依你看，接下來哪個條件最值得先用？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "最後一輪學生已補齊條件確認、邏輯完整，助教仍追問「接下來哪個條件最值得先用」，語義不清且多餘。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先建立一個方便分析的函數。若把要比較的兩邊相減，會得到什麼樣的量？"
+      ],
+      [
+        "學生",
+        "設 $f(x) = \\cos x - 1 + \\dfrac{x^2}{2}$，這樣只要證明 $f(x) \\ge 0$ 就好了。那接下來是要對 $f$ 微分嗎？"
+      ],
+      [
+        "助教",
+        "正是。算完一階導數後，你會發現 $f'(0)=0$，這表示什麼？"
+      ],
+      [
+        "學生",
+        "$f'(x) = -\\sin x + x$，所以 $f'(0) = 0$。這表示 $x=0$ 是個臨界點，不過光知道這個還不夠，我還需要知道這是極小值才行，不然 $f$ 可能在 $0$ 兩側往下跑。"
+      ],
+      [
+        "助教",
+        "對，你已經看到「臨界點」本身不足以下結論，還差一個判別。那再看二階導數 $f''(x)$，它的符號是什麼？"
+      ],
+      [
+        "學生",
+        "$f''(x) = -\\cos x + 1$，嗯……這個在 $x=0$ 時是 $0$，不是正的，所以二階導數判別法在這裡失效了。要改用別的辦法吧？"
+      ],
+      [
+        "助教",
+        "很好，你發現二階判別法失效了。既然 $f'(0)=0$，而 $f''$ 不是正的，我們能用什麼更強的工具來決定 $f'$ 的單調性？"
+      ],
+      [
+        "學生",
+        "等一下，$f''(x) = -\\cos x + 1 \\ge 0$ 恆成立耶，因為 $\\cos x \\le 1$，所以 $f'$ 其實是單調不遞減的！那 $f'(0) = 0$ 加上 $f'$ 不會減少，代表 $x > 0$ 時 $f'(x) \\ge 0$、$x < 0$ 時 $f'(x) \\le 0$，也就是說 $f$ 在 $0$ 左邊遞減、右邊遞增，$x=0$ 確實是全域最小值。"
+      ],
+      [
+        "助教",
+        "完全正確。關鍵是：即使二階導數在 $0$ 恆等於零，只要能證出 $f'$ 整體非遞減，加上 $f'(0)=0$，就能保證 $f$ 在 $0$ 取最小值。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "那就直接代 $x=0$ 進去看 $f(0)$ 等於多少——$f(0) = \\cos 0 - 1 + 0 = 0$——所以全域最小值是 $0$，這樣 $f(x) \\ge 0$ 對所有實數成立，證明就完了！"
+      ],
+      [
+        "助教",
+        "完全正確。你的證明路線很清晰：建構差函數、證 $f'$ 單調不遞減、用 $f'(0)=0$ 推出 $f$ 在 $0$ 取最小值、最後確認 $f(0)=0$。每一步都站得住腳。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "線性獨立要證「唯一線性組合為零就是全零係數」。從 $c_1v_1+c_2v_2=0$ 出發，你能想到什麼操作來簡化這個等式嗎？"
+      ],
+      [
+        "學生",
+        "嗯，$v_1$ 和 $v_2$ 都是非零向量，非零向量不就一定線性獨立嗎？感覺好像不用證？"
+      ],
+      [
+        "助教",
+        "「非零」只是說它們不是零向量，但 $v_2=2v_1$ 也是非零的，這時還能說獨立嗎？"
+      ],
+      [
+        "學生",
+        "喔對吼，如果 $v_2=2v_1$ 的話，$c_1v_1+c_2v_2=0$ 就有 $c_1=-2c_2$ 這種非零解……所以光說非零還不夠。那我試試看，從 $c_1v_1+c_2v_2=0$ 對兩邊乘上 $A$ 看看？"
+      ],
+      [
+        "助教",
+        "很好，左乘 $A$ 後會得到什麼樣的線性組合？"
+      ],
+      [
+        "學生",
+        "左乘 $A$ 的話，$A(c_1v_1+c_2v_2)=c_1Av_1+c_2Av_2$，然後因為 $v_1,v_2$ 是特徵向量，$Av_1=\\lambda_1v_1$、$Av_2=\\lambda_2v_2$，所以就變成 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$？"
+      ],
+      [
+        "助教",
+        "正是。現在你有兩個等式：$c_1v_1+c_2v_2=0$ 和 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$，你能用哪個運算把其中一個變量消掉嗎？"
+      ],
+      [
+        "學生",
+        "我可以把第一個等式乘以 $\\lambda_1$，然後跟第二個相減！這樣 $c_1\\lambda_1v_1$ 那項就消掉了，剩下 $c_2(\\lambda_2-\\lambda_1)v_2=0$……因為 $\\lambda_1\\ne\\lambda_2$ 所以 $(\\lambda_2-\\lambda_1)\\ne 0$，又 $v_2$ 是特徵向量所以非零，所以 $c_2=0$？"
+      ],
+      [
+        "助教",
+        "完全正確。最後把 $c_2=0$ 代回去，你會得到什麼，從此完成整個證明？"
+      ],
+      [
+        "學生",
+        "把 $c_2=0$ 代回 $c_1v_1+c_2v_2=0$，就剩 $c_1v_1=0$，因為 $v_1$ 非零所以 $c_1=0$！所以 $c_1=c_2=0$ 是唯一解，這樣就證明 $\\{v_1,v_2\\}$ 線性獨立了。原來關鍵是用 $\\lambda_1\\ne\\lambda_2$ 來做消元，不是直接靠向量非零。"
+      ],
+      [
+        "助教",
+        "完全正確，你自己把「相異特徵值」這個條件的必要性也意識到了。線性獨立的證明裡，「非零向量」和「相異特徵值」扮演的是完全不同、不可替代的角色。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "咦，「下一步」是什麼意思？我們不是已經把 $c_1=c_2=0$ 都推出來了，整個證明不是完成了嗎？還是說助教你的意思是要我自己把這個步驟整理成一份完整書面證明？"
+      ],
+      [
+        "助教",
+        "是的，整理成完整證明正是下一步。你會不會把剛剛的思路，寫成一段邏輯嚴謹、每一步都標明目的的正式證明？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT applies to a function continuous on $[a,b]$ and differentiable on $(a,b)$. What function and interval should you choose here?"
+      ],
+      [
+        "學生",
+        "Hmm, I guess... f(x) = e^x? But I'm not sure what interval to pick. Like, do I use [0, x] or something else?"
+      ],
+      [
+        "助教",
+        "Exactly — the interval is determined by the quantity you're estimating. After applying the MVT, what equation do you get?"
+      ],
+      [
+        "學生",
+        "Uh... so MVT says there's some c in (0, x) where f'(c) equals f(x) minus f(0) over x minus 0? So that's e^c = (e^x - 1)/x?"
+      ],
+      [
+        "助教",
+        "Good — and since $c>0$, what can you say about $e^c$?"
+      ],
+      [
+        "學生",
+        "Oh right, since c is greater than 0, e^c has to be greater than e^0 which is just 1. So... e^c > 1? And then from what I got before, that means (e^x - 1)/x > 1, so e^x - 1 > x, which gives e^x > 1 + x! Oh wow that actually worked out."
+      ],
+      [
+        "助教",
+        "Completely correct — you found the whole chain yourself. The key was choosing $f(t)=e^t$ on $[0,x]$ and using $c>0$ to push $e^c>1$. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "I think... the proof is actually done? Like, we showed e^x > 1 + x for all x > 0, right? I don't know what \"next step\" means — is there something missing?"
+      ],
+      [
+        "助教",
+        "The inequality is exactly what the problem asked for, so yes — the proof is complete. You even found the critical hypothesis (\"$c>0$\" makes $e^c>1\") yourself. Well done."
+      ],
+      [
+        "學生",
+        "Oh nice, I wasn't sure if I was actually done or just missing something. Thanks for walking me through it — I think I get why we needed c > 0 specifically now."
+      ],
+      [
+        "助教",
+        "You're very thorough — and that's precisely the kind of self-check that will serve you well in future proofs. Keep asking \"what hypothesis did I use?\" — that's how you build rigor."
+      ],
+      [
+        "學生",
+        "Yeah, that's actually a good habit — I always just checked if I got the right answer, not really which part of the hypothesis made it work. I'll try to think about that more going forward."
+      ],
+      [
+        "助教",
+        "That's exactly the right attitude. Rigor isn't about memorizing steps — it's about asking \"why does this hypothesis hold?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "第六輪助教確認「proof is complete」後仍接了兩輪延伸鼓勵，學生已致謝卻未被引導自己寫完整證明就結束對話。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose value at zero is zero and whose derivative vanishes there — then prove it's nonnegative. Can you define such a function?"
+      ],
+      [
+        "學生",
+        "Oh, so let f(x) = cos x − 1 + x²/2, then f(0) = 0 and f'(0) = −sin 0 + 0 = 0. That works — both conditions are met at zero."
+      ],
+      [
+        "助教",
+        "Good — now the goal is to prove $f(x)\\ge0$. What does the second derivative of $f$ tell you about its shape?"
+      ],
+      [
+        "學生",
+        "f''(x) = −cos x + 1, and since cos x ≤ 1 always, that means f''(x) ≥ 0 everywhere — so f is convex. And since f(0) = 0 and f'(0) = 0, that minimum is at x = 0, which means f(x) ≥ 0 for all x. Done?"
+      ],
+      [
+        "助教",
+        "Completely correct. The core idea: build a function with zero value and zero slope at zero, plus nonnegative second derivative — then the minimum is exactly at zero. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, is \"the minimum is exactly at zero\" actually rigorous here? I showed f is convex and f'(0) = 0, so x = 0 is *a* critical point — but I should say that for a convex function, a critical point is a global minimum. That makes f(x) ≥ f(0) = 0 complete. As for next steps… is there a cleaner way to see this without computing f''?"
+      ],
+      [
+        "助教",
+        "Exactly — you spotted the gap in rigor. And yes, there is a cleaner route: use the integral form of the remainder from Taylor's theorem. Would you like to explore that alternative?"
+      ],
+      [
+        "學生",
+        "Sure, I know Taylor's theorem gives a remainder term — for cos x the Lagrange remainder involves some sin or cos at an intermediate point, but the integral form would be R = ∫₀ˣ (x−t) f''(t) dt or something like that, right? How does that connect directly to the inequality without the convexity argument?"
+      ],
+      [
+        "助教",
+        "Correct — you're already thinking ahead to the integral remainder route. Both approaches work, and you've now seen the rigorous foundation of the inequality. Well done. Which condition do you think is worth using next?"
+      ],
+      [
+        "學生",
+        "Hmm, the assistant's last question — \"which condition do you think is worth using next?\" — feels a bit vague to me. Worth using for what, exactly? If we're done proving the inequality, are you suggesting we keep going and prove something stronger, or just pick which proof approach is more elegant to write up cleanly?"
+      ],
+      [
+        "助教",
+        "That's a very mature question — and the answer is: \"both are worth using\". The convexity route is shorter and more elementary, while the integral remainder route is more general and can be pushed further into higher-order estimates. So the choice depends on the audience and the purpose."
+      ],
+      [
+        "學生",
+        "That makes sense — so the convexity proof is the one I'd actually write on an exam, since it's self-contained and doesn't require knowing the integral remainder formula. The Taylor remainder version feels more like a tool for analysts who want to generalize. I think I've got both paths now."
+      ],
+      [
+        "助教",
+        "Completely correct — you've mastered the two routes and even know when to choose which. Keep asking \"what is the gap in rigor here?\" — that's how you'll never be caught off guard again."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生第三輪已自行完成嚴謹論證，助教應追問「請你正式把這個論證寫完整」而非直接宣告 'Completely correct'，此後多輪流於閒聊與比較兩種方法，未再推學生真正動筆或收斂到任何產出。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start from the definition of linear dependence: if $c_1v_1+c_2v_2=0$, what do you want to prove?"
+      ],
+      [
+        "學生",
+        "I want to prove that $c_1 = c_2 = 0$ is the only solution. That seems obvious though — if $v_1$ and $v_2$ are eigenvectors, aren't they automatically independent just because they're nonzero?"
+      ],
+      [
+        "助教",
+        "The problem is precisely that \"nonzero\" doesn't guarantee independence — $v_2$ could equal $2v_1$. So what extra condition must you use?"
+      ],
+      [
+        "學生",
+        "Oh right, $v_2 = 2v_1$ would be linearly dependent but both are still nonzero eigenvectors. So I need to use the fact that $\\lambda_1 \\neq \\lambda_2$... but I'm not sure exactly how the distinct eigenvalues help here. Like, how do I connect the eigenvalue condition to the coefficients $c_1$ and $c_2$?"
+      ],
+      [
+        "助教",
+        "Here's the trick: left-multiply the equation $c_1v_1+c_2v_2=0$ by $A$. Using $Av_i=\\lambda_iv_i$, what kind of combination do you get?"
+      ],
+      [
+        "學生",
+        "Oh, so multiplying by $A$ turns it into $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$. And I already have $c_1v_1 + c_2v_2 = 0$... so if I subtract $\\lambda_2$ times the second equation from the first, I get $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$? Since $v_1$ is nonzero and $\\lambda_1 \\neq \\lambda_2$, that forces $c_1 = 0$!"
+      ],
+      [
+        "助教",
+        "Completely correct — you found the key yourself. After getting $c_1=0$, substituting back into the original equation gives $c_2=0$ too. What is the takeaway?"
+      ],
+      [
+        "學生",
+        "Oh that's actually clean — the whole proof works because multiplying by $A$ \"tags\" each vector with its eigenvalue, and then subtracting creates a gap that forces one coefficient to zero. So the distinct eigenvalues are what give you that $(\\lambda_1 - \\lambda_2) \\neq 0$ factor. Got it, I think I could write this up now."
+      ],
+      [
+        "助教",
+        "Very clear — you've mastered the core idea. When writing it out, make sure to explicitly state that the distinctness of the eigenvalues is the very thing that makes the coefficient vanish."
+      ],
+      [
+        "學生",
+        "Yeah, I'll make sure to write \"since $\\lambda_1 \\neq \\lambda_2$, we have $\\lambda_1 - \\lambda_2 \\neq 0$\" explicitly rather than just hand-waving it. Honestly I came in thinking nonzero vectors are automatically independent, so this was a good reminder that you actually need a structural argument — the eigenvalue difference is what does the real work here."
+      ],
+      [
+        "助教",
+        "Exactly — and you found it yourself. That's the essence of linear algebra: \"nonzero\" is not enough, you need the distinct eigenvalue condition. Well done. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "I think the next step would be writing out the full proof cleanly — like, actually putting the argument in order from \"assume $c_1v_1 + c_2v_2 = 0$\" all the way to \"therefore $c_1 = c_2 = 0$.\" Should I try drafting that now?"
+      ],
+      [
+        "助教",
+        "Go ahead — I'll review it when you're done."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  }
+]

@@ -30,7 +30,7 @@ sys.path.insert(0, str(HERE))
 from tutor_driver import TutorDriver  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("XDOMAIN_ADAPTER", "qlora_adapter_v8")
+ADAPTER_DIR = HERE / os.environ.get("XDOMAIN_ADAPTER", "qlora_adapter_v9")
 OUT_DIR = HERE / "eval_out_xdomain"
 
 SCENARIOS = {
