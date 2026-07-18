@@ -26,3 +26,10 @@ qlora8b_adapter_v*/
 # 伺服器訓練的本地暫存（HF cache 等大檔不進 repo）
 server_train/workspace/out/
 server_train/workspace/hf_cache/
+
+# 機密：伺服器/主機清單與連線指令（含內網位址、帳號），禁止進 repo
+COMMANDS.md
+
+# 本機探索用 notebook（個人暫存，不進 repo）
+test.ipynb
+train.ipynb
