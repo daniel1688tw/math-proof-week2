@@ -1,0 +1,386 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先看要證的不等式 $e^x>1+x$。若把它當成差商，$e^x-e^0$ 的平均變化率會落在哪條曲線的值之間？"
+      ],
+      [
+        "學生",
+        "呃……差商的話，是 $(e^x - e^0)/(x - 0) = (e^x - 1)/x$ 嗎？但我不太確定這跟「落在哪條曲線的值之間」有什麼關係……"
+      ],
+      [
+        "助教",
+        "換個角度：$e^x$ 在 $[0,x]$ 上連續、可微，用均值定理能得到什麼樣的等式？"
+      ],
+      [
+        "學生",
+        "喔，均值定理……就是說存在某個 $c$ 在 $(0,x)$ 之間，使得 $e^x - e^0 = e^c \\cdot (x-0)$，對嗎？所以 $e^x - 1 = e^c \\cdot x$？但我還是不太懂這跟要證的不等式有什麼關係……"
+      ],
+      [
+        "助教",
+        "現在你有了等式 $e^x-1=e^c x$。因為 $c>0$，$e^c$ 的大小如何，能比較出 $e^x-1$ 與 $x$ 的關係嗎？"
+      ],
+      [
+        "學生",
+        "啊，等一下……$c$ 在 $(0,x)$ 裡，所以 $c>0$，那 $e^c>e^0=1$！所以 $e^c \\cdot x > 1 \\cdot x = x$，就代表 $e^x - 1 > x$，也就是 $e^x > 1+x$？這樣就證完了嗎……感覺好像很快，我有沒有漏掉什麼？"
+      ],
+      [
+        "助教",
+        "邏輯很乾淨。你用了均值定理得到等式，再靠 $c>0$ 把 $e^c$ 大於 $1$，最後乘上正的 $x$ 得到嚴格不等式。前提「$f$ 在閉區間連續、開區間可微」對 $f(t)=e^t$ 成立嗎？"
+      ],
+      [
+        "學生",
+        "嗯……$e^t$ 在任何地方都連續而且可微吧，所以在 $[0,x]$ 上當然也滿足。這樣前提確實都成立了，那就真的證完了！感覺用均值定理繞了一圈，但每一步都是有根據的，不像我直覺那樣覺得「理所當然」。"
+      ],
+      [
+        "助教",
+        "完全正確。你把均值定理的等式、$c>0$ 產生的嚴格性、以及前提的驗證都走通了，這是標準的不等式證法。很好。"
+      ],
+      [
+        "學生",
+        "謝謝老師！我本來以為要直接算極限或什麼，沒想到均值定理可以這樣用——把不等式轉成等式再比大小，這個思路真的很巧。那如果 $x<0$ 的情況呢，這個方法還能用嗎？"
+      ],
+      [
+        "助教",
+        "很好，你已經看出這個不等式在負數上可能不成立。試著自己分析一下 $x<0$ 時的 $c$ 符號會不會改變，結果會有什麼不同？"
+      ],
+      [
+        "學生",
+        "嗯……$x<0$ 的話，$c$ 是在 $(x,0)$ 之間，所以 $c<0$，那 $e^c<1$……但 $x$ 本身是負數，所以 $e^c \\cdot x$ 是「小於 1 的數乘以負數」，這樣大小關係會翻轉嗎？我有點搞混，可以再提示一下嗎？"
+      ],
+      [
+        "助教",
+        "你可以先畫圖看看 $e^x$ 和 $1+x$ 在負數區間的相對位置。你會發現 $x<0$ 時 $e^x>1+x$ 依然成立，那 $c<0$ 又怎麼解釋這個結果？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先考慮差函數 $g(x)=\\cos x-1+\\dfrac{x^2}{2}$。要證 $\\cos x\\ge1-\\dfrac{x^2}{2}$，等價於證什麼？"
+      ],
+      [
+        "學生",
+        "等價於證 $g(x)\\ge0$ 對所有實數 $x$ 成立。那我想對 $g$ 微分——$g'(x)=-\\sin x+x$，再繼續對 $g'$ 微分得 $g''(x)=-\\cos x+1$。"
+      ],
+      [
+        "助教",
+        "很好，$g''(x)=1-\\cos x$ 的符號如何，這告訴我們什麼？"
+      ],
+      [
+        "學生",
+        "$g''(x)=1-\\cos x\\ge0$ 對所有 $x$ 都成立，所以 $g'$ 是單調不減的。再加上 $g'(0)=0$，這樣 $x>0$ 時 $g'>0$、$x<0$ 時 $g'<0$，所以 $x=0$ 是 $g$ 的全域最小值。"
+      ],
+      [
+        "助教",
+        "完全正確。你用二階導數的符號決定單調性，再靠 $g'(0)=0$ 把最小值落在 $0$，這是標準的「凸性 + 價格點」手法。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "既然 $g$ 在 $x=0$ 有全域最小值，而 $g(0)=\\cos 0-1+0=0$，所以 $g(x)\\ge g(0)=0$ 對所有 $x$ 成立，證明就完成了。"
+      ],
+      [
+        "助教",
+        "正確，邏輯閉合無縫。你已經完全掌握這個不等式的證明骨架了。"
+      ],
+      [
+        "學生",
+        "哈，這個題目其實蠻漂亮的——把不等式轉成函數非負性，然後用凸函數在臨界點取最小值，一刀切。感謝引導，我以後遇到這類不等式估計也會先想到這個框架。"
+      ],
+      [
+        "助教",
+        "那正是學習數學的樂趣：找到通用的分析工具，再套到各個具體問題上。你已經掌握了它。"
+      ],
+      [
+        "學生",
+        "嗯，不過我想再確認一件事——我在推「$x<0$ 時 $g'<0$」那步，其實是靠 $g'$ 單調不減加上 $g'(0)=0$ 推出來的，但嚴格來說要用到「$g'$ 在 $(-\\infty,0)$ 上恆負」，這需要說明 $g'(0)=0$ 且 $g'$ 在 $0$ 左邊不可能有其他零點，對嗎？還是說單調不減直接就夠了？"
+      ],
+      [
+        "助教",
+        "你問得很細。單調不減加上 $g'(0)=0$ 確實保證 $x<0$ 時 $g'\\le0$，而因為 $g''\\ge0$（嚴格凸），$g'$ 在 $0$ 附近沒有其他零點，所以 $g'<0$ 對 $x<0$ 成立。你的疑慮很到位，這正是嚴謹性的關鍵。 依你看，接下來哪個條件最值得先用？"
+      ],
+      [
+        "學生",
+        "等等，助教說「因為 $g''≥0$（嚴格凸），$g'$ 在 $0$ 附近沒有其他零點」——這個推論我不太確定。$g''≥0$ 只保證 $g'$ 單調不減，但不排除 $g'$ 在某段區間上維持 $0$ 對吧？不過在這個問題裡，$g''(x)=1-\\cos x=0$ 只在 $x=2k\\pi$ 時成立，$g'$ 並非在整段區間都等於 $0$，所以單調不減的 $g'$ 只要在 $0$ 某個左鄰域不恆為零，就能確保 $x<0$ 時 $g'<0$。這樣說比「嚴格凸」更準確吧？"
+      ],
+      [
+        "助教",
+        "完全正確，你已經把嚴謹性層次分析得很清楚。這正是高年級分析裡常見的陷阱，你已經避開了。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 4,
+      "issue": "助教第五輪稱「因為 g''≥0（嚴格凸），g' 在 0 附近沒有其他零點」，但 g''≥0 只保證 g' 單調不減，不等於嚴格凸，無法直接排除 g' 在某區間恆為 0；該陳述數學上有誤，學生在下一輪已正確指出。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "從要證的線性組合 $c_1v_1+c_2v_2=0$ 出發，你想先做什麼？"
+      ],
+      [
+        "學生",
+        "嗯，$v_1, v_2$ 都是特徵向量，非零向量，所以它們本來就不可能是零，感覺這樣就已經線性獨立了吧？還需要從那個線性組合去證什麼嗎？"
+      ],
+      [
+        "助教",
+        "這裡的直覺有誤。$v_2=2v_1$ 時，$v_1,v_2$ 都非零卻線性相關。要排除這種情形，你打算怎麼做？"
+      ],
+      [
+        "學生",
+        "喔，對耶，$v_2 = 2v_1$ 的話兩個都非零但確實線性相關。那我想想……如果 $c_1v_1 + c_2v_2 = 0$，我可以對兩邊乘上 $A$ 嗎？這樣 $A$ 作用在特徵向量上會變成 $\\lambda_1 c_1 v_1 + \\lambda_2 c_2 v_2 = 0$，然後跟原式比較應該能把某個 $c$ 消掉？"
+      ],
+      [
+        "助教",
+        "正是。有了這個新方程，你打算怎麼操作才能得到 $c_2$ 或 $c_1$ 的值？"
+      ],
+      [
+        "學生",
+        "我有兩個方程：$\\lambda_1 c_1 v_1 + \\lambda_2 c_2 v_2 = 0$ 和 $c_1 v_1 + c_2 v_2 = 0$，如果我把第二個乘以 $\\lambda_1$ 再跟第一個相減，應該可以消掉 $\\lambda_1 c_1 v_1$ 那項，剩下 $(\\lambda_2 - \\lambda_1)c_2 v_2 = 0$？"
+      ],
+      [
+        "助教",
+        "完全正確。因為 $\\lambda_2\\ne\\lambda_1$ 且 $v_2\\ne0$，這能推出什麼？"
+      ],
+      [
+        "學生",
+        "因為 $\\lambda_2 - \\lambda_1 \\neq 0$，$v_2 \\neq 0$，所以 $(\\lambda_2 - \\lambda_1)c_2 v_2 = 0$ 就只能是 $c_2 = 0$！然後代回原式 $c_1 v_1 = 0$，又因為 $v_1 \\neq 0$，所以 $c_1 = 0$。所以兩個係數都是零，$\\{v_1, v_2\\}$ 線性獨立。"
+      ],
+      [
+        "助教",
+        "完全正確。關鍵是「相異特徵值」這個條件，它保證了消去後的係數非零，否則 $v_2=2v_1$ 的反例就成立。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "咦，「下一步」是什麼意思？我們不是已經把這個命題證完了嗎？$c_1 = c_2 = 0$，所以 $\\{v_1, v_2\\}$ 線性獨立，證明就結束了吧？"
+      ],
+      [
+        "助教",
+        "是的，證明到此完成。但你會不會問：如果特徵值相同，這個結論還成立嗎？"
+      ],
+      [
+        "學生",
+        "喔，如果特徵值相同的話……那 $\\lambda_2 - \\lambda_1 = 0$，剛才那步消去就沒辦法推出 $c_2 = 0$ 了，所以同樣的方法會失效。但這不代表它們一定線性相關吧？比如單位矩陣的所有特徵值都是 1，但不同特徵向量還是可以線性獨立的？"
+      ],
+      [
+        "助教",
+        "完全正確，你已經看出相異特徵值才保證線性獨立，而相同特徵值時可能相關也可能不相關。這才是真正的關鍵洞見。 依你看，接下來哪個條件最值得先用？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生已明確宣告證明完成後，助教仍繼續拋出延伸問題，違反收尾原則；最後一輪學生再次宣告完成仍未停止，持續追問导致對話拖延。"
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT says \"some intermediate value equals the average rate of change\". For $f(t)=e^t$ on $[0,x]$, what does that give?"
+      ],
+      [
+        "學生",
+        "Hmm, okay so MVT says there's some $c$ in $(0,x)$ where $f'(c) = \\frac{f(x)-f(0)}{x-0}$... so that's $e^c = \\frac{e^x - 1}{x}$? Is that right? But I'm not sure where to go from here."
+      ],
+      [
+        "助教",
+        "Correct — that's the core identity. Now, since $c>0$, what can you say about $e^c$, and hence about $e^x-1$?"
+      ],
+      [
+        "學生",
+        "Oh! Since $c > 0$, we have $e^c > 1$... so $e^x - 1 = x \\cdot e^c > x \\cdot 1 = x$, which means $e^x > 1 + x$. Wait, that actually works out really cleanly — is that the whole proof?"
+      ],
+      [
+        "助教",
+        "Completely correct. You used the MVT to produce the identity, then used the positivity of $c$ to amplify it into the desired inequality. Very clean work. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Honestly I feel like that's the whole proof? Like we got the inequality and it works for all $x > 0$... or is there something I'm missing about why the proof is actually complete?"
+      ],
+      [
+        "助教",
+        "It is complete — each step is justified. You even caught the positivity of $c$ as the key amplifier. Well done."
+      ],
+      [
+        "學生",
+        "Oh wow, okay, that's actually really satisfying — I was worried there'd be some technicality I missed, like needing to verify the MVT applies or something. Good to know it's solid!"
+      ],
+      [
+        "助教",
+        "That's the spirit of proof — after writing it out, you're the one who knows it's complete. Keep going. Which condition do you think is worth using next?"
+      ],
+      [
+        "學生",
+        "Wait, \"which condition to use next\"? I thought we already finished the proof... are you saying there's another part I need to handle, or is this a different question?"
+      ],
+      [
+        "助教",
+        "No — \"next\" just means \"what would you use now?"
+      ],
+      [
+        "學生",
+        "Um, I'm a bit confused — like, are you asking me to prove something new, or recap what we did? Because honestly I feel like we already used all the relevant conditions: MVT on $[0,x]$, $c \\in (0,x)$ so $c > 0$, and that gives $e^c > 1$. What else is there?"
+      ],
+      [
+        "助教",
+        "Exactly — you've covered everything. \"Next\" is just a label for the next tool to apply, and you've already used it. You're completely clear on the proof's structure. Well done. What direction would you like to try from here?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生已完成証明並表示滿意後，助教連續三輪用「which condition to use next」等無效追問製造困惑，未執行收尾，違反學生說懂了應回問確認自寫的設計。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose nonnegativity will give the inequality. What would you call the difference between $\\cos x$ and $1-\\frac{x^2}{2}$?"
+      ],
+      [
+        "學生",
+        "Let me call it $f(x) = \\cos x - 1 + \\frac{x^2}{2}$, so we just need to show $f(x) \\geq 0$ for all $x$. I'm guessing we differentiate?"
+      ],
+      [
+        "助教",
+        "Good — differentiating is the next step. What do you get as $f'(x)$?"
+      ],
+      [
+        "學生",
+        "$f'(x) = -\\sin x + x$. And $f'(0) = 0$, so 0 is a critical point — probably the global minimum. Do I differentiate again to confirm it's a minimum?"
+      ],
+      [
+        "助教",
+        "Exactly. What does the second derivative $f''(x)$ tell you about the concavity of $f$?"
+      ],
+      [
+        "學生",
+        "$f''(x) = -\\cos x + 1$, which is always $\\geq 0$ since $\\cos x \\leq 1$. So $f$ is convex everywhere, meaning $x = 0$ is indeed a global minimum. And since $f(0) = \\cos 0 - 1 + 0 = 0$, the minimum value is 0, so $f(x) \\geq 0$ for all $x$ — done!"
+      ],
+      [
+        "助教",
+        "Completely correct. You used \"convex\" (equivalent to $f''\\ge0$) to guarantee the global minimum at the critical point — that's the most elegant part. Well done. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "I think we're actually done? We showed $f(x) \\geq 0$ for all $x$, which is exactly the inequality. Unless you want me to write it up more formally?"
+      ],
+      [
+        "助教",
+        "Formalism is fine, but the logic is already complete. You've got the core idea: build the difference function, verify the critical point is a global minimum via the second derivative, and conclude. That's a standard technique worth remembering."
+      ],
+      [
+        "學生",
+        "Got it, thanks — the \"build a difference function and show it's nonneg\" trick is clean. I'll keep that in mind for other inequalities too, like the $e^x \\geq 1+x$ one."
+      ],
+      [
+        "助教",
+        "Exactly — you've internalized the method. Very good work."
+      ],
+      [
+        "學生",
+        "Thanks! Yeah, this approach definitely generalizes — for $e^x \\geq 1+x$ you'd set $g(x) = e^x - 1 - x$, note $g(0) = 0$, and $g''(x) = e^x > 0$ everywhere so same argument. Good to have a systematic method rather than guessing."
+      ],
+      [
+        "助教",
+        "Correct — you've spotted the general pattern yourself. Well done."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生第三輪已自行說出完整論證（凸函數→全局最小值→結論），助教應請學生正式寫出證明而非直接稱「completely correct」結束引導。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start with the definition of linear dependence: suppose $c_1v_1+c_2v_2=0$. What happens when you left-multiply this equation by $A$?"
+      ],
+      [
+        "學生",
+        "Oh, if I multiply by $A$, then $A(c_1v_1+c_2v_2)=0$, so $c_1Av_1+c_2Av_2=0$. And since $v_1,v_2$ are eigenvectors, that becomes $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$. So now I have two equations — does that mean I can just subtract them to get something useful?"
+      ],
+      [
+        "助教",
+        "Exactly. After subtracting, what do you get, and why is it nonzero?"
+      ],
+      [
+        "學生",
+        "If I subtract the first equation from the second, I get $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$... wait, but why does that force $c_1 = 0$? I mean, $v_1$ is nonzero since it's an eigenvector, but can't a nonzero vector times a scalar still be zero if the scalar is zero? Oh — but $\\lambda_1 \\neq \\lambda_2$ means $(\\lambda_1 - \\lambda_2) \\neq 0$, so the only way this works is if $c_1 = 0$, right?"
+      ],
+      [
+        "助教",
+        "Completely correct. You used the distinctness of the eigenvalues to rule out the zero scalar — that's the key. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Right, so now that $c_1 = 0$, I can plug that back into the original equation $c_1v_1 + c_2v_2 = 0$, which just leaves $c_2v_2 = 0$. And since $v_2$ is an eigenvector it's nonzero, so $c_2 = 0$ too. So both constants are zero, which means $\\{v_1, v_2\\}$ is linearly independent — is that the whole proof?"
+      ],
+      [
+        "助教",
+        "Yes, that's the complete argument. The core idea is \"multiply by $A$ to produce a new equation, then subtract to isolate one coefficient — distinct eigenvalues make the coefficient nonzero.\""
+      ],
+      [
+        "學生",
+        "Oh wow, that actually clicked — I kept thinking \"nonzero vector\" alone would be enough to argue independence, but the real trick is needing *both* the vector to be nonzero *and* the scalar factor $(\\lambda_1 - \\lambda_2)$ to be nonzero, and that's exactly where the distinct eigenvalues condition does the work. Thanks, I think I can write this up cleanly now."
+      ],
+      [
+        "助教",
+        "You're very clear on the logic — that's what makes a proof truly yours. Well done."
+      ],
+      [
+        "學生",
+        "Thanks! I'll go write it up. One thing I want to make sure I didn't mess up earlier — when I said \"nonzero vector times a scalar is zero only if the scalar is zero,\" that's only true in a vector space over a field with no zero divisors, right? Like, we're working over ℝ here so it's fine, but I just want to confirm I'm not accidentally using something that needs to be stated."
+      ],
+      [
+        "助教",
+        "Correct — you're absolutely right to check that detail. Over a field (like ℝ or ℂ), scalars have no zero divisors, so your statement holds. Good catch."
+      ],
+      [
+        "學生",
+        "Got it, good to know the field assumption is doing real work there. I think I'm set — I'll write up the full proof now."
+      ],
+      [
+        "助教",
+        "Excellent. You've mastered the core technique of \"multiply by $A$ and subtract\" — it's a standard tool for handling eigenvector independence. Keep it up."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "學生已說完成並致謝後，助教仍多給一句延伸鼓勵（'it's a standard tool...'），略顯多餘。"
+    }
+  }
+]

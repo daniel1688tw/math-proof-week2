@@ -1,0 +1,109 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "我想試試把 $g(t)=e^t-1-t$ 直接當成主角，然後對 $g$ 在 $[0,x]$ 上用均值定理——這樣就不用分兩步（先算 $e^x-1$、再比較 $e^c$ 和 $1$），而是一步到位地讓均值定理直接吐出 $g(x)>0$。\n\n我的想法是：$g(0)=0$，$g'(t)=e^t-1$，對 $g$ 套 Lagrange，得到存在 $c\\in(0,x)$ 使 $g(x)-g(0)=g'(c)\\cdot x=(e^c-1)\\cdot x$。因為 $c>0$ 所以 $e^c>1$，右邊正，所以 $g(x)>0$，也就是 $e^x>1+x$。\n\n但我有點擔心「$g'(t)=e^t-1$ 在 $(0,x)$ 上是正的」這個地方——我可以直接用 $c>0\\Rightarrow e^c>1$ 嗎，還是我需要再論證什麼？可以幫我從這裡繼續引導嗎？",
+    "reply": "很好，你的構造很簡潔。$c>0\\Rightarrow e^c>1$ 是標準的指數性質，可以直接引用。那整個證明的邏輯路線是怎樣的？",
+    "verdict": null
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用**逐步積分**的方式來做。我的思路是：先用 $\\cos t\\le1$ 這個基本事實，對它從 $0$ 積到 $x$，得到 $\\sin x\\le x$（至少在 $x\\ge0$ 時）；然後再對這個不等式做一次積分，把 $\\cos x$ 跟 $1-\\dfrac{x^2}{2}$ 的差拉出來。負 $x$ 的情形我打算用 $\\cos x=\\cos(-x)$ 對稱性處理掉。\n\n不過我在第二步積分的時候有點卡住——從 $\\sin x\\le x$ 要怎麼積出最後想要的式子？符號方向我搞不太清楚，可以請助教帶我想一下這一步嗎？",
+    "reply": "很好，你已經看到「對不等式積分保留方向」這個關鍵。既然 $\\sin x\\le x$，對它從 $0$ 積到 $x$ 得到什麼？",
+    "verdict": null
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "我想用**反證法**來做這題。假設 $\\{v_1, v_2\\}$ 線性相依，那麼其中一個向量可以寫成另一個的純量倍，也就是 $v_2 = kv_1$（$k \\neq 0$）。接下來我打算對這個等式兩邊同時作用 $A$，看看能不能從 $\\lambda_1 \\neq \\lambda_2$ 這個條件推出矛盾。你可以沿著這個方向繼續引導我嗎？",
+    "reply": "很好，你已經抓住了核心。把 $v_2=kv_1$ 兩邊都作用 $A$ 後，會得到什麼關係式？",
+    "verdict": null
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "我想用反證法來試試看。假設存在某個實數 $a$ 使得 $f(a)\\neq 0$，比如說 $f(a)=c>0$。因為 $f$ 連續，所以在 $a$ 附近存在一個小區間 $(a-\\delta, a+\\delta)$ 使得 $f$ 在這個區間上都大於 $c/2$。但是有理數在實數上稠密，這個區間裡一定有有理數，而 $f$ 在有理數上是 $0$，這就矛盾了。\n\n老師，這個反證方向是對的嗎？我可以照這個思路繼續寫出完整證明嗎？",
+    "reply": "方向完全正確，而且「稠密性提供無限多有理數」正是製造矛盾的關鍵。你能把這個反證版整理成正式的證明嗎？",
+    "verdict": null
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "老師，我想試試看另一個方向——我想先把這 $n+1$ 個整數從小到大排序，設為 $a_1 < a_2 < \\cdots < a_{n+1}$，然後考慮每個數和最小數 $a_1$ 的差：也就是看 $0,\\, a_2 - a_1,\\, a_3 - a_1,\\, \\ldots,\\, a_{n+1} - a_1$ 這 $n+1$ 個數。我的直覺是，這 $n+1$ 個差值裡面，應該可以找到兩個差值除以 $n$ 同餘——這樣那兩個差值再相減，就能得到某兩個原始整數的差可被 $n$ 整除。我打算從這個「先取差、再看餘數」的角度來構造論證，但還不太確定怎麼嚴格把鴿籠原理套進去，可以請您幫我順著這個思路走嗎？",
+    "reply": "你的差值想法很靈活，而且「先造差再比較餘數」正是鴿籠原理的標準應用。現在要嚴謹，得先確認這些差值究竟有多少種可能的餘數。你能說出它們的範圍嗎？",
+    "verdict": null
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I was thinking of defining a helper function $g(x) = e^x - 1 - x$, so the inequality I want to prove is just $g(x) > 0$ for $x > 0$. I notice $g(0) = 0$, and if I apply the Mean Value Theorem to $g$ on the interval $[0, x]$, I'd get $g(x) - g(0) = g'(c) \\cdot x$ for some $c \\in (0, x)$. Since $g'(t) = e^t - 1$, at $c > 0$ we'd have $g'(c) = e^c - 1 > 0$, which together with $x > 0$ should give $g(x) > 0$. Could you help me check if this line of reasoning is on the right track and what I'd need to be careful about?",
+    "reply": "Completely correct — you've transformed the exponential inequality into a sign analysis of $g'$. Why is that transformation equivalent to the standard MVT route?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I'd like to try a Taylor series / integral remainder approach. My idea is to write $\\cos x$ as its degree-2 Taylor polynomial plus an integral remainder term — specifically, using the formula $\\cos x = 1 - \\frac{x^2}{2} + \\int_0^x \\frac{(x-t)^2}{2}\\cos t\\, dt$ (or something in that spirit from repeated integration by parts). If I can show the remainder term is non-negative, the inequality drops out directly without needing to analyze any auxiliary function's monotonicity. Could you guide me through how to set up and bound that integral remainder carefully?",
+    "reply": "That's a very clean route — integrating the remainder is precisely what you're aiming for. What do you get when you integrate by parts twice to write the remainder of $\\cos x$'s Taylor expansion?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I think I can prove this by contradiction — assume $\\{v_1, v_2\\}$ is linearly dependent, so one vector is a scalar multiple of the other, say $v_2 = kv_1$ for some $k \\neq 0$. Then I'd apply $A$ to both sides and use the eigenvector equations to derive that $\\lambda_1 = \\lambda_2$, which contradicts the hypothesis. Could you guide me through this approach and help me make sure each step is airtight?",
+    "reply": "That's a very clean contradiction route. After applying $A$ to $v_2=kv_1$, what relation between $\\lambda_1$ and $\\lambda_2$ do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "I think I can prove this using the **epsilon-delta definition of continuity directly**, without explicitly constructing a sequence. My idea is: fix any real $a$, and for any $\\varepsilon > 0$, use the density of rationals to guarantee there's always a rational $q$ inside any $\\delta$-neighborhood of $a$. Since $f(q) = 0$ and continuity forces $|f(a) - f(q)|$ to be controlled by $\\varepsilon$, I can pin $f(a)$ to $0$. Could you help me make this argument precise and check if the logic holds together?",
+    "reply": "The skeleton is right — density plus continuity gives $f(a)=0$. But what is the exact relation between $\\delta$ and $\\varepsilon$ that makes the estimate work?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I think I can prove this using a direct construction with the integers themselves rather than remainders. My idea is to sort the $n+1$ integers in increasing order, say $a_1 < a_2 < \\cdots < a_{n+1}$, and then look at the $n$ consecutive differences $a_2 - a_1,\\ a_3 - a_2,\\ \\ldots,\\ a_{n+1} - a_n$. If any one of those differences is divisible by $n$ we're done, and if none of them is, I want to argue about their sum or some combination to force a contradiction. Could you help me think through whether this direction can actually work, and where I should go next?",
+    "reply": "The construction is promising, but the pigeonhole route is more direct. What does the pigeonhole principle give you straight away about the remainders of the $n+1$ numbers modulo $n$?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": null,
+      "math_ok": true,
+      "issue": "學生提出的「排序後看 n 個連續差」方向無法完成有效矛盾：若無一連續差整除 n，對其「總和或某種組合」的論證實際上無從推進（反例：n=3，差為 1,1,1 總和=3 整除 n 但這只是巧合，一般情形無法保證），故方向本身不可行（valid_alt=null，整題不計）；助教的數學陳述（餘數類 pigeonhole）本身正確。"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "I was thinking of a different approach — instead of working directly with the Rayleigh quotient, I'd use the fact that a real symmetric matrix is also Hermitian ($A^* = A$), and then appeal to the spectral theorem for Hermitian operators on an inner product space. Specifically, I know that Hermitian operators are self-adjoint with respect to the standard complex inner product, and I want to use the self-adjointness to show $\\langle Av, v \\rangle = \\langle v, Av \\rangle$, which forces $\\lambda \\langle v, v \\rangle = \\bar\\lambda \\langle v, v \\rangle$. Could you guide me through making that inner product argument rigorous — particularly how self-adjointness of $A$ gives me that conjugate symmetry of the inner product $\\langle Av, v \\rangle$?",
+    "reply": "That's a very clean route. Starting from $\\langle Av,v\\rangle=\\langle v,Av\\rangle$, what do you get after dividing by $\\langle v,v\\rangle$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

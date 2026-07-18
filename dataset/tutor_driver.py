@@ -499,6 +499,8 @@ class TutorDriver:
             import subprocess
             import time
             port = os.environ.get("REMOTE_GEN_PORT", "8899")
+            # 驗證式服務（BoN＋思考型驗證器）最壞情況：生成＋驗證×3 輪可達數分鐘
+            tmo = int(os.environ.get("REMOTE_GEN_TIMEOUT", "170"))
             body = json.dumps({"messages": msgs, "max_new_tokens": max_new})
             last = ""
             for attempt in range(5):
@@ -506,10 +508,10 @@ class TutorDriver:
                     time.sleep(15)
                 r = subprocess.run(
                     ["ssh", remote_ssh,
-                     f"curl -s -m 170 -X POST http://localhost:{port}/generate "
+                     f"curl -s -m {tmo} -X POST http://localhost:{port}/generate "
                      f"-H 'Content-Type: application/json' -d @-"],
                     input=body, capture_output=True, text=True,
-                    encoding="utf-8", timeout=200)
+                    encoding="utf-8", timeout=tmo + 30)
                 try:
                     return json.loads(r.stdout)["text"].strip()
                 except (json.JSONDecodeError, KeyError):
