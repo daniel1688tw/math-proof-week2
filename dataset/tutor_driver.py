@@ -85,6 +85,15 @@ _STUCK_EN_RE = re.compile(
     r"(another|more|give me a) hint",
     re.I,
 )
+# 強困惑：不受長度門檻限制（學生寫了一段實質嘗試、但明說徹底卡死 → 仍該升級提示，
+# 否則 tutor 只會重述或把問題丟回去——長訊息＋強困惑正是最挫折的時刻）
+_STRONG_STUCK_RE = re.compile(
+    r"毫無頭緒|完全沒(有)?概念|完全不懂|完全不明白|完全卡住|真的不會|"
+    r"聽不懂|看不懂你|不懂你(的)?意思|"
+    r"(completely|totally|utterly) (lost|stuck|confused)|no idea at all|"
+    r"i (really )?don'?t understand (what|your|this at all)|makes no sense to me",
+    re.I,
+)
 _QMARK_RE = re.compile(r"[?？]")
 
 # 階段偵測（v6 專項測試發現：階段轉換也不能賭模型慣性，由驅動程式判定）
@@ -286,9 +295,12 @@ _FALLBACK_QS_EN = (
 
 
 def is_stuck(student_text: str) -> bool:
-    """學生回覆是否屬於「答不出來」。長回覆（有實質嘗試）不算卡住。
-    英文回覆詞長較長，長度門檻放寬到 120 字元。"""
+    """學生回覆是否屬於「答不出來」。長回覆（有實質嘗試）不算卡住——
+    但強困惑詞（毫無頭緒/completely lost 等）不受長度門檻限制：
+    學生描述完自己的嘗試後明說徹底卡死，正是最需要升級提示的時刻。"""
     t = student_text.strip()
+    if _STRONG_STUCK_RE.search(t):
+        return True
     if detect_lang(t) == "en":
         return bool(_STUCK_EN_RE.search(t)) and len(t) <= 120
     return bool(_STUCK_RE.search(t)) and len(t) <= 60
@@ -586,10 +598,21 @@ class TutorDriver:
         return self.problem["statement"] + hint + student
 
     def _repeats_previous(self, reply: str) -> bool:
-        """回覆是否與最近 3 輪助教回覆（正規化後）完全相同。"""
+        """回覆是否重複最近 3 輪助教回覆：完全相同，或高度相似（換句話重問同一題）。
+
+        相似度用 difflib ratio ≥0.85（正規化後）：抓「改寫式重問」——學生卡住時
+        tutor 換個說法問一模一樣的問題，逐字比對抓不到。教學輪（walkthrough）除外：
+        重講同一步（walk_retry）本就刻意相似，只用完全相同判定。"""
         prev = [m["content"] for m in self.messages if m["role"] == "assistant"][-3:]
         norm = _normalize(reply)
-        return any(norm == _normalize(p) for p in prev)
+        if any(norm == _normalize(p) for p in prev):
+            return True
+        if self.state.get("phase") == "walkthrough":
+            return False
+        import difflib
+        return any(
+            difflib.SequenceMatcher(None, norm, _normalize(p)).ratio() >= 0.85
+            for p in prev if p)
 
     def _tutor_turn(self) -> str:
         level = min(self.state["stuck_count"], 2)

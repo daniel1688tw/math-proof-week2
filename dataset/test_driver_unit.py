@@ -62,13 +62,19 @@ class _StubModel:
     device = "cpu"
 
 
+_STUB_VARIANTS = ["這一步該怎麼想？", "下一步的關鍵是什麼？", "哪個條件還沒用上？",
+                  "這裡的目標是什麼？", "先觀察哪一項比較好？", "還缺什麼理由？"]
+
+
 class _StubDriver(TutorDriver):
-    """繞過真實生成，只驗證狀態轉移與 system 組裝。"""
+    """繞過真實生成，只驗證狀態轉移與 system 組裝。
+    各輪回覆措辭輪換（模擬正常不重複的模型），避免誤觸相似度重複守衛。"""
     generated_levels: list
 
     def _generate(self, level):
         self.generated_levels.append(level)
-        return f"（等級{level}的回覆，第{len(self.generated_levels)}輪）這一步該怎麼想？"
+        n = len(self.generated_levels)
+        return f"（等級{level}的回覆，第{n}輪）{_STUB_VARIANTS[n % len(_STUB_VARIANTS)]}"
 
 
 probs = load_problems_with_ladders()
@@ -286,10 +292,14 @@ w2.step("證明：如下……請幫我審閱。")
 check("教學中交草稿 → 打斷進 review", w2.state["phase"] == "review"
       and not w2.state.get("walk_active"))
 
+_PEER_VARIANTS = ["說不定可以從定義下手。你覺得呢？", "或許先試個特例看看？",
+                  "要不要從反面假設想想？", "感覺關鍵在那個極限，你怎麼看？"]
+
+
 class _PeerStub(_StubDriver):
     def _generate(self, level):
         self.generated_levels.append(level)
-        return f"說不定可以從定義下手（想法{len(self.generated_levels)}）。你覺得呢？"
+        return _PEER_VARIANTS[len(self.generated_levels) % len(_PEER_VARIANTS)]
 
 _peer_prob = {"id": "P1", "statement": "未驗證難題", "grounding": "unverified"}
 p = _PeerStub(tok=None, model=_StubModel(), problem=dict(_peer_prob))
@@ -370,6 +380,28 @@ d5.start(opener="I am confused, please guide me step by step.")
 r1r = d5.step("I checked continuity on [a,b]. What value are we trying to get?")
 check("重複命中後重生成出新句", r1r.startswith("What value"))
 check("重複輪標記 repeat 守衛", "repeat" in d5.state["turns"][-1].guards)
+
+# 改寫式重問（換句話問同一題）也要命中：相似度 ≥0.85
+d5b = _RepeatStub(tok=None, model=_StubModel(), problem=probs["A6"])
+d5b.messages = [{"role": "assistant",
+                 "content": "Which hypothesis in the problem verifies one condition of the theorem?"}]
+d5b.state["phase"] = None
+check("換句話重問（僅一詞之差）→ 判定重複",
+      d5b._repeats_previous("Which hypothesis in the problem verifies one condition of that theorem?"))
+check("真正的新問題 → 不判重複",
+      not d5b._repeats_previous("What does the sign of g'(x) tell you about monotonicity?"))
+d5b.state["phase"] = "walkthrough"
+check("教學輪重講同一步（刻意相似）→ 不判重複",
+      not d5b._repeats_previous("Which hypothesis in the problem verifies one condition of that theorem?"))
+
+# 強困惑不受長度門檻限制（長訊息＋明說徹底卡死 → 仍升級）
+check("長嘗試＋『毫無頭緒』→ stuck",
+      is_stuck("我試著設 g(x)=f(x)-x，然後看它在端點的符號，也想過用中間值定理，"
+               "但接下來怎麼把兩個條件連起來我毫無頭緒。"))
+check("長嘗試＋completely lost → stuck",
+      is_stuck("I tried defining g(x)=f(x)-x and checked the endpoint signs, and I also thought "
+               "about the intermediate value theorem, but how to connect the two conditions "
+               "I'm completely lost."))
 
 print("[11] 語言跟隨學生（英文題＋中文學生等混合）")
 _en_prob = {"id": "B1", "statement": "Prove that a continuous function on [a,b] with f(a)<0<f(b) has a root in (a,b).",
