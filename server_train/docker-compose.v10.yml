@@ -1,0 +1,33 @@
+# v10 訓練：v9 配置不變（4B-2507、MAX_LEN=1024），資料集 800→830
+# （新增 journey 對話：#7 跨題型卡住旅程、#1 on-track 不奉送、#9 拒絕大綱式洩漏）
+services:
+  daniel-qlora-v10:
+    image: daniel-qlora-train
+    container_name: daniel-qlora-v10
+    working_dir: /workspace
+    command: bash run_train.sh
+    environment:
+      MODEL_NAME: "Qwen/Qwen3-4B-Instruct-2507"
+      TRAIN_JSONL: /workspace/data/train.jsonl
+      VAL_JSONL: /workspace/data/val.jsonl
+      ADAPTER_DIR: /workspace/out/qlora_adapter_v10
+      MAX_LEN: "1024"
+      BATCH: "4"
+      GRAD_ACCUM: "4"
+      EPOCHS: "3"
+      EVAL_STEPS: "20"
+      OPTIM: "adamw_8bit"
+      NEFTUNE_ALPHA: "5"
+    volumes:
+      - ./workspace:/workspace
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: 16G
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]
+              capabilities: [gpu]
+    restart: "no"
