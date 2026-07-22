@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教你好，我想構造一個新函數 $g(t) = e^t - 1 - t$，並對它在 $[0, x]$ 區間上套用均值定理。因為 $g(0) = 0$，只要能利用其導函數 $g'(c) = e^c - 1$ 在 $c \\in (0, x)$ 時大於 0 的性質，應該就能說明 $g(x) > 0$，進而得出 $e^x > 1 + x$。請問我這個思路正確嗎？可以請助教幫我依這個方向繼續把詳細證明補完嗎？",
+    "reply": "你的構造非常乾淨俐落，而且「$g'(c)>0$ 推出 $g(x)>0$」這一步正是均值定理要給你的。那麼 $g'(c)=e^c-1$ 為正，靠的是 $c$ 的什麼符號？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教肯定學生的構造函數思路，並順勢引導其補完證明的關鍵步驟。"
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教你好，我試著用定積分的方向來證明這題。我的想法是先考慮 $x \\ge 0$ 的情況，因為已知 $\\sin t \\le t$（對所有 $t \\ge 0$ 成立），所以對兩邊從 $0$ 到 $x$ 做定積分：$\\int_0^x \\sin t \\, dt \\le \\int_0^x t \\, dt$。計算出結果後，再利用 $\\cos x$ 與 $1-\\frac{x^2}{2}$ 皆為偶函數的對稱性，將結論推廣到 $x < 0$ 的情況。請問我這樣的思路正確嗎？可以請助教幫我依這個方向繼續完成證明嗎？",
+    "reply": "你的思路完全正確，而且「用已知的 $\\sin t\\le t$」這個引理非常乾淨利落。能說說你是怎麼把那個不等式積分成要的結果的嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教好，這題我想要改用「反證法」來證明。我打算先假設 $\\{v_1, v_2\\}$ 線性相關，由於特徵向量依定義非零，因此可以將 $v_2$ 表示為 $v_1$ 的非零純量倍（即 $v_2 = c v_1$）。接著對此式兩邊左乘矩陣 $A$，分別利用 $v_1$ 與 $v_2$ 的特徵向量性質展開，來導出 $\\lambda_1 = \\lambda_2$ 的矛盾。請問助教可以幫我依據這個思路繼續推導下去嗎？",
+    "reply": "思路非常乾淨，反證法完全可行。既然 $v_2=cv_1$，對兩邊左乘 $A$ 後會得到什麼等式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教好，我想用反證法配合 $\\epsilon$-$\\delta$ 的連續性定義來證明這題。我的思路是先假設存在某個實數 $x_0$ 使得 $f(x_0) \\neq 0$，並取 $\\epsilon = |f(x_0)| > 0$。接著利用 $f$ 在 $x_0$ 的連續性推導出在 $(x_0-\\delta, x_0+\\delta)$ 區間內 $f(x)$ 都不為零，但這會與該區間內必定存在有理數 $q$（即 $f(q)=0$）產生矛盾。請問這樣的方向正確嗎？可以請助教幫我依這個思路繼續補充完整的細節嗎？",
+    "reply": "方向完全正確，反證法在此很自然。接下來要嚴謹地把「連續性給出局部非零」轉成可量化的 $\\delta$ 說明。你能寫出連續性對應到的 $\\delta$ 是如何被 $|f(x_0)|$ 控制的嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "助教好！我想嘗試一個不同的證明方向：我打算先固定第一個整數 $a_1$，並考慮另外 $n$ 個整數與 $a_1$ 的差值（即 $a_2-a_1, a_3-a_1, \\dots, a_{n+1}-a_1$ 這 $n$ 個數）。如果其中有任何一個差值能被 $n$ 整除就證明完了；若都沒有，這 $n$ 個差值除以 $n$ 的非零餘數就只剩下 $1$ 到 $n-1$ 共 $n-1$ 種可能，再對這 $n$ 個差值套用鴿籠原理。請問這個思路可行嗎？可以請助教幫我依這個方向繼續完成證明嗎？",
+    "reply": "思路非常清晰，而且「固定一個參考點」正是要處理的技巧。你的構造很乾淨，能說說為什麼「若這些差值都不能被 $n$ 整除，它們的餘數就只有 $1$ 到 $n-1$ 共 $n-1$ 種」這個觀察成立嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "助教你好！我想嘗試用實部與虛部拆解的方式來證明。假設特徵值 $\\lambda = a + bi$，對應的特徵向量 $v = x + iy$（其中 $a,b \\in \\mathbb{R}$，$x,y \\in \\mathbb{R}^n$），將 $A(x+iy) = (a+bi)(x+iy)$ 拆成實部與虛部兩個實數向量等式。接著我想分別用 $y^T$ 與 $x^T$ 左乘這兩式，並利用 $A$ 的實對稱性質 $y^TAx = x^TAy$ 來導出虛部 $b=0$。請問助教可以幫我依照這個思路繼續往下完整推導嗎？",
+    "reply": "你的想法很清晰，而且「實部虛部」正是處理複特徵值的標準路線。我們先從 $A(x+iy)=(a+bi)(x+iy)$ 拆開，得到哪兩個實向量等式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "Instead of setting the function as $f(t) = e^t$, I want to try applying the Mean Value Theorem to the auxiliary function $g(t) = e^t - t$ on the interval $[0, x]$. By MVT, there exists some $c \\in (0, x)$ such that $\\frac{g(x) - g(0)}{x - 0} = g'(c) = e^c - 1$. Since $c > 0$, we have $e^c - 1 > 0$, which implies $g(x) > g(0)$ and directly yields $e^x - x > 1$. Could you help me verify this approach and write out the formal proof following my direction?",
+    "reply": "Your auxiliary function choice is very clean. From $g(x)-g(0)=(e^c-1)x$, what inequality does $c>0$ give, and how does it compare with $e^x-1>x$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": true,
+      "issue": "學生已給出完備且正確的證明邏輯，助教卻要求學生將結果與參考解的中間不等式 e^x-1>x 做比較，試圖拉回參考解思路。"
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I want to prove this inequality by integrating basic trigonometric inequalities instead of using second derivatives. For $t \\ge 0$, we know that $\\sin t \\le t$, so integrating both sides from $0$ to $x$ yields $\\int_0^x \\sin t \\, dt \\le \\int_0^x t \\, dt$, which directly gives $1 - \\cos x \\le \\frac{x^2}{2}$. Since both $\\cos x$ and $1 - \\frac{x^2}{2}$ are even functions, this result naturally extends to all real $x$. Could you help me formalize and complete the proof following this integration approach?",
+    "reply": "The integration route is very clean. First, what is the sign of the integrand $\\sin t-t$ on $t\\ge0$, and hence the sign of $\\int_0^x(\\sin t-t)\\,dt$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I would like to try a proof by contradiction instead of working with a linear combination equation. If $v_1$ and $v_2$ were linearly dependent, then since $v_1 \\neq 0$, we could express $v_2$ as a scalar multiple $v_2 = c v_1$ for some scalar $c$. Applying matrix $A$ to both sides yields $\\lambda_2 v_2 = c \\lambda_1 v_1 = \\lambda_1 v_2$, which forces $\\lambda_1 = \\lambda_2$ since $v_2 \\neq 0$, contradicting the assumption that the eigenvalues are distinct. Could you help me guide through writing this out into a complete, formal proof based on my approach?",
+    "reply": "Your contradiction route is completely valid and very clean. To write it formally, what do you need to add at the very beginning to set up the contradiction?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "Instead of using sequence convergence, I'd like to try proving this by contradiction using the $\\epsilon$-$\\delta$ definition of continuity. If we suppose there exists a real number $x_0$ such that $f(x_0) \\neq 0$, we can choose $\\epsilon = |f(x_0)| > 0$ to find a neighborhood $(x_0 - \\delta, x_0 + \\delta)$ where $f(x)$ cannot be zero. We can then use the density of rationals to pick a rational $q$ inside this neighborhood, which contradicts $f(q) = 0$. Could you help me formalize this step-by-step using this approach?",
+    "reply": "The contradiction route works fine. After choosing $\\epsilon=|f(x_0)|$, what does the $\\epsilon$-$\\delta$ guarantee give you about the values of $f$ near $x_0$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I was thinking of approaching this using complex roots of unity instead of standard remainders, by mapping each of the $n+1$ integers $a_k$ to $e^{2\\pi i a_k / n}$. Since there are only $n$ distinct $n$-th roots of unity, by the pigeonhole principle, at least two integers $a_i$ and $a_j$ must map to the exact same root. Dividing their corresponding exponential values gives $e^{2\\pi i (a_i - a_j)/n} = 1$, which implies that $a_i - a_j$ must be divisible by $n$. Could you help me check if this argument is rigorous and guide me on how to finish formalizing it?",
+    "reply": "The core idea is correct — you're using the pigeonhole principle on the roots of unity. But to make \"the same root\" into \"the difference is divisible by $n$\", what do you need to add?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "Instead of using complex conjugate transposes directly, I was thinking of decomposing the eigenvector into its real and imaginary parts as $v = x + iy$ and the eigenvalue as $\\lambda = a + ib$, where $x, y \\in \\mathbb{R}^n$ and $a, b \\in \\mathbb{R}$. Expanding $A(x + iy) = (a + ib)(x + iy)$ gives us two real matrix-vector equations by separating the real and imaginary components. From there, my plan is to take real dot products like $y^T A x$ and $x^T A y$ and use the symmetry of $A$ to deduce that $b = 0$. Could you help me walk through those dot product steps to complete the proof?",
+    "reply": "The decomposition route works, but it's longer than the conjugate-transpose route. Let's first verify your dot product plan: from $A(x+iy)=(a+ib)(x+iy)$, what do you get when you take the real part?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

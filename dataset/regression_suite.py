@@ -46,23 +46,22 @@ sys.path.insert(0, str(HERE))
 SCORE_DIR = HERE / "regression_scores"
 # 基準檔按評審後端分開：不同裁判的尺不可互比（換後端必須重建獨立基準）。
 # ── 評審後端選型結論（2026-07-22，JUDGE_BACKEND_MIGRATION_PLAN.md §七）──
-# Antigravity CLI（agy / Gemini 3.1 Pro Low）已完整接入並雙輪實測：
-#   · 穩定性：25×3 檔位壓測 100% 可解析、零逾時 ✓
-#   · 單題評審（math_ok/score/s2_catch/reveal/altmethod）：兩輪穩定、可用 ✓
-#   · 多輪對話層（n=3）：兩輪對同一 v9 模型 dialogue_math_ok_zh 0.333↔0.0、
-#     en 0.667↔1.0 劇烈擺動，且會把「引導問題」誤判成「數學錯誤」→ 不可靠 ✗
-# 對話層正是抓 v9/v10 迭代退步最關鍵處，故**預設維持 claude**（已驗證能抓對話退步）；
-# agy 後端完整保留，JUDGE_BACKEND=antigravity 可切（適合單題交叉驗證或 Claude 限額備援）。
-_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")
+# 預設：Antigravity CLI（agy / **Gemini 3.6 Flash Medium**），Claude 保留為 JUDGE_BACKEND=claude 備援。
+# 選型（各檔位 25 次壓測皆 100% 可解析、零逾時）：
+#   · 3.5 Flash Medium：判準對照乾淨案例憑空捏造誤殺 → 淘汰
+#   · 3.1 Pro Low/High：對話層 dialogue_math_ok_zh 兩輪 0.333↔0.0 崩潰、把引導誤判成數學錯 → 淘汰
+#   · **3.6 Flash Medium：判準對照 2/2、正確區分引導/數學、zh 對話數學兩輪 0.667↔0.667 逐字一致、
+#     最快（6.5s）→ 採用**。殘餘 en 對話/後盾 ±1 案 n=3 本質雜訊（Claude 亦有），基準取兩輪保守 min 吸收。
+_BACKEND = os.environ.get("JUDGE_BACKEND", "antigravity")
 BASELINE = HERE / ("regression_baseline.json" if _BACKEND == "claude"
                    else f"regression_baseline_{_BACKEND}.json")
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
 ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v9")
 PY = sys.executable
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
-JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")   # claude | antigravity | gemini
+JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "antigravity")   # antigravity | claude | gemini
 AGY_PATH = os.path.join(os.environ.get("LOCALAPPDATA", ""), "agy", "bin", "agy.exe")
-AGY_MODEL = os.environ.get("AGY_MODEL", "Gemini 3.1 Pro (Low)")
+AGY_MODEL = os.environ.get("AGY_MODEL", "Gemini 3.6 Flash (Medium)")
 JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）
 # 樣本數少的 judge 指標，單題改判的跳動就超過 0.05（s2_catch 僅 14 題，1 題 = 0.071）。
 # 容忍度須蓋過「同輸入、評審單題改判」的雜訊，否則守門會反覆誤殺（2026-07-14 實測：

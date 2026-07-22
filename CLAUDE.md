@@ -254,16 +254,19 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
   `taskkill /F /IM "Antigravity.exe"` + `"Antigravity IDE.exe"`。`agy` CLI 憑證存磁碟，
   IDE 關掉不影響評審呼叫。
 
-## 評審後端：agy（Gemini）接入但預設仍 Claude（2026-07-22，`dataset/JUDGE_BACKEND_MIGRATION_PLAN.md`）
+## 評審後端：改用 agy / Gemini 3.6 Flash Medium 為預設（2026-07-22，`dataset/JUDGE_BACKEND_MIGRATION_PLAN.md`）
 
-- Antigravity CLI（`agy`，模型 Gemini 3.1 Pro Low）已完整接入 `regression_suite.py`
-  抽象層（`JUDGE_BACKEND=antigravity` 可切），並雙輪對同一 v9 實測。
-- **結論：單題評審穩定可用，但多輪對話層不可靠 → 預設維持 `claude`。**
-  對話層兩輪對同一模型 dialogue_math_ok_zh **0.333↔0.0**、en **0.667↔1.0** 劇烈擺動，
-  且會把「引導問題（罐頭式追問）」誤判成「數學錯誤」（M2）。對話層正是抓 v9/v10 退步
-  最關鍵處，不能可靠守門就不設為預設。agy 保留作單題交叉驗證／Claude 限額備援。
-- 壓測腳本 `test_agy_stability.py`、判準對照 `test_agy_rigor.py`/`test_agy_rigor2.py`
-  留存供未來重評；`regression_baseline_antigravity.json` 為臨時基準（對話層需多輪校準）。
+- Antigravity CLI（`agy`）已完整接入 `regression_suite.py` 抽象層並成為**預設評審**
+  （`JUDGE_BACKEND=antigravity` + `AGY_MODEL="Gemini 3.6 Flash (Medium)"`）；
+  Claude 保留為 `JUDGE_BACKEND=claude` 備援。達成脫離 Claude 額度依賴。
+- **選型（四檔位、25 次壓測皆 100% 可解析）**：3.5 Flash Medium 判準對照憑空捏造誤殺、
+  3.1 Pro 對話層 dialogue_math_ok_zh 兩輪 **0.333↔0.0 崩潰**且把引導誤判成數學錯 → 皆淘汰；
+  **3.6 Flash Medium** 判準對照 2/2、zh 對話數學兩輪 **0.667↔0.667 逐字一致**、
+  正確區分引導/數學、最快（6.5s）→ 採用。教訓：**模型層級高 ≠ 當裁判可靠**（Pro 反而崩）。
+- 基準 `regression_baseline_antigravity.json` = 兩輪保守 **min**（吸收 en 對話/後盾 ±1 案
+  的 n=3 本質雜訊，Claude 亦有）。不同裁判的尺不可互比，故獨立基準檔。
+- 選型腳本留存：`test_agy_stability.py`（壓測）、`test_agy_rigor.py`/`test_agy_rigor2.py`
+  （判準對照，一錯一對），未來換模型可快速重評。
 
 ## Driver hardening（2026-07-19，計分卡 `2026-07-19T154401_f4c1ee4.json`，25/25 全綠）
 
