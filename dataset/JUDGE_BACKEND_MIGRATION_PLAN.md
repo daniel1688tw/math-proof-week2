@@ -1,74 +1,101 @@
-# 評審後端遷移計劃：Antigravity CLI（`agy`）作為 Claude Sonnet 的替代/備援
+# 評審後端遷移：Antigravity CLI（`agy` / Gemini 3.1 Pro Low）
 
-**狀態：計劃書，尚未實作。** 現行部署與守門**繼續使用 `claude` CLI（Sonnet）當評審**。
-本文件記錄可行性驗證結果與未來要換時的具體步驟，等真正需要時再照此實作。
+**狀態：已完整接入並雙輪實測（2026-07-22）。最終結論：預設維持 `claude`，
+`agy` 保留為可選後端（`JUDGE_BACKEND=antigravity`）。** 見 §七選型結論。
 
----
-
-## 一、為什麼考慮換
-
-- 守門完整跑一輪需 Claude 評審 100+ 次；Claude Pro 額度中斷會打斷整輪
-  （已有 `--gen-only`／`--rejudge`／`auto_gate` 續評機制緩解，但仍受限）。
-- Antigravity CLI 免費預覽期若額度充足，可作為**備援評審**（Claude 限額時切換）或
-  **雙評審交叉驗證**（降低單一評審雜訊，見弱點 #6）。
-
-## 二、可行性驗證結果（2026-07-18，已實測）
-
-| 項目 | 結果 |
-|---|---|
-| CLI 存在與安裝 | ✅ `agy.exe` v1.1.4，`irm https://antigravity.google/cli/install.ps1 \| iex`，裝到 `%LOCALAPPDATA%\agy\bin`，SHA512 校驗 |
-| 無頭模式 | ✅ `agy -p "<prompt>"`（別名 `--print`／`--prompt`）單次非互動、回純文字到 stdout、exit 0 |
-| 授權 | ✅ 沿用已安裝並登入的 **Antigravity IDE** 憑證，無需另外登入（實測 `-p` 直接回應） |
-| 相關旗標 | `--model`、`--print-timeout`（預設 5m）、`--dangerously-skip-permissions` |
-
-**已知風險（實測觀察）：**
-1. **額度非 Gemini Pro 消費訂閱**：綁 Antigravity 帳號（免費預覽自有額度），非
-   gemini.google.com 的 Pro 方案。要換帳號＝在 Antigravity IDE 內重新登入。
-2. **後端連線時好時壞**：`agy models` 多次呼叫會 hang（限流或網路）。批次連呼 100+ 次
-   的穩定性**尚未驗證**，是換用前最大的未知數。
-3. **方法論斷點**：現行基準以 Claude Sonnet 建立；換評審＝換尺，reveal/score 拿捏不同，
-   **基準須整套重建**，不可與 Claude 基準混比。
-
-## 三、程式面：架構已預留（無需大改）
-
-`regression_suite.py` 已有抽象層：
-- `JUDGE_BACKEND` 環境變數（`claude` | `gemini`）。
-- `_judge_cmd()` 依後端組命令列。
-- 各後端獨立基準檔（如 `regression_baseline_gemini.json`），`record` 記 `judge_backend`。
-
-要接 `agy` 只需在 `_judge_cmd()` 增加一個分支，**不動守門主流程**。
-
-## 四、實作步驟（未來需要時照做）
-
-1. **接後端**：在 `_judge_cmd()` 增 `antigravity` 分支：
-   ```
-   [agy_path, "-p", prompt, "--print-timeout", "3m"]
-   ```
-   （必要時加 `--model <gemini-model>`；模型清單待 `agy models` 穩定後確認。）
-   `claude_call` 的限流重試正則需增列 agy 的限額/逾時訊息樣式。
-2. **穩定性壓測**（**換用前必做**）：寫一支小腳本，連續呼叫 `agy -p` 120 次
-   （模擬一輪守門的評審量），量測：JSON 可解析率、平均延遲、hang/限流發生率。
-   通不過就不換。
-3. **JSON 契約驗證**：用 §五的對照集，確認 agy 對評審 prompt 穩定回**可解析 JSON**
-   （無 code fence、無多餘散文）。必要時在 prompt 加更硬的格式約束。
-4. **雙評審對照**：同一批已存檔對話（`regression_scores/*_dialogues.json`、`*_replies.json`）
-   分別用 `claude` 與 `agy` 評，比對 math_ok/reveal_ok/score 一致率，量化評審尺差異。
-5. **重建基準**：`JUDGE_BACKEND=antigravity` 跑一輪完整守門，產出
-   `regression_baseline_gemini.json`（或 `_antigravity.json`）作為該後端的獨立地板。
-6. **定位角色**：決定 agy 是（a）Claude 限額時的**備援**、（b）**雙評審交叉**、
-   還是（c）**主評審**。建議先做 (a)/(b)，主評審維持 Claude 直到穩定性充分驗證。
-
-## 五、對照驗證清單（步驟 2–4 用）
-
-- 輸入：`dataset/regression_scores/` 內既有的 `*_replies.json` / `*_dialogues.json`（已存檔、
-  不需重跑 GPU）。
-- 指標：JSON 可解析率 ≥99%、連續 120 呼叫零 hang、與 Claude 評分一致率（math_ok/reveal_ok
-  逐項、score ±1）。
-- 通過門檻：穩定性達標且尺差可量化，才進入 §四步驟 5 重建基準。
+> **§七 最終選型結論（2026-07-22，兩輪對同一 v9 模型實測）**
+>
+> | 面向 | 結果 |
+> |---|---|
+> | 穩定性 | ✅ 三檔位各 25 次壓測 100% 可解析、零逾時 |
+> | 單題評審（math_ok/score/s2_catch/reveal/altmethod） | ✅ 兩輪穩定（math_ok_zh 0.90/0.94、score_zh 0.76/0.75、s2_catch 相同、reveal 相近） |
+> | **多輪對話層（n=3）** | ❌ **兩輪劇烈擺動**：dialogue_math_ok_zh **0.333↔0.0**、en **0.667↔1.0**、guidance_zh 0.533↔0.333 |
+> | 判準可靠性 | ⚠️ 會把「引導問題（罐頭式追問）」誤判成「數學錯誤」（M2 案例，math_ok=False 但理由是引導） |
+>
+> **判斷**：Gemini 3.1 Pro (Low) 單題評審可用，但對話層不可靠。對話層正是抓
+> v9 收尾退步、v10 延伸退步最關鍵的閘——這裡不能可靠守門，就不該讓 Gemini 當唯一預設。
+> 且對話層 n=3 + LLM 即興學生的本質雜訊，Claude 也有（歷史 1.0/0.333 擺動），Gemini 更甚。
+>
+> **決策**：**預設維持 `claude`**（已驗證能抓對話退步）。`agy` 後端程式與基準檔完整保留，
+> 適用場景：(a) 單題指標的**交叉驗證**、(b) Claude 限額時的**備援**。整套壓測/對照/
+> 基準腳本留存，未來若 Antigravity 出更強模型或修正對話層判準，可快速重新評估。
+>
+> `regression_baseline_antigravity.json` 為 run1 建立的**臨時**基準；因對話層雙輪不穩，
+> 若要正式用 agy 守門，對話/後盾指標需多輪校準（取保守 floor）後才可信。
 
 ---
 
-## 現行決策
+## 一、換的原因
 
-**維持 `claude` CLI（Sonnet）當評審。** 本計劃備而不用；未來 Claude 額度成為瓶頸、
-或想加雙評審降雜訊時，再依 §四實作。`agy` 已安裝可隨時實測，架構已預留接點。
+- 守門完整跑一輪需評審 100+ 次；Claude Pro 額度中斷會打斷整輪
+  （`--gen-only`／`--rejudge`／`auto_gate` 續評機制仍保留，換後端後同樣適用）。
+- Antigravity CLI 額度與 Claude Code session 完全解耦，可分散依賴、降低同帳號搶額度污染評審的風險。
+
+## 二、選型過程（2026-07-21，實測數據）
+
+### 穩定性壓測（`test_agy_stability.py`，25 次連續呼叫，貼近 Tier2 評審格式）
+
+| 模型檔位 | 可解析率 | 平均延遲 | 最大延遲 | hang/逾時 |
+|---|---|---|---|---|
+| Gemini 3.5 Flash (Medium) | 25/25 100% | 7.9s | 11.8s | 0 |
+| Gemini 3.1 Pro (High) | 25/25 100% | 14.1s | 19.1s | 0 |
+| Gemini 3.1 Pro (Low) | 25/25 100% | 13.3s | 17.9s | 0 |
+
+三個檔位穩定性全數通過（門檻：可解析率 ≥99%、零 hang）。
+
+### 判準嚴謹度對照（`test_agy_rigor.py` / `test_agy_rigor2.py`，2 個已知案例）
+
+用 v10 判定時 Claude 已標注過的兩筆真實對話（H5/zh 含真實數學錯誤、X4/en 乾淨無誤）
+讓三個檔位重判：
+
+| 模型檔位 | 錯誤案例（應 False） | 乾淨案例（應 True） |
+|---|---|---|
+| Gemini 3.5 Flash (Medium) | ✓ 抓到 | ✗ 誤殺（**憑空捏造**：把題目核心正確命題判為錯誤陳述） |
+| Gemini 3.1 Pro (High) | ✓ 抓到 | ✗ 誤殺（嚴格但有文本依據：抓到原文一處用詞疑似口誤） |
+| Gemini 3.1 Pro (Low) | ✓ 抓到 | ✗ 誤殺（同上，理由相近） |
+
+**結論**：三檔位皆能抓到真實數學錯誤，但都比 Claude 對同一乾淨案例判得更嚴格
+（guidance 評分明顯偏低，1-3 分 vs Claude 同案例 ~4 分）。Flash 的誤殺屬於憑空捏造、
+不可信賴；Pro 系列的誤殺至少有文本依據，屬於**判準尺度差異**而非推理錯誤。
+**Low 與 High 表現幾乎相同（延遲也相近），故選延遲較低的 Low。**
+
+## 三、決策
+
+**採用 `Gemini 3.1 Pro (Low)`，獨立重建基準，不與 Claude 舊基準比較。**
+Gemini 系列的評審尺度整體比 Claude 嚴格，這代表「通過 antigravity 守門」與
+「通過 Claude 守門」是兩把不同的尺——按遷移原則，**只能同尺比較**（新模型 vs
+antigravity 基準），不可直接拿新模型的 antigravity 分數去比 Claude 舊基準。
+
+## 四、實作內容（`regression_suite.py`）
+
+- `JUDGE_BACKEND` 預設值：**維持 `claude`**（§七雙輪實測後的最終決定）；
+  `JUDGE_BACKEND=antigravity` 可切到 agy。以下抽象層對三個後端皆可用。
+- 新增 `AGY_PATH`（固定裝在 `%LOCALAPPDATA%\agy\bin\agy.exe`）、`AGY_MODEL`
+  （預設 `"Gemini 3.1 Pro (Low)"`，可用 `AGY_MODEL` 環境變數覆寫）。
+- **`_judge_cmd()` 改為吃 `prompt` 參數**：claude/gemini 走 stdin 餵 prompt（沿用原邏輯）；
+  agy 的 `-p` 吃**命令列參數**、不吃 stdin，故 antigravity 分支把 prompt 直接組進
+  argv 清單（`[AGY_PATH, "--model", AGY_MODEL, "-p", prompt, "--print-timeout", "180s"]`）。
+  `claude_call()` 對應改為依後端決定 `stdin_input` 是否為 `None`，重試迴圈中
+  antigravity 每次都要重組命令（prompt 在 argv 裡，跟 claude/gemini 的 cmd 固定不同）。
+- `claude_available()` 對 antigravity 改用 `os.path.exists(AGY_PATH)` 而非
+  `shutil.which()`（agy 不在 PATH 上）。
+- 基準檔：`regression_baseline_antigravity.json`（獨立於 `regression_baseline.json`）。
+- 現有 JSON 解析（`parse_json_obj` + `_balanced` + `_loads_lenient`）本身就容錯，
+  未特別為 agy 輸出格式調整，實測相容。
+
+## 五、壓測與判準對照腳本（保留，供未來重新校準用）
+
+- `test_agy_stability.py`：`AGY_MODEL=<檔位> python test_agy_stability.py`，25 次
+  連續呼叫量測可解析率/延遲/hang。
+- `test_agy_rigor.py` / `test_agy_rigor2.py`：拿已知 Claude 判定的真實案例（一錯一對）
+  給 agy 重判，量化判準差異。未來若懷疑某次判定失準，可用同一組腳本快速複測。
+
+## 六、殘餘風險（換用後仍需留意）
+
+1. **額度**：Antigravity 免費預覽帳號，非 Gemini Pro 消費訂閱涵蓋範圍，額度上限未知，
+   長時間大量評審呼叫若觸頂，`claude_call` 現有的限流偵測正則（`hit your limit` 等）
+   未必涵蓋 agy 特有的錯誤字串，需在實際跑大量評審後觀察並補上樣式。
+2. **判準嚴格度＋對話層不可靠**（§七）：Gemini 單題比 Claude 嚴（尺度差異，可接受），
+   但對話層 n=3 兩輪劇烈擺動且會把引導問題誤判成數學錯誤——這是不採用為預設的主因。
+3. **對照樣本量小**（僅 2 判準案例、2 輪守門）：若未來要重新評估 agy，應先用 §五腳本
+   擴大對照樣本、並對對話/後盾指標做多輪校準取保守 floor，再決定是否升為預設。

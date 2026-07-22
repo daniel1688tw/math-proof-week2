@@ -44,7 +44,15 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 SCORE_DIR = HERE / "regression_scores"
-# 基準檔按評審後端分開：不同裁判的尺不可互比（gemini 首跑會自建 gemini 尺的基準）
+# 基準檔按評審後端分開：不同裁判的尺不可互比（換後端必須重建獨立基準）。
+# ── 評審後端選型結論（2026-07-22，JUDGE_BACKEND_MIGRATION_PLAN.md §七）──
+# Antigravity CLI（agy / Gemini 3.1 Pro Low）已完整接入並雙輪實測：
+#   · 穩定性：25×3 檔位壓測 100% 可解析、零逾時 ✓
+#   · 單題評審（math_ok/score/s2_catch/reveal/altmethod）：兩輪穩定、可用 ✓
+#   · 多輪對話層（n=3）：兩輪對同一 v9 模型 dialogue_math_ok_zh 0.333↔0.0、
+#     en 0.667↔1.0 劇烈擺動，且會把「引導問題」誤判成「數學錯誤」→ 不可靠 ✗
+# 對話層正是抓 v9/v10 迭代退步最關鍵處，故**預設維持 claude**（已驗證能抓對話退步）；
+# agy 後端完整保留，JUDGE_BACKEND=antigravity 可切（適合單題交叉驗證或 Claude 限額備援）。
 _BACKEND = os.environ.get("JUDGE_BACKEND", "claude")
 BASELINE = HERE / ("regression_baseline.json" if _BACKEND == "claude"
                    else f"regression_baseline_{_BACKEND}.json")
@@ -52,7 +60,9 @@ MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
 ADAPTER_DIR = HERE / os.environ.get("FINAL_ADAPTER", "qlora_adapter_v9")
 PY = sys.executable
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "sonnet")
-JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")   # claude | gemini
+JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "claude")   # claude | antigravity | gemini
+AGY_PATH = os.path.join(os.environ.get("LOCALAPPDATA", ""), "agy", "bin", "agy.exe")
+AGY_MODEL = os.environ.get("AGY_MODEL", "Gemini 3.1 Pro (Low)")
 JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（評審噪音）
 # 樣本數少的 judge 指標，單題改判的跳動就超過 0.05（s2_catch 僅 14 題，1 題 = 0.071）。
 # 容忍度須蓋過「同輸入、評審單題改判」的雜訊，否則守門會反覆誤殺（2026-07-14 實測：
@@ -113,15 +123,20 @@ DIALOGUE_TURNS = 6
 S4_CASES = ["H5", "M2", "X4", "H3", "X2", "X6"]
 
 
-# ── Claude CLI（評審與學生共用）────────────────────────────────────────────────
+# ── 評審 CLI（claude / gemini / antigravity 共用介面）───────────────────────────
 def claude_available() -> bool:
+    if JUDGE_BACKEND == "antigravity":
+        return os.path.exists(AGY_PATH)
     return shutil.which(JUDGE_BACKEND) is not None
 
 
-def _judge_cmd() -> list | None:
-    """評審後端指令（JUDGE_BACKEND=claude|gemini）。兩者皆為 headless、stdin 餵 prompt。
-    gemini：獨立 Google 額度，與 Claude Code session 完全解耦（2026-07-16 起支援，
-    動機：同帳號搶額度反覆污染評審，且換裁判可破除「Claude 教、Claude 評」循環）。"""
+def _judge_cmd(prompt: str = "") -> list | None:
+    """評審後端指令。claude/gemini 走 stdin 餵 prompt；agy 的 -p 吃命令列參數，不吃 stdin，
+    故 antigravity 分支需把 prompt 直接組進命令（呼叫端仍統一用 claude_call(prompt)）。"""
+    if JUDGE_BACKEND == "antigravity":
+        if not os.path.exists(AGY_PATH):
+            return None
+        return [AGY_PATH, "--model", AGY_MODEL, "-p", prompt, "--print-timeout", "180s"]
     exe = shutil.which(JUDGE_BACKEND)
     if not exe:
         return None
@@ -134,16 +149,19 @@ def claude_call(prompt: str, timeout: int = 420, retries: int = 6) -> str | None
     """呼叫評審 CLI（後端依 JUDGE_BACKEND）；同帳號併發/速率限制會造成陣發性失敗，
     重試＋退避是必要的。退避加長（短退避不足以讓限流視窗恢復）。"""
     import time
-    cmd = _judge_cmd()
+    cmd = _judge_cmd(prompt)
     if not cmd:
         return None
+    stdin_input = None if JUDGE_BACKEND == "antigravity" else prompt
     last_err = ""
     for attempt in range(retries):
         if attempt:
             time.sleep(min(30 * attempt, 120))   # 退避 30/60/90/120/120s，讓限流視窗恢復
+            if JUDGE_BACKEND == "antigravity":
+                cmd = _judge_cmd(prompt)          # antigravity 每次重試需重組（prompt 在 argv 裡）
         try:
             r = subprocess.run(
-                cmd, input=prompt, capture_output=True, text=True,
+                cmd, input=stdin_input, capture_output=True, text=True,
                 encoding="utf-8", errors="replace", timeout=timeout)
         except (subprocess.TimeoutExpired, OSError) as e:
             last_err = str(e)[:200]

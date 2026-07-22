@@ -248,6 +248,22 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 - 部署預設 adapter 已全面切 v9（各 runner env default），v8 目錄保留可 env 覆寫回退。
 - 本機 6GB 卡教訓：連跑兩輪 suite 之間必須 `ollama stop`（Tier 4 後盾的 Ollama 模型駐留 3.2GB
   會使下一輪載入 4-bit 基底 segfault，兩次撞同一進度點才查出）。
+- **本機 6GB 卡教訓 2（2026-07-22）**：裝了 Antigravity CLI（`agy`）後，**Antigravity IDE
+  桌面應用**會啟一堆背景進程（實測 16 個，GPU 加速 UI 渲染）搶這張卡，導致 4-bit 載入
+  在 30-40% segfault（連撞四次同位置才鎖定）。跑本機守門前先關 IDE：
+  `taskkill /F /IM "Antigravity.exe"` + `"Antigravity IDE.exe"`。`agy` CLI 憑證存磁碟，
+  IDE 關掉不影響評審呼叫。
+
+## 評審後端：agy（Gemini）接入但預設仍 Claude（2026-07-22，`dataset/JUDGE_BACKEND_MIGRATION_PLAN.md`）
+
+- Antigravity CLI（`agy`，模型 Gemini 3.1 Pro Low）已完整接入 `regression_suite.py`
+  抽象層（`JUDGE_BACKEND=antigravity` 可切），並雙輪對同一 v9 實測。
+- **結論：單題評審穩定可用，但多輪對話層不可靠 → 預設維持 `claude`。**
+  對話層兩輪對同一模型 dialogue_math_ok_zh **0.333↔0.0**、en **0.667↔1.0** 劇烈擺動，
+  且會把「引導問題（罐頭式追問）」誤判成「數學錯誤」（M2）。對話層正是抓 v9/v10 退步
+  最關鍵處，不能可靠守門就不設為預設。agy 保留作單題交叉驗證／Claude 限額備援。
+- 壓測腳本 `test_agy_stability.py`、判準對照 `test_agy_rigor.py`/`test_agy_rigor2.py`
+  留存供未來重評；`regression_baseline_antigravity.json` 為臨時基準（對話層需多輪校準）。
 
 ## Driver hardening（2026-07-19，計分卡 `2026-07-19T154401_f4c1ee4.json`，25/25 全綠）
 
