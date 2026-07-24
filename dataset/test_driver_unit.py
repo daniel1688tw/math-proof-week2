@@ -130,8 +130,30 @@ d6.step("嗯，這樣整個就串起來了。不過我發現我剛才對 x≤0 �
 check("完成後的反思閒聊 → closed（不推替代法）", d6.state["phase"] == "closed")
 check("closed 指示禁新問題／替代法",
       "不要再拋出任何新問題" in d6._system(0) and "替代證法" in d6._system(0))
+# #11（Fork B，2026-07-23）：完成後帶問句的反思——好奇/範圍/非斷言質疑都進 closed
+# （只簡短回答那一個問題、不藉機延伸）；只有斷言式質疑才跳回一般流程重新檢查。
+d6.step("這樣是不是對 x<0 也成立呢？")
+check("完成後帶問句的範圍好奇 → closed（#11：只答不延伸）", d6.state["phase"] == "closed")
+check("closed 新指示：只簡短回答那一個問題",
+      "只簡短回答那一個問題" in d6._system(0))
 d6.step("你確定這樣就對了嗎？")
-check("完成後學生反過來質疑 → 不走 closed", d6.state["phase"] != "closed")
+check("完成後非斷言的『你確定…嗎』→ closed（簡答，非重驗；Fork B）",
+      d6.state["phase"] == "closed")
+d6.step("你錯了吧，這一步根本不成立。")
+check("完成後斷言式質疑（_CHALLENGE_RE 命中）→ 不走 closed",
+      d6.state["phase"] != "closed")
+
+# 英文平行：完成後帶問句的好奇 → closed（雙語一致）
+d7 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d7.generated_levels = []
+d7.start(opener="So that completes the proof, right? The minimum value is 0, attained "
+                "only at x = 0, so it holds for all x.")
+check("EN 實質宣告證完 → review 且 arm done_closed",
+      d7.state["phase"] == "review" and d7.state.get("done_closed"))
+d7.step("So does this also hold for x < 0?")
+check("EN 完成後帶問句好奇 → closed（#11）", d7.state["phase"] == "closed")
+check("EN closed 新指示：只答那一個問題、不延伸",
+      "answer only that one question" in d7._system(0).lower())
 d2.state["phase"] = "refuse_leak"
 sys_leak = d2._system(0)
 check("refuse_leak 指示含『拒絕』與『問一個』", "拒絕" in sys_leak and "問一個" in sys_leak)

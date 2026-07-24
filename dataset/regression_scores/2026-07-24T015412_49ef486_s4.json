@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教好，我想用均值定理來證明這個題目。我的思路是構造一個新函數 $g(t) = e^t - t - 1$，並對它在 $[0, x]$ 區間上使用均值定理，說明存在 $c \\in (0, x)$ 使得 $g(x) - g(0) = g'(c) x$。接著只要討論 $g'(c)$ 的正負就能推出 $g(x) > 0$，即 $e^x > 1 + x$。請問可以請您順著我這個方向，幫我寫出完整的證明步驟嗎？",
+    "reply": "你的構造非常乾淨俐落，而且「對 $g$ 用均值定理」正是這條路線的關鍵一步。能先說說 $g(x)-g(0)$ 等於什麼嗎?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教你好，我想嘗試用半角公式來證明。我打算利用 $\\cos x = 1 - 2\\sin^2\\left(\\frac{x}{2}\\right)$ 這個恆等式，結合已知對所有實數 $\\theta$ 都有 $|\\sin \\theta| \\le |\\theta|$ 的性質，將 $\\theta = \\frac{x}{2}$ 代入進行不等式放縮。請問助教可以幫我依這個思路把詳細的證明過程繼續寫出來嗎？",
+    "reply": "當然可以。我們先從半角公式出發：$\\cos x = 1 - 2\\sin^2\\left(\\frac{x}{2}\\right)$。要證 $\\cos x\\ge1-\\frac{x^2}{2}$，你打算如何把 $\\sin\\left(\\frac{x}{2}\\right)$ 放到 $x$ 的層次？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教好，我想嘗試用「反證法」來證明：假設 $\\{v_1, v_2\\}$ 線性相依，因為特徵向量皆非零，所以必定存在非零純量 $k$ 使得 $v_2 = k v_1$。我打算對此式兩邊左乘矩陣 $A$，分別利用 $A(k v_1)$ 與 $A v_2 = \\lambda_2 v_2$ 來比較結果，從而導出 $\\lambda_1 = \\lambda_2$ 的矛盾。請問我這個思路可行嗎？可以請助教幫我順著這個方向繼續寫出完整證明嗎？",
+    "reply": "思路完全正確，反證法在此情境下非常自然。你已經知道要比較 $A(kv_1)$ 與 $A v_2$，那你能把兩者算出來並比較嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教你好，我想要用「零點集是閉集」的角度來證明這題。我的思路是考慮集合 $Z = \\{x \\in \\mathbb{R} \\mid f(x) = 0\\}$，因為 $f$ 連續，單點集 $\\{0\\}$ 的原像 $Z$ 在 $\\mathbb{R}$ 中會是閉集。既然有理數集 $\\mathbb{Q} \\subseteq Z$，只要對兩邊取閉包並利用 $\\mathbb{Q}$ 在 $\\mathbb{R}$ 中稠密的性質（$\\overline{\\mathbb{Q}} = \\mathbb{R}$），就能說明 $Z = \\mathbb{R}$。請問助教，我這樣的構想方向正確嗎？可以幫我依這個方向繼續完成證明嗎？",
+    "reply": "方向完全正確，而且「閉集 + 稠密」正是分析中常用的工具。你能把「$\\mathbb{Q}\\subseteq Z$、$\\overline{\\mathbb{Q}}=\\mathbb{R}$、$Z$ 閉」三者如何連起來說清楚嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "助教好，我不想用計算「除以 $n$ 的餘數」來分類，而是打算從抽象代數中「商群與陪集劃分」的角度來證明。我們將整數加法群 $\\mathbb{Z}$ 對子群 $n\\mathbb{Z}$ 做陪集劃分，因為指數 $[\\mathbb{Z} : n\\mathbb{Z}] = n$，代表全體整數會被劃分為 $n$ 個互斥的陪集。根據鴿籠原理，任意 $n+1$ 個整數中必有兩個數屬於同一個陪集，因此兩數相減必屬於子群 $n\\mathbb{Z}$（即其差可被 $n$ 整除）。請問我這樣的證明思路是否嚴謹？可以請助教幫我依這個方向繼續補充完整的論述細節嗎？",
+    "reply": "你的抽象代數路線完全可行，而且非常漂亮。要讓「同一陪集」這個直覺轉成嚴謹的陳述，你能先說說「兩個元素屬於同一陪集」在算術上等價於什麼嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教肯定學生的陪集劃分證明路線，並順著其思路進行正確引導。"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "老師好，我想嘗試把特徵值與特徵向量拆解成實部與虛部來證明，也就是設 $\\lambda = a + bi$ 且特徵向量 $v = x + iy$（其中 $x, y$ 為實向量）。接著代入 $Av = \\lambda v$ 展開並分別比較實部與虛部得到兩個實數矩陣方程式，再利用 $A$ 的實對稱性質 $y^T Ax = x^T Ay$ 來進行內積運算，目標是導出虛部 $b = 0$。請問依據這個思路，接下來我可以怎麼具體展開推導呢？",
+    "reply": "思路很乾淨，但要小心複向量的內積。展開 $Av = \\lambda v$ 後，你會得到什麼樣的兩個實向量方程？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "Hi! Instead of applying the Mean Value Theorem directly to $e^t$, I want to define an auxiliary function $g(t) = e^t - t - 1$ on $[0, x]$. My plan is to apply the MVT to $g(t)$ to get $\\frac{g(x) - g(0)}{x} = g'(c)$ for some $c \\in (0, x)$, and then evaluate $g'(c) = e^c - 1$ when $c > 0$. Could you help me walk through the rest of the proof using this direction?",
+    "reply": "Your auxiliary function is a very clean choice — it's exactly what makes the MVT argument work. After applying the MVT to $g(t)$, what does $\\frac{g(x)-g(0)}{x}$ equal?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I'd like to try proving this using the trigonometric identity $1 - \\cos x = 2\\sin^2(x/2)$ instead of taking derivatives. Since we know the fundamental inequality $|\\sin \\theta| \\le |\\theta|$ for all real $\\theta$, my plan is to apply this to $\\sin(x/2)$ and square both sides to bound $1 - \\cos x$. Could you help me write out the full proof step-by-step using this approach?",
+    "reply": "Your idea is very clean — let's build it together. Starting from $1-\\cos x=2\\sin^2(x/2)$, what does the standard inequality $|\\sin\\theta|\\le|\\theta|$ give you after substituting $\\theta=x/2$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "Hi TA, I'd like to try proving this by contradiction instead of setting up a linear combination $c_1 v_1 + c_2 v_2 = 0$. If $v_1$ and $v_2$ were linearly dependent, then because $v_1 \\neq 0$, we could write $v_2 = c v_1$ for some non-zero scalar $c$. My plan is to multiply both sides of $v_2 = c v_1$ by the matrix $A$ to compare the resulting terms and reach a contradiction with $\\lambda_1 \\neq \\lambda_2$. Could you help me carry out the rest of the steps following this direction?",
+    "reply": "The direction is completely valid — contradiction is a legitimate route. After multiplying $v_2=cv_1$ by $A$, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "Hi! Instead of using sequence convergence, I want to try proving this by contradiction using the $\\epsilon$-$\\delta$ definition of continuity. Suppose there exists some real $a$ such that $f(a) \\neq 0$; then by taking $\\epsilon = |f(a)| > 0$, we can find a neighborhood around $a$ where $f$ remains non-zero. However, since the rationals are dense, that neighborhood must contain a rational point $q$ where $f(q) = 0$, creating a contradiction. Could you help me formally write out this argument?",
+    "reply": "The skeleton is correct — you've just sketched the contradiction route yourself. To make it watertight, what must you say about the value of $f(q)$, and how does that clash with the $\\epsilon$-$\\delta$ premise?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教肯定了學生的反證法與 epsilon-delta 思考方向，並適當提問引導學生完成關鍵衝突出處的嚴謹書寫。"
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "Instead of working directly with remainders, I want to try an approach using complex numbers and $n$-th roots of unity. I plan to map each integer $a_k$ to the complex number $z_k = e^{2\\pi i a_k / n}$, noting that any such value must satisfy $z^n = 1$. Since there are only $n$ distinct $n$-th roots of unity, applying the Pigeonhole Principle to these $n+1$ values guarantees that $z_j = z_k$ for some $j \\neq k$, which means $e^{2\\pi i (a_j - a_k) / n} = 1$. Could you help me verify if this direction is sound and guide me on how to finish the formal proof from here?",
+    "reply": "The direction is completely valid — you've found a beautiful complex-analytic route. From $z_j=z_k$ you get $e^{2\\pi i(a_j-a_k)/n}=1$. What does that exponential equation imply about $a_j-a_k$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "Hi! I'm trying to approach this by splitting the eigenvalue and eigenvector into their real and imaginary parts, setting $\\lambda = a + ib$ and $v = x + iy$ for real vectors $x, y \\in \\mathbb{R}^n$. Expanding $A(x + iy) = (a + ib)(x + iy)$ gives me two real system equations: $Ax = ax - by$ and $Ay = bx + ay$. My plan is to left-multiply these by $y^T$ and $x^T$ respectively, and then leverage the symmetry of $A$ ($y^T Ax = x^T Ay$) to isolate $b$ and show $b = 0$. Could you help me walk through the rest of this derivation to make sure my reasoning holds up?",
+    "reply": "The route you've opened is very clean and rigorous. After expanding $A(x+iy)=(a+ib)(x+iy)$, what do you get as the two real equations?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教重複詢問了學生提問中已經列出的兩個實數方程式。"
+    }
+  }
+]

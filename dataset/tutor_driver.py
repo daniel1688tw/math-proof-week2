@@ -172,6 +172,8 @@ PHASE_INSTRUCTIONS = {
         "本輪指示：這道證明已經完成並確認過了。學生只是補充感想或反思，"
         "請用一兩句溫暖地回應、肯定他的收穫即可。不要再拋出任何新問題、"
         "不要提出替代證法、變形題或延伸方向；若他沒有新的數學問題就自然收尾。"
+        "若他針對這道已完成的證明提了一個問題，就只簡短回答那一個問題本身，"
+        "不要藉機引入新方法、推廣、變形或超出他所問範圍的延伸；答完即收尾。"
     ),
 }
 
@@ -207,7 +209,9 @@ PHASE_INSTRUCTIONS_EN = {
         "This turn: the proof is already complete and confirmed. The student is only adding a remark or "
         "reflection. Respond warmly in one or two sentences, affirming what they took away. Do NOT ask "
         "any new question, do NOT propose an alternative proof, a variant, or an extension; if they have "
-        "no further mathematical question, simply close."
+        "no further mathematical question, simply close. If they do ask one question about this "
+        "completed proof, answer only that one question concisely; do not introduce new methods, "
+        "generalizations, variants, or any extension beyond what they asked, then close."
     ),
 }
 
@@ -756,10 +760,11 @@ class TutorDriver:
             self.state["phase"] = "writeup_request"
             self.state["writeup_asked"] = True
         elif (self.state.get("done_closed")
-                and not _CHALLENGE_RE.search(student_text)
-                and not _QMARK_RE.search(student_text)):
-            # 證明已確認完成，學生只是補感想/反思（無提問）→ 收尾模式（不開新問題、不推延伸）
-            # （學生若反過來質疑或有新問句，落到一般流程照常回應）
+                and not _CHALLENGE_RE.search(student_text)):
+            # 證明已確認完成，學生補感想/反思或提一個範圍內問句 → 收尾模式
+            # （closed 指示會只簡短回答那一個問句、不藉機延伸；#11 Fork B 2026-07-23）。
+            # 只有斷言式質疑（_CHALLENGE_RE 命中，如「你錯了」）才落回一般流程重新檢查——
+            # 已完成的證明必經 review＋後盾複核，非斷言的「你確定嗎」由 closed 簡答即可。
             self.state["phase"] = "closed"
         else:
             self.state["phase"] = None
