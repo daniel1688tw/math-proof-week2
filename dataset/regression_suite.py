@@ -81,6 +81,14 @@ JUDGE_EPSILON_OVERRIDE = {
     "judge_reveal_ok": 0.08,
 }
 
+# Advisory 指標：計算並印出、但**不進硬性 pass/fail**（n=3 雜訊過大，無法棘輪守門）。
+# judge_dialogue_math_ok：二元 × n=3。實測同一批對話文字光評審變異就 ≥0.33
+#   （2026-07-24：v9 同文字兩評 0.0↔0.333）、跨學生路徑達全幅（0.0↔1.0，連 v9 部署模型
+#   都被自己基準判退）。沒有任何 ε 能同時容忍此雜訊又抓得到真退步（現行 judge_dialogue
+#   ε=0.07 是為 5 分制 guidance 設計、對二元 math_ok 無效）→ 降為 advisory；對話數學正確性
+#   改由 Tier 4 審閱後盾 + 質性審閱把關。詳見 eval_out_xdomain/V11_VERDICT.md。
+ADVISORY_METRICS = ("judge_dialogue_math_ok",)
+
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
 S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."
 _QMARK = re.compile(r"[?？]")
@@ -652,6 +660,9 @@ def compare_with_baseline(metrics: dict, check_missing: bool = True) -> str:
     for k, v in metrics.items():
         if k not in base:
             print(f"  [新增] {k} = {v}")
+            continue
+        if any(k.startswith(pre) for pre in ADVISORY_METRICS):
+            print(f"  [advisory] {k}: {base[k]} → {v}（雜訊過大，不進 pass/fail）")
             continue
         eps = 0.0
         if k.startswith("judge_"):

@@ -158,6 +158,39 @@ d2.state["phase"] = "refuse_leak"
 sys_leak = d2._system(0)
 check("refuse_leak 指示含『拒絕』與『問一個』", "拒絕" in sys_leak and "問一個" in sys_leak)
 
+# #12（2026-07-24）：對話中途自然證完、助教自己確認整個證明完成 → arm done_closed，
+# 後續帶問句反思走 closed（接上 #11）。根因：done_closed 原只從學生宣告 arm，
+# 接不住「助教親口確認完成」的 H5 型過度延伸。
+d8 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d8.generated_levels = []
+d8.start()
+d8.messages.append({"role": "assistant",
+                    "content": "完全正確。這樣整個證明就完成了，你自己補上了關鍵那一步。"})
+d8.step("等等，所以這樣就可以了嗎？還需要再檢查什麼嗎？")
+check("助教親口確認整個證明完成 → arm done_closed（#12）", d8.state.get("done_closed"))
+check("助教確認完成後、學生帶問句反思 → closed（#12＋#11）", d8.state["phase"] == "closed")
+
+# 負面：助教只肯定某一步、非宣告整個證明完成 → 不 arm done_closed
+d9 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d9.generated_levels = []
+d9.start()
+d9.messages.append({"role": "assistant",
+                    "content": "很好，這一步是對的。接下來 c 落在哪個區間？"})
+d9.step("嗯，我想想看，c 應該在 0 和 x 之間吧？")
+check("助教只肯定某一步（非宣告證完）→ 不 arm done_closed（#12 負面）",
+      not d9.state.get("done_closed"))
+
+# 英文平行
+d10 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d10.generated_levels = []
+d10.start(opener="Let's start working on this proof together.")
+d10.messages.append({"role": "assistant",
+                     "content": "Completely correct — the proof is complete as written. "
+                                "You discovered the key step yourself."})
+d10.step("Wait, so is that everything here, or should I check something else?")
+check("EN 助教確認完成 → arm done_closed（#12）", d10.state.get("done_closed"))
+check("EN 助教確認完成後反思 → closed（#12＋#11）", d10.state["phase"] == "closed")
+
 print("[6] on-track 防奉送 / 等級 2 禁算式 / 回問保底（跨域 X2/X4 教訓）")
 check("『左乘 A』指定操作 → 奉送",
       is_spoonfeeding(r"接著對它左乘 $A$，會得到什麼樣的新方程？"))

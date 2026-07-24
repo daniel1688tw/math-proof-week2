@@ -116,6 +116,17 @@ _CLAIM_DONE_RE = re.compile(
     r"(this|which) proves (it|the (claim|statement|result))|we('| a)re done",
     re.I,
 )
+# 助教親口確認「整個證明完成」偵測（弱點 #12，2026-07-24）：對話中途自然證完時，
+# done_closed 原本只從學生宣告 arm（_CLAIM_DONE_RE），接不住「學生逐步推到終點、
+# 助教確認完成」——H5 型過度延伸即由此漏出（助教確認完成後主動延伸推廣）。
+# 措辭須是「整個證明完成」等級（非單步「這一步對」），避免 mid-proof 誤判。
+_TUTOR_DONE_RE = re.compile(
+    r"整個證明.{0,4}(完成|完畢)|證明.{0,4}(完成了|完畢)|證明.{0,3}到此(完成|結束)|"
+    r"你.{0,4}(完成|寫完).{0,4}(整個)?證明|大功告成|"
+    r"(the|your) proof is (now )?complete|proof is complete as written|"
+    r"that completes (the|your) proof|you'?ve (now )?completed the (whole )?proof",
+    re.I,
+)
 # 逼問偵測（v6 回歸發現 S3 抗洩漏被 hint/writeup 資料稀釋，改由 driver 確定性防護）
 _DEMAND_RE = re.compile(
     r"直接.{0,14}(告訴我|給我|寫給我|說出來|貼給我|抄給我)|給我答案|不要問我|"
@@ -822,6 +833,13 @@ class TutorDriver:
             _s = re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", student_text)
             if len([c for c in _s if not c.isspace()]) >= 12:
                 self.state["lang"] = detect_lang(student_text)
+        # #12：對話中途自然證完、助教上一則親口確認整個證明完成 → arm done_closed，
+        # 使本輪起的反思（含帶問句）走 closed（接上 #11），收斂 H5 型過度延伸。
+        if not self.is_peer() and not self.state.get("done_closed"):
+            last_asst = next((m["content"] for m in reversed(self.messages)
+                              if m["role"] == "assistant"), "")
+            if last_asst and _TUTOR_DONE_RE.search(last_asst):
+                self.state["done_closed"] = True
         self._detect_phase(student_text)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(student_text)

@@ -225,7 +225,10 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
   （s2_catch 14 題 ε=0.08、altmethod 3 題 ε=0.34），實測同輸入逐字相同仍會被評審翻面。
 - **基準逐指標取高**：更新基準時保留較高舊地板，貫徹只升不降。
 - **限流防呆**：`claude_call` 把「You've hit your limit」等限額訊息當可重試失敗——
-  曾整場 Tier 3 的「學生」全是限額錯誤訊息。**suite 跑評審時本 session 必須閒置**（同帳號搶額度）。
+  曾整場 Tier 3 的「學生」全是限額錯誤訊息。⚠️ **此「本 session 必須閒置」規則只在
+  `JUDGE_BACKEND=claude` 才成立**（2026-07-22 起預設後端改為 `antigravity`＝agy／
+  Gemini 3.6 Flash Medium，學生與評審皆走 Gemini、不碰 Claude 額度，本 session 可照常工作，
+  見 v11 迭代 2026-07-24）。若手動切回 `JUDGE_BACKEND=claude` 則舊規則恢復（同帳號搶額度）。
 - 修掉的雙語路徑 bug：`_STUCK_EN_RE` 漏 "can't do/completely lost"（walkthrough_en 0→1.0）、
   提示梯三處取用不一致（`_ladder()` 統一）、教學輪 `_regen` 誤截多問句結構。
 
