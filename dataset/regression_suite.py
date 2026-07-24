@@ -82,12 +82,15 @@ JUDGE_EPSILON_OVERRIDE = {
 }
 
 # Advisory 指標：計算並印出、但**不進硬性 pass/fail**（n=3 雜訊過大，無法棘輪守門）。
-# judge_dialogue_math_ok：二元 × n=3。實測同一批對話文字光評審變異就 ≥0.33
-#   （2026-07-24：v9 同文字兩評 0.0↔0.333）、跨學生路徑達全幅（0.0↔1.0，連 v9 部署模型
-#   都被自己基準判退）。沒有任何 ε 能同時容忍此雜訊又抓得到真退步（現行 judge_dialogue
-#   ε=0.07 是為 5 分制 guidance 設計、對二元 math_ok 無效）→ 降為 advisory；對話數學正確性
-#   改由 Tier 4 審閱後盾 + 質性審閱把關。詳見 eval_out_xdomain/V11_VERDICT.md。
-ADVISORY_METRICS = ("judge_dialogue_math_ok",)
+# 對話類（judge_dialogue_*，學生＋評審皆 Gemini 即興、每輪路徑不同、n=3）經四輪守門
+# 證實兩種指標皆全幅亂跳、任何固定門檻都擋不住（2026-07-24）：
+#   · judge_dialogue_math_ok（二元×3）：同一批文字光評審變異 ≥0.33、跨路徑 0.0↔1.0，
+#     連 v9 部署模型都被自己基準判退。
+#   · judge_dialogue_guidance（5 分制×3）：四輪 0.4667↔0.8667 全幅擺動，且每輪換不同語言
+#     掉（一輪 zh 過 en 掉、下一輪反之），non-gateable。
+# 兩者改由 Tier 4 審閱後盾（math）+ 質性審閱（guidance）把關。硬性守門＝確定性 +
+# 單輪評審（n≈13 穩定）+ altmethod（含 ε）+ 後盾。詳見 eval_out_xdomain/V11_VERDICT.md。
+ADVISORY_METRICS = ("judge_dialogue",)
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
 S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."

@@ -123,12 +123,22 @@ surfacing 不同既有小瑕疵。這是 CLAUDE.md 弱點 #7「輸入隨機指�
 最大值」的老問題，尚未套用到 dialogue_guidance / altmethod_zh。**#11+#12 driver 修復
 本身乾淨、可上線。**
 
-### 重校提案（待人工授權，未擅動基準）
-1. `judge_altmethod_zh`: 1.0 → **0.8333**（與 en 既有決策一致，「容一案」）。
-2. `judge_dialogue_guidance_en`: 0.7333 → **0.5333**（= 三次 v9 參考量測的保守下限，
-   反映部署模型真實可重現水準；0.7333 為幸運高點）。
-3. `judge_dialogue_guidance_zh`: 維持 0.6（本輪已達、#12 帶回）。
-4. `dialogue_math_ok`: 已降 advisory（本輪已生效）。
+### 最終守門校準（2026-07-24，已實施並經人工授權）
 
-此四項調整後，v9+#11+#12 守門即全綠且合理。**降基準/改門檻屬治理決定，需人工授權
-（`--update-baseline` 只升不降，須手動編輯 `regression_baseline_antigravity.json`）。**
+第四輪（獨立確認）守門再證：`judge_altmethod_zh` 回升 1.0（確認降 0.8333 是對的、原
+1.0 為雜訊）；但 `dialogue_guidance` **這輪換 zh 掉（0.6→0.4667）、en 反而過**——與上輪
+恰相反，證實 **guidance 兩語言皆 n=3 全幅雜訊（四輪 0.4667↔0.8667）、任何固定門檻擋不住**。
+
+最終決策（人工授權「降 advisory」）：
+1. **gate 重校**：`judge_altmethod_zh` 1.0 → **0.8333**（與 en 既有「容一案」一致，補漏）。
+2. **`judge_dialogue_*` 全降 advisory**（math_ok 與 guidance、zh+en）：`ADVISORY_METRICS =
+   ("judge_dialogue",)`，計算＋印出但不進 pass/fail；dialogue 基準值還原原始、僅供顯示。
+   對話數學正確性由 Tier 4 後盾把關，引導品質改由質性審閱。
+3. **硬性守門 = 確定性 + 單輪評審（n≈13 穩定）+ altmethod（含 ε）+ 後盾**——四輪全數穩定通過。
+
+確定性重比對確認：此設定下第四輪守門（計分卡 135954）**硬性守門全綠 PASS**。
+
+### 淨結果
+- **#11 + #12 driver 修復乾淨、可上線**（部署形態 = v9 + 新 driver）。
+- 守門改為只在「能可靠量測」的層面棘輪；n=3 對話類降 advisory，避免正常跑分被雜訊誤殺。
+- v11 adapter 判退封存（≈v10）；下輪 driver 缺口與對話守門方法（多輪聚合）見上文與「下輪方向」。
