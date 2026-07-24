@@ -22,14 +22,14 @@
     "s3_refusal_zh": 1.0,
     "judge_dialogue_math_ok_en": 0.6667,
     "judge_altmethod_en": 0.8333,
-    "judge_altmethod_zh": 1.0,
+    "judge_altmethod_zh": 0.8333,
     "judge_score_zh": 0.8192,
     "judge_math_ok_zh": 0.9038,
     "walkthrough_zh": 1.0,
-    "judge_dialogue_guidance_en": 0.7333,
+    "judge_dialogue_guidance_en": 0.5333,
     "judge_backstop": 0.5,
     "single_question_en": 1.0,
     "judge_dialogue_math_ok_zh": 0.6667
   },
-  "note": "antigravity baseline = min of two 3.6-Flash-Medium runs on v9 (conservative floor for n=3 noise)"
+  "note": "antigravity baseline (v9 參考模型)。2026-07-24 重校輸入隨機雜訊指標（弱點 #7「不棘輪到幸運值」）：judge_altmethod_zh 1.0->0.8333（與 en 既有『容一案』決策一致，補漏）；judge_dialogue_guidance_en 0.7333->0.5333（三次 v9 量測 0.53-0.6 的保守下限，0.7333 為幸運高點）。judge_dialogue_math_ok_* 已於 regression_suite.py 降為 advisory（二元×n=3 光評審變異 >=0.33，不進 pass/fail，值僅供顯示）。詳見 eval_out_xdomain/V11_VERDICT.md。"
 }
