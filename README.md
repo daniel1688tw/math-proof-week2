@@ -117,6 +117,19 @@ print(driver.start())                 # 助教第一問
 print(driver.step("學生的回覆"))       # 逐輪推進
 ```
 
+### 6. 圖形介面（本機單人 Demo）
+
+貼上自己的證明題（可含目前的證明嘗試，也可留空讓助教從第一個提示開始引導）；
+助教先自我驗證備課，再蘇格拉底式逐步引導，備課驗證失敗則走同學模式（誠實降級）。
+
+```bash
+pip install "gradio>=4.44"                 # 首次
+python dataset/app.py                       # 啟動後開瀏覽器 http://localhost:7860
+```
+
+備課需要 Ollama 在線（`qwen3-4b-thinking-2507`）；離線時所有題目改走同學模式。
+RTX 4050 6GB：模型常駐約 3.5GB，備課時 Ollama 會被擠到 CPU 而變慢，屬 Demo 可接受的固有限制。
+
 ## 資料集
 
 | 項目 | 數量 |

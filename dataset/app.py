@@ -56,3 +56,120 @@ def assemble_problem(statement: str, result: dict, pid: str = "USER") -> dict:
 def opener_for(proof: str | None) -> str | None:
     """使用者貼的證明 → driver 的學生開場白；空則 None（driver 預設請求提示）。"""
     return (proof or "").strip() or None
+
+
+# ── 備課背景執行緒 + 佇列串流（供 UI 逐步顯示階段）─────────────────────────
+def _run_prepare(statement: str):
+    """generator：先逐步 yield 進度字串，最後 yield ('__result__', result_dict)。"""
+    q: "queue.Queue" = queue.Queue()
+    holder: dict = {}
+
+    def worker():
+        def cb(stage: str, detail: str = ""):
+            q.put(f"{stage} {detail}".strip())
+        holder["result"] = build_reference(statement, progress_cb=cb)
+        q.put(None)
+
+    threading.Thread(target=worker, daemon=True).start()
+    while True:
+        item = q.get()
+        if item is None:
+            break
+        yield item
+    yield ("__result__", holder["result"])
+
+
+# ── Gradio UI ──────────────────────────────────────────────────────────────
+def build_ui(tok, model):
+    import gradio as gr
+
+    ollama_warn = "" if check_ollama() else \
+        "⚠️ 未偵測到 Ollama 服務：備課需要 Ollama，目前所有題目會走同學模式。\n"
+
+    with gr.Blocks(title="蘇格拉底數學證明助教") as demo:
+        gr.Markdown("# 蘇格拉底數學證明助教\n"
+                    "貼上你的證明題，助教會先自己備課再一步步引導你（不直接給答案）。")
+        if ollama_warn:
+            gr.Markdown(ollama_warn)
+
+        driver_state = gr.State(None)
+
+        with gr.Group() as input_group:
+            statement_tb = gr.Textbox(label="題目敘述（必填）", lines=4,
+                                      placeholder="例：證明連續函數在閉區間上有界。")
+            proof_tb = gr.Textbox(label="你目前的證明／嘗試（可留空）", lines=6,
+                                  placeholder="沒有頭緒可留空，助教會從第一個提示開始引導。")
+            prepare_btn = gr.Button("開始備課", variant="primary")
+
+        progress_md = gr.Markdown("")
+
+        with gr.Group(visible=False) as chat_group:
+            chatbot = gr.Chatbot(label="對話", height=460)
+            with gr.Row():
+                msg_tb = gr.Textbox(label="你的回覆", scale=5, lines=2)
+                send_btn = gr.Button("送出", scale=1, variant="primary")
+            reset_btn = gr.Button("重新開始（換一題）")
+
+        def on_prepare(statement, proof):
+            if not (statement or "").strip():
+                yield (gr.update(value="請先輸入題目。"),
+                       gr.update(visible=True), gr.update(visible=False), [], None)
+                return
+            lines = []
+            result = None
+            for item in _run_prepare(statement):
+                if isinstance(item, tuple) and item[0] == "__result__":
+                    result = item[1]
+                    break
+                lines.append("• " + item)
+                yield ("\n".join(lines), gr.update(visible=True),
+                       gr.update(visible=False), [], None)
+            problem = assemble_problem(statement, result)
+            driver = TutorDriver(tok, model, problem)
+            reply = driver.start(opener=opener_for(proof))
+            if result["status"] == "verified":
+                lines.append("✅ 備課完成（grounded），開始引導。")
+            else:
+                lines.append("⚠️ 這題我沒能自己驗證出可靠解，將以同儕身分陪你探索（同學模式）。")
+            first_user = opener_for(proof) or "（請助教給第一個提示）"
+            chat = [{"role": "user", "content": first_user},
+                    {"role": "assistant", "content": reply}]
+            yield ("\n".join(lines), gr.update(visible=False),
+                   gr.update(visible=True), chat, driver)
+
+        def on_send(message, chat, driver):
+            if driver is None or not (message or "").strip():
+                return "", chat
+            reply = driver.step(message)
+            chat = chat + [{"role": "user", "content": message},
+                           {"role": "assistant", "content": reply}]
+            return "", chat
+
+        def on_reset():
+            return (gr.update(value="", visible=True), gr.update(visible=False),
+                    "", [], None, "", "")
+
+        prepare_btn.click(
+            on_prepare, [statement_tb, proof_tb],
+            [progress_md, input_group, chat_group, chatbot, driver_state])
+        send_btn.click(on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot])
+        msg_tb.submit(on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot])
+        reset_btn.click(
+            on_reset, None,
+            [input_group, chat_group, progress_md, chatbot, driver_state,
+             statement_tb, proof_tb])
+
+    demo.queue(default_concurrency_limit=1)
+    return demo
+
+
+def main():
+    from interactive_turn import load_model
+    print("[app] 載入模型中（首次約需 30–60 秒）…", flush=True)
+    tok, model = load_model()
+    print("[app] 模型就緒，啟動介面 http://localhost:7860", flush=True)
+    build_ui(tok, model).launch(server_name="127.0.0.1", server_port=7860)
+
+
+if __name__ == "__main__":
+    main()
