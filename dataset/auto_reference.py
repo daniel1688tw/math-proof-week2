@@ -142,18 +142,27 @@ def fallback_steps(proof: str) -> list:
 
 
 def build_reference(statement: str, k: int = K_CANDIDATES,
-                    verbose: bool = True) -> dict:
-    """回傳 {status, reference_proof?, teach_steps?, log}。"""
+                    verbose: bool = True, progress_cb=None) -> dict:
+    """回傳 {status, reference_proof?, teach_steps?, log}。
+
+    progress_cb(stage, detail)：選填回呼，於每個階段觸發（stage ∈ PROVER/VERIFIER/
+    REPAIR/SEGMENTER）。不傳則行為與原本完全一致（向後相容）。
+    """
+    def _emit(stage: str, detail: str = ""):
+        if progress_cb:
+            progress_cb(stage, detail)
     log = []
     for i in range(k):
         if verbose:
             print(f"  [PROVER {i+1}/{k}] 生成候選證明…")
+        _emit("PROVER", f"{i+1}/{k}")
         proof = _chat(PROVER_SYSTEM, f"題目：{statement}", temperature=0.7)
         if not proof:
             log.append({"candidate": i, "event": "prover_failed"})
             continue
         if verbose:
             print(f"  [VERIFIER] 驗證候選 {i+1}（{len(proof)} 字）…")
+        _emit("VERIFIER", f"候選 {i+1}")
         v = parse_verdict(_chat(
             VERIFIER_SYSTEM, f"題目：{statement}\n\n待驗證的證明：\n{proof}",
             temperature=0.2))
@@ -164,6 +173,7 @@ def build_reference(statement: str, k: int = K_CANDIDATES,
             if v["issues"]:
                 if verbose:
                     print(f"  [REPAIR] pass 但有 {len(v['issues'])} 項小瑕疵，修補後複驗…")
+                _emit("REPAIR", f"{len(v['issues'])} 項小瑕疵")
                 fixed = _chat(REPAIR_SYSTEM,
                               f"題目：{statement}\n\n證明：\n{proof}\n\n"
                               f"審閱意見：{json.dumps(v['issues'], ensure_ascii=False)}",
@@ -178,6 +188,7 @@ def build_reference(statement: str, k: int = K_CANDIDATES,
                         proof = fixed
             if verbose:
                 print("  [SEGMENTER] 切分教學步驟…")
+            _emit("SEGMENTER", "")
             steps = segment_proof(statement, proof) or fallback_steps(proof)
             return {"status": "verified", "reference_proof": proof,
                     "teach_steps": steps, "log": log}
