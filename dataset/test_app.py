@@ -56,6 +56,35 @@ finally:
     auto_reference._chat = _orig_chat
 
 
+# ── Task 2: app.py 純邏輯 ──────────────────────────────────────────────────
+print("[2] app.py 純邏輯（assemble_problem / opener_for / check_ollama）")
+import app  # import 不得載入模型（模型只在 app.main() 內載）
+from tutor_driver import TutorDriver
+
+_verified = {"status": "verified", "reference_proof": "P $\\blacksquare$",
+             "teach_steps": [{"explain": "a", "check": "b"}], "log": []}
+prob_v = app.assemble_problem("  證明 X  ", _verified)
+check("verified：statement 有 strip", prob_v["statement"] == "證明 X")
+check("verified：grounding=auto_verified", prob_v["grounding"] == "auto_verified")
+check("verified：帶 reference_proof", prob_v["reference_proof"] == "P $\\blacksquare$")
+check("verified：帶 teach_steps", bool(prob_v["teach_steps"]))
+
+_unverified = {"status": "unverified", "log": []}
+prob_u = app.assemble_problem("證明 Y", _unverified)
+check("unverified：grounding=unverified", prob_u["grounding"] == "unverified")
+check("unverified：無 reference_proof", "reference_proof" not in prob_u)
+_d = TutorDriver.__new__(TutorDriver)
+_d.problem = prob_u
+check("unverified：is_peer() True", _d.is_peer() is True)
+
+check("opener_for(None) → None", app.opener_for(None) is None)
+check("opener_for(空白) → None", app.opener_for("   ") is None)
+check("opener_for(證明) → strip 字串",
+      app.opener_for("  我試著用歸納法  ") == "我試著用歸納法")
+check("check_ollama(壞URL) → False（不拋例外）",
+      app.check_ollama("http://127.0.0.1:1/nope", timeout=1) is False)
+
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
