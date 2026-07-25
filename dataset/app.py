@@ -170,11 +170,21 @@ def build_ui(tok, model):
             return (gr.update(visible=True), gr.update(visible=False),
                     "", [], None, "", "")
 
-        prepare_btn.click(
+        # 進行中操作期間停用對應按鈕，避免單 GPU 序列化佇列被重複點擊塞爆
+        _disable = lambda: gr.update(interactive=False)   # noqa: E731
+        _enable = lambda: gr.update(interactive=True)     # noqa: E731
+
+        prepare_btn.click(_disable, None, prepare_btn).then(
             on_prepare, [statement_tb, proof_tb],
-            [progress_md, input_group, chat_group, chatbot, driver_state])
-        send_btn.click(on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot])
-        msg_tb.submit(on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot])
+            [progress_md, input_group, chat_group, chatbot, driver_state]).then(
+            _enable, None, prepare_btn)
+
+        send_btn.click(_disable, None, send_btn).then(
+            on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot]).then(
+            _enable, None, send_btn)
+        msg_tb.submit(_disable, None, send_btn).then(
+            on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot]).then(
+            _enable, None, send_btn)
         reset_btn.click(
             on_reset, None,
             [input_group, chat_group, progress_md, chatbot, driver_state,
