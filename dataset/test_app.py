@@ -84,6 +84,31 @@ check("opener_for(證明) → strip 字串",
 check("check_ollama(壞URL) → False（不拋例外）",
       app.check_ollama("http://127.0.0.1:1/nope", timeout=1) is False)
 
+# _run_prepare：正常完成 → 最後 ('result', dict)
+_orig_build = app.build_reference
+app.build_reference = lambda statement, progress_cb=None: (
+    progress_cb and progress_cb("PROVER", "1/1"),
+    {"status": "unverified", "log": []})[1]
+try:
+    outs = list(app._run_prepare("證明 Z"))
+    kinds = [k for k, _ in outs]
+    check("_run_prepare 有 progress", "progress" in kinds)
+    check("_run_prepare 末項為 result", outs[-1][0] == "result")
+    check("_run_prepare result 內容正確", outs[-1][1]["status"] == "unverified")
+finally:
+    app.build_reference = _orig_build
+
+# _run_prepare：worker 拋例外 → 不卡死，末項為 ('error', ...)
+def _boom(statement, progress_cb=None):
+    raise RuntimeError("備課炸了")
+app.build_reference = _boom
+try:
+    outs = list(app._run_prepare("證明 boom"))
+    check("_run_prepare 例外不卡死、末項為 error",
+          outs[-1][0] == "error" and "備課炸了" in outs[-1][1])
+finally:
+    app.build_reference = _orig_build
+
 
 print()
 if FAIL:

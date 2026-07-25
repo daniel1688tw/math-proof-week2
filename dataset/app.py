@@ -60,23 +60,33 @@ def opener_for(proof: str | None) -> str | None:
 
 # ── 備課背景執行緒 + 佇列串流（供 UI 逐步顯示階段）─────────────────────────
 def _run_prepare(statement: str):
-    """generator：先逐步 yield 進度字串，最後 yield ('__result__', result_dict)。"""
+    """generator：逐步 yield ('progress', 字串)，最後 yield ('result', dict) 或 ('error', 訊息)。
+
+    worker 以 try/finally 保證一定送出結束哨兵，備課意外拋例外也不會讓 UI 永久卡死。
+    """
     q: "queue.Queue" = queue.Queue()
     holder: dict = {}
 
     def worker():
-        def cb(stage: str, detail: str = ""):
-            q.put(f"{stage} {detail}".strip())
-        holder["result"] = build_reference(statement, progress_cb=cb)
-        q.put(None)
+        try:
+            def cb(stage: str, detail: str = ""):
+                q.put(("progress", f"{stage} {detail}".strip()))
+            holder["result"] = build_reference(statement, progress_cb=cb)
+        except Exception as e:                       # 備課非預期錯誤 → 回報而非卡死
+            holder["error"] = repr(e)
+        finally:
+            q.put(("__done__", None))
 
     threading.Thread(target=worker, daemon=True).start()
     while True:
-        item = q.get()
-        if item is None:
+        kind, payload = q.get()
+        if kind == "__done__":
             break
-        yield item
-    yield ("__result__", holder["result"])
+        yield kind, payload
+    if "error" in holder:
+        yield "error", holder["error"]
+    else:
+        yield "result", holder["result"]
 
 
 # ── Gradio UI ──────────────────────────────────────────────────────────────
@@ -117,13 +127,18 @@ def build_ui(tok, model):
                 return
             lines = []
             result = None
-            for item in _run_prepare(statement):
-                if isinstance(item, tuple) and item[0] == "__result__":
-                    result = item[1]
-                    break
-                lines.append("• " + item)
-                yield ("\n".join(lines), gr.update(visible=True),
-                       gr.update(visible=False), [], None)
+            for kind, payload in _run_prepare(statement):
+                if kind == "progress":
+                    lines.append("• " + payload)
+                    yield ("\n".join(lines), gr.update(visible=True),
+                           gr.update(visible=False), [], None)
+                elif kind == "error":
+                    lines.append(f"⚠️ 備課發生非預期錯誤：{payload}\n請稍後再試或換一題。")
+                    yield ("\n".join(lines), gr.update(visible=True),
+                           gr.update(visible=False), [], None)
+                    return
+                elif kind == "result":
+                    result = payload
             problem = assemble_problem(statement, result)
             driver = TutorDriver(tok, model, problem)
             reply = driver.start(opener=opener_for(proof))
@@ -139,14 +154,20 @@ def build_ui(tok, model):
 
         def on_send(message, chat, driver):
             if driver is None or not (message or "").strip():
-                return "", chat
-            reply = driver.step(message)
-            chat = chat + [{"role": "user", "content": message},
-                           {"role": "assistant", "content": reply}]
-            return "", chat
+                yield "", chat
+                return
+            # 先即時回顯學生訊息並清空輸入框；生成期間 Chatbot 顯示等待指示
+            chat = chat + [{"role": "user", "content": message}]
+            yield "", chat
+            try:
+                reply = driver.step(message)
+            except Exception as e:
+                reply = f"（抱歉，這一輪出了點狀況：{e!r}，請再說一次。）"
+            chat = chat + [{"role": "assistant", "content": reply}]
+            yield "", chat
 
         def on_reset():
-            return (gr.update(value="", visible=True), gr.update(visible=False),
+            return (gr.update(visible=True), gr.update(visible=False),
                     "", [], None, "", "")
 
         prepare_btn.click(
