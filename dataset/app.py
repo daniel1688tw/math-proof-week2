@@ -140,8 +140,14 @@ def build_ui(tok, model):
                 elif kind == "result":
                     result = payload
             problem = assemble_problem(statement, result)
-            driver = TutorDriver(tok, model, problem)
-            reply = driver.start(opener=opener_for(proof))
+            try:
+                driver = TutorDriver(tok, model, problem)
+                reply = driver.start(opener=opener_for(proof))
+            except Exception as e:                       # 開場生成失敗 → 保留在輸入態、友善回報（F2）
+                lines.append(f"⚠️ 建立助教時發生錯誤：{e!r}\n請稍後再試或換一題。")
+                yield ("\n".join(lines), gr.update(visible=True),
+                       gr.update(visible=False), [], None)
+                return
             if result["status"] == "verified":
                 lines.append("✅ 備課完成（grounded），開始引導。")
             else:
@@ -170,21 +176,24 @@ def build_ui(tok, model):
             return (gr.update(visible=True), gr.update(visible=False),
                     "", [], None, "", "")
 
-        # 進行中操作期間停用對應按鈕，避免單 GPU 序列化佇列被重複點擊塞爆
-        _disable = lambda: gr.update(interactive=False)   # noqa: E731
-        _enable = lambda: gr.update(interactive=True)     # noqa: E731
+        # 進行中操作期間停用對應控制項，避免單 GPU 序列化佇列被重複觸發塞爆
+        _disable = lambda: gr.update(interactive=False)                       # noqa: E731
+        _enable = lambda: gr.update(interactive=True)                         # noqa: E731
+        # 送出時同時停用「送出」鈕與輸入框：後者擋掉生成中按 Enter 的重複送出（F1）
+        _disable_send = lambda: (gr.update(interactive=False),) * 2           # noqa: E731
+        _enable_send = lambda: (gr.update(interactive=True),) * 2             # noqa: E731
 
         prepare_btn.click(_disable, None, prepare_btn).then(
             on_prepare, [statement_tb, proof_tb],
             [progress_md, input_group, chat_group, chatbot, driver_state]).then(
             _enable, None, prepare_btn)
 
-        send_btn.click(_disable, None, send_btn).then(
+        send_btn.click(_disable_send, None, [send_btn, msg_tb]).then(
             on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot]).then(
-            _enable, None, send_btn)
-        msg_tb.submit(_disable, None, send_btn).then(
+            _enable_send, None, [send_btn, msg_tb])
+        msg_tb.submit(_disable_send, None, [send_btn, msg_tb]).then(
             on_send, [msg_tb, chatbot, driver_state], [msg_tb, chatbot]).then(
-            _enable, None, send_btn)
+            _enable_send, None, [send_btn, msg_tb])
         reset_btn.click(
             on_reset, None,
             [input_group, chat_group, progress_md, chatbot, driver_state,

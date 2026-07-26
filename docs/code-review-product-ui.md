@@ -32,20 +32,25 @@
 嚴重度定義：**High**＝正確性/資料損毀；**Medium**＝特定情境下的錯誤行為或明顯 UX 缺陷；
 **Low**＝邊角/資源/風格；**Info**＝觀察，未必需改。
 
-| # | 位置 | 類別 | 嚴重度 | 摘要 |
-|---|---|---|:---:|---|
-| F1 | `app.py:185` | correctness/UX | **Medium** | 生成中按 Enter 仍可重複送出（只停用了 `send_btn`，`msg_tb.submit` 未擋）|
-| F2 | `app.py:144` | robustness | **Low** | `on_prepare` 的 `driver.start()` 未包 try/except（與 `on_send` 不對稱）|
-| F3 | `app.py:37` | resource | **Low** | `check_ollama` 未關閉 response（無 context manager）|
-| F4 | `app.py:96` | UX | **Low** | `ollama_warn` 只在啟動時判一次（狀態改變不更新；且啟動阻塞至多 3 秒）|
-| F5 | `app.py:80` | design | **Low** | 備課背景執行緒無法取消（關分頁後仍跑到 Ollama timeout）|
-| F6 | `app.py:188` | UX | **Info** | `reset_btn` 於進行中未停用，備課/生成中按重置可能與佇列中的 handler 競態 |
+| # | 位置 | 類別 | 嚴重度 | 摘要 | 狀態 |
+|---|---|---|:---:|---|---|
+| F1 | `app.py` 送出鏈 | correctness/UX | **Medium** | 生成中按 Enter 仍可重複送出（只停用了 `send_btn`，`msg_tb.submit` 未擋）| ✅ **已修復（2026-07-27）** |
+| F2 | `on_prepare` | robustness | **Low** | `on_prepare` 的 `driver.start()` 未包 try/except（與 `on_send` 不對稱）| ✅ **已修復（2026-07-27）** |
+| F3 | `app.py:37` | resource | **Low** | `check_ollama` 未關閉 response（無 context manager）| 待處理 |
+| F4 | `app.py:96` | UX | **Low** | `ollama_warn` 只在啟動時判一次（狀態改變不更新；且啟動阻塞至多 3 秒）| 待處理 |
+| F5 | `app.py:80` | design | **Low** | 備課背景執行緒無法取消（關分頁後仍跑到 Ollama timeout）| 待處理（產品化）|
+| F6 | `app.py` 重置鏈 | UX | **Info** | `reset_btn` 於進行中未停用，備課/生成中按重置可能與佇列中的 handler 競態 | 觀察 |
+
+> **修復記錄（2026-07-27）**：F1 — 送出鏈改為同時停用 `send_btn` 與 `msg_tb`
+> （`_disable_send`/`_enable_send` 各回傳 2 個 update），生成中按 Enter 亦被擋。
+> F2 — `on_prepare` 的 `TutorDriver(...)`＋`driver.start()` 已包 try/except，開場生成失敗時
+> 保留在輸入態並友善回報。測試全綠、UI 建構 HTTP 200。
 
 ---
 
 ## 3. 個別發現
 
-### F1（Medium）生成中 Enter 鍵可重複送出
+### F1（Medium，✅ 已修復）生成中 Enter 鍵可重複送出
 **位置**：[app.py:182-187](../dataset/app.py#L182-L187)
 **問題**：`send_btn.click` 與 `msg_tb.submit` 是**兩個獨立觸發源**。停用 `send_btn` 只擋滑鼠點按，
 生成期間使用者在輸入框按 Enter 仍會觸發 `msg_tb.submit` → 排入第二次 `on_send`。單 GPU
@@ -56,7 +61,7 @@
 `msg_tb.submit(_disable_both, ...).then(on_send, ...).then(_enable_both, ...)`，`_disable_both`
 回傳 `[gr.update(interactive=False)]*2` 同時停用 `send_btn` 與 `msg_tb`。
 
-### F2（Low）`on_prepare` 的 `driver.start()` 未做例外處理
+### F2（Low，✅ 已修復）`on_prepare` 的 `driver.start()` 未做例外處理
 **位置**：[app.py:142-144](../dataset/app.py#L142-L144)
 **問題**：`on_send` 的 `driver.step()` 已包 try/except（[app.py:162-165](../dataset/app.py#L162-L165)），
 但 `on_prepare` 的 `driver.start(opener=...)` 沒有。若模型在開場生成時拋例外，`on_prepare`
@@ -107,14 +112,13 @@ handler 之後執行，順序大致安全，但若目前 handler 之後又 yield
 
 ## 5. 判定
 
-**可作為本機單人 Demo 上線。** 無 High/阻斷性缺陷；建議在下次觸碰此檔時處理 **F1（Medium）**
-與 **F2（Low）**——兩者皆為數行的小修，可顯著提升多次互動下的穩健度。F3–F6 屬邊角，
-待真正產品化時一併處理。
+**可作為本機單人 Demo 上線。** 無 High/阻斷性缺陷。**F1（Medium）與 F2（Low）已於 2026-07-27
+修復**；F3–F6 屬邊角，待真正產品化時一併處理。
 
-| 面向 | 評分（5 分制）|
-|---|:---:|
-| 正確性 | 4.5 |
-| 健壯性 | 4.0 |
-| 可讀性/結構 | 4.5 |
-| 測試涵蓋 | 4.0（純邏輯佳；UI 互動仰賴手動驗收）|
-| **總評** | **4.25 / 5** |
+| 面向 | 修復前 | 修復後（F1/F2）|
+|---|:---:|:---:|
+| 正確性 | 4.5 | 4.5 |
+| 健壯性 | 4.0 | 4.5 |
+| 可讀性/結構 | 4.5 | 4.5 |
+| 測試涵蓋 | 4.0（純邏輯佳；UI 互動仰賴手動驗收）| 4.0 |
+| **總評** | **4.25 / 5** | **4.4 / 5** |
