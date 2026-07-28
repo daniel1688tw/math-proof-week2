@@ -1,8 +1,11 @@
 # week3 — 蘇格拉底式高等數學證明引導助教
 
-本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v8`，雙語）
+本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v9`，雙語）
 ＋ 對話驅動程式（`tutor_driver.py`）。這是經過 v2→v6 六輪迭代與三路線正面對決後判定的
 最佳部署形態（判定依據：`dataset/eval_out_final/FINAL_VERDICT.md`）。
+
+**現行部署形態 = `qlora_adapter_v9` + 含 #11/#12 修復的 driver**。v10、v11 兩輪整體重訓
+皆守門判退（同一個收尾紀律退化重現），adapter 封存於本機供分析，**不要誤以為版號越新越該用**。
 
 **歷史版本不在工作目錄**：所有被淘汰的方法（MathDial 行為遷移、Ollama 無微調路線、
 v2–v5 adapter 與其評估）完整保存在 git tag **`experiments-v2-v6`**，
@@ -44,13 +47,14 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
 學生訊息 ──► TutorDriver（dataset/tutor_driver.py）
               │  確定性決策層：
               │  · stuck counter（連續卡住 0/1/2 次 → 提示等級 0/1/2）
-              │  · 階段偵測（交草稿→審閱、逼問→拒絕、嘗試→糾錯、說懂了→請寫證明）
+              │  · 階段偵測（交草稿→審閱、逼問→拒絕、嘗試→糾錯、說懂了→請寫證明、
+              │              證明確認完成→closed 收尾：禁新問題/替代法/延伸）
               │  · 等級 2 注入 hint_ladders.json 的預寫提示內容
               │  · 提示梯用盡仍連卡兩次 → walkthrough 逐步教學（一步一確認，教完仍要學生自寫證明）
               │  · 審閱/糾錯輪 ──► 審閱後盾（review_backstop.py，Ollama 思考型找碴）
               │                    缺漏清單注入 system；不在線自動降級（REVIEW_BACKSTOP=0 關）
               ▼
-         qlora_adapter_v8 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
+         qlora_adapter_v9 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
               │
               ▼
          後處理：單問句截斷、洩漏 15-gram 檢查、on-track 防奉送、
@@ -77,7 +81,9 @@ week3/
 │   ├── review_backstop.py            # 審閱後盾（Ollama 思考型找碴，可降級）
 │   ├── auto_reference.py             # ★ 自動備課管線（生成→驗證→修補→教學步驟切分）
 │   ├── interactive_turn.py           # 逐輪互動 CLI（維護 session 狀態檔）
-│   ├── qlora_adapter_v8/             # ★ 部署 adapter（權重不進 git）
+│   ├── app.py / test_app.py          # ★ Gradio 商品化介面（本機單人 Demo）／其純邏輯測試
+│   ├── qlora_adapter_v9/             # ★ 部署 adapter（權重不進 git）
+│   ├── qlora_adapter_v10/ v11/       # 判退封存（本機、gitignore，供分析）
 │   ├── held_out.json / held_out_attempts.json / hard_math_major.json / adv_test_problem.json  # 評估題
 │   ├── xdomain_problems.json         # 跨領域評估題（離散×3 + 線代×3，XDOMAIN_ADAPTER 覆寫）
 │   ├── eval_heldout_v3.py            # 三情境回歸（裸模型，HELDOUT_ADAPTER 覆寫）
@@ -88,8 +94,10 @@ week3/
 │   ├── test_driver_unit.py / test_driver_integration.py / test_driver_phase.py  # driver 測試
 │   ├── test_backstop.py / eval_backstop_e2e.py      # 後盾準確度（需 Ollama）/ 端對端對照
 │   ├── test_auto_reference.py / eval_svt_e2e.py     # 備課盲測 / walkthrough+同學模式端對端
-│   ├── regression_suite.py           # ★ 推送前守門（Claude 當評審+學生；退步即 exit 1）
-│   ├── regression_baseline.json / regression_scores/  # 基準（只升不降）與各版本計分卡
+│   ├── regression_suite.py           # ★ 推送前守門（預設 agy/Gemini 當評審+學生；退步即 exit 1）
+│   ├── auto_gate.py                  # 守門外圈自動迭代（退件→修 driver→重評）
+│   ├── regression_baseline_antigravity.json  # ★ 現行基準（預設評審後端；只升不降）
+│   ├── regression_baseline.json / regression_scores/  # Claude 後端基準與各版本計分卡
 │   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/ / eval_out_xdomain/  # 現行報告
 ├── learn_path/socratic_tutor/        # 訓練引擎（僅 4 檔）
 │   ├── common.py                     # 模型與路徑設定（env 覆寫）
@@ -98,8 +106,14 @@ week3/
 │   ├── test_4bit_load.py             # 4-bit 載入煙霧測試
 │   └── qwen3_4b/                     # 基底權重（~8GB，不進 git）
 ├── .claude/skills/pre-push-check/    # /pre-push-check skill：推送前守門流程（進版控）
+├── docs/
+│   ├── code-review-product-ui.md     # 商品化介面 code review（第 2 次，覆蓋前版）
+│   ├── notion/                       # Notion 專案空間的內容源（00–09，見下方「專案文件空間」）
+│   └── superpowers/                  # 設計 spec 與實作計畫
 ├── dataset_plan.md / socratic_math_research.md      # 設計文件
 ├── self_verified_teaching_design.md  # 自我驗證教學設計（備課/同學模式/逐步教學）
+├── 專題成果報告.md                     # 論文式完整報告
+├── 使用者說明書.md                     # 給使用者的操作說明（商品化介面）
 ├── PUSH_SCOPE.md                     # git 推送範圍
 └── README.md                         # GitHub 對外說明
 ```
@@ -115,10 +129,10 @@ conda run -n lora_project --live-stream python dataset\validate.py
 conda run -n lora_project --live-stream python dataset\test_dataset.py
 ```
 
-### 重新訓練（產出新版 adapter，不覆蓋 v8）
+### 重新訓練（產出新版 adapter，不覆蓋現役 v9）
 ```powershell
-$env:ADAPTER_DIR = "week3\dataset\qlora_adapter_v9"   # 預設是 qlora_adapter_new
-$env:MAX_LEN = "640"; $env:EPOCHS = "3"; $env:GRAD_ACCUM = "8"; $env:EVAL_STEPS = "20"
+$env:ADAPTER_DIR = "week3\dataset\qlora_adapter_v12"  # 預設是 qlora_adapter_new
+$env:MAX_LEN = "1024"; $env:EPOCHS = "3"; $env:GRAD_ACCUM = "8"; $env:EVAL_STEPS = "20"
 $env:OPTIM = "adamw_8bit"          # ★ 不要用 paged_adamw_8bit（abrupt kill 後 init error）
 $env:NEFTUNE_ALPHA = "5"
 conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_qlora.py
@@ -126,7 +140,8 @@ conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_q
 
 ### 測試與評估
 ```powershell
-python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（51 項）
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（127 條斷言 / 13 組）
+python dataset\test_app.py                                                # 介面純邏輯，無 GPU、不連 Ollama
 conda run -n lora_project --live-stream python dataset\test_driver_integration.py   # 分級提示（GPU）
 conda run -n lora_project --live-stream python dataset\test_driver_phase.py         # 階段管理（GPU）
 conda run -n lora_project --live-stream python dataset\eval_final_driver.py         # 部署形態三情境
@@ -140,7 +155,7 @@ conda run -n lora_project --live-stream python dataset\eval_svt_e2e.py          
 ### 推送前守門（每次更新必跑；skill：`/pre-push-check`）
 ```powershell
 python dataset\regression_suite.py --quick     # 單元+資料集（~1 分鐘）
-python dataset\regression_suite.py             # 完整：Claude 當評審+學生（GPU+claude CLI，~1.5hr）
+python dataset\regression_suite.py             # 完整：agy/Gemini 當評審+學生（GPU+agy CLI，~1.5hr）
 python dataset\regression_suite.py --gen-only  # 只生成存檔不評審（省額度，之後 --rejudge 補評）
 python dataset\regression_suite.py --rejudge   # 讀存檔重新評審（不重跑 GPU；含 S4）
 python dataset\regression_suite.py --update-baseline   # 確認進步後抬高基準
@@ -148,8 +163,11 @@ python dataset\auto_gate.py --max-iters 3      # 外圈自動迭代：退件→�
 ```
 退出碼：0=通過、1=退步、**2=評審不完整（限額打斷）**——生成已存檔，額度恢復後
 `--rejudge` 補評即可（auto_gate 會自動記進度接續，Claude Pro 額度中斷不會賠掉整輪）。
-任何指標低於 `dataset/regression_baseline.json` → exit 1，**不可推送**。
-確定性指標（洩漏/拒絕/單問句/升級/教學收尾）零容忍；judge_* 指標容忍 ε=0.05。
+任何指標低於基準（預設後端＝`dataset/regression_baseline_antigravity.json`）→ exit 1，**不可推送**。
+**硬性守門 = 確定性 + 單輪評審（n≈13）+ altmethod（含 ε）+ Tier 4 後盾**：
+確定性指標（洩漏/拒絕/單問句/升級/教學收尾）零容忍；judge_* 指標容忍 ε=0.05（小樣本逐項覆寫）。
+**Tier 3 多輪對話（`judge_dialogue_*`，n=3）已降 advisory**（`ADVISORY_METRICS`）：照算照印、
+不進 pass/fail——四輪實測全幅擺動、連現役 v9 都會被自己的基準判退（依據見 V11_VERDICT.md）。
 計分卡與對話記錄存 `dataset/regression_scores/`（進 git，留版本歷史）。
 
 ### 新題目備課（先自己證對才教）
@@ -161,6 +179,10 @@ python dataset\auto_reference.py --statement "證明 ..." --id NEW1 --out new_pr
 
 ### 互動使用
 ```powershell
+# 圖形介面（商品化 Demo，使用者自帶題目；需 Ollama 在線才有 grounded 備課）
+conda run -n lora_project --live-stream python dataset\app.py          # http://localhost:7860
+
+# 命令列逐輪互動（內建 50 題）
 conda run -n lora_project --live-stream python dataset\interactive_turn.py --problem A2 --state session.json --reset
 conda run -n lora_project --live-stream python dataset\interactive_turn.py --problem A2 --state session.json --student "學生回覆"
 ```
@@ -312,7 +334,65 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
   （疑似 journey 資料「連續多輪深入追問」的訓練訊號讓模型收尾後更傾向順勢多教），
   非訓練資料有誤，保留在 `training-iter-v10` 分支供下次迭代參考；v10 adapter 保留於
   `dataset/qlora_adapter_v10/`（本機、gitignore）供後續分析。
-  升版與否待守門完成後另行記錄。
+  **後續**：v11 以同資料集重訓再試一次，同樣判退（見下節）。
+
+## v11 迭代（2026-07-24，`eval_out_xdomain/V11_VERDICT.md`）：driver 修復上線、v11 adapter 判退
+
+這一輪同時做了**兩件可分離的事**，結論相反，不要混為一談：
+
+- **#11/#12 driver 修復（純確定性層，TDD）→ 乾淨通過、已上線**
+  - **#11**：學生在證明完成後提出「帶問句的反思」時路由進 `closed` 並只簡短回答那一個問題，
+    不藉機延伸；只有**斷言式質疑**（`_CHALLENGE_RE`，如「你錯了」）才落回一般流程重查。
+    設計岔路 **Fork B**（使用者定案）：非斷言的「你確定嗎」由 closed 簡答即可，
+    因為已完成的證明必經 review＋後盾複核。
+  - **#12**：新增 `_TUTOR_DONE_RE`——**助教親口確認整個證明完成**時也 arm `done_closed`
+    （原本只從學生宣告 arm，接不住此路徑）。措辭限「整個證明完成」等級以免 mid-proof 誤判。
+  - 單元測試由 123 → **127 條 / 13 組**全過；三輪守門確定性指標零退步。
+- **v11 adapter（830 例資料集重訓，eval_loss 1.044）→ 判退，部署維持 v9**
+  假設「#11 能兜住 v10 的 H5 過度延伸」不成立：同問題重現（H5 延伸 6 輪、把學生拖進
+  x<0 推廣），X4 另有模型級數學錯誤（誤稱單位矩陣為反例）。adapter 封存本機供分析。
+
+### 守門校準（本輪最重要的產出，人工授權後實施）
+
+四輪獨立守門顯示：確定性與單輪指標**全數穩定通過**，每輪的「退步」都落在**不同的**
+輸入隨機雜訊指標——因為 Gemini 學生每輪把同一個 v9 帶進不同對話、surfacing 不同既有小瑕疵。
+
+1. `judge_altmethod_zh` 基準 1.0 → **0.8333**（與 en 既有「容一案」一致，補上遺漏）。
+2. `judge_dialogue_*` **全降 advisory**（math_ok 與 guidance、zh+en）：二元 × n=3，
+   同一批文字光換評審就變動 ≥0.33、跨路徑 0.0↔1.0 全幅擺動，**沒有任何 ε 擋得住**。
+   對話數學正確性改由 Tier 4 後盾把關，引導品質改由質性審閱。
+3. 此設定下第四輪守門硬性全綠 PASS（計分卡 `2026-07-24T135954_868764f.json`）。
+
+> 教訓延伸自弱點 #7：**把守門從「會誤殺的儀式」修成「可辯護的判準」，比追高分數重要**；
+> 只在能可靠量測的層面棘輪。
+
+## 商品化介面（2026-07-27，分支 `feature/product-ui`，`docs/code-review-product-ui.md`）
+
+- `dataset/app.py`：Gradio **本機單人 Demo**，使用者自帶題目（題目 id 固定 `USER`，
+  完全不查題庫）。流程＝貼題目（＋可選的證明嘗試）→ 逐階段串流顯示備課
+  （PROVER 1/3 → VERIFIER → REPAIR → SEGMENTER）→ verified 走 grounded 教學、
+  unverified 走同學模式 → 對話區逐輪引導。**Ollama 離線時所有題目都走同學模式**。
+- 三層結構：純邏輯（`check_ollama` / `assemble_problem` / `opener_for`，`test_app.py` 可測）、
+  備課串流（`_run_prepare`：背景執行緒＋佇列，worker `try/finally` 保證送出結束哨兵，
+  備課例外不會讓 UI 永久卡死）、`build_ui`。
+- 健壯性：進行中同時停用 `send_btn` 與 `msg_tb`（防 Enter 重送把單 GPU 佇列塞爆）、
+  開場生成包 try/except。
+- **Code review 第 2 次判定：可作為本機單人 Demo 上線，無 High/Medium 缺陷，總評 4.4/5**
+  （F1/F2 已修）。尚存 F3–F6、N1–N3 皆 Low/Info，多與「未來對外多人產品化」相關；
+  建議下次觸碰 `app.py` 時順手處理 F3（`check_ollama` 未關連線）與 N2。
+- 未跑完整守門（未動 driver 與模型）；UI 互動層仍需真模型＋瀏覽器手動驗收四情境。
+
+## 專案文件空間（Notion，2026-07-28）
+
+專案架構與決策紀錄已整理進 Notion，入口頁「蘇格拉底式高等數學證明引導助教」
+（`https://app.notion.com/p/3ab7ea3c6f3881329872ead09bf41b47`），底下 01–09 子頁：
+系統架構／核心檔案地圖／資料集與訓練／品質守門／決策與判定紀錄／商品化介面／
+分支地圖／已知弱點與下一步／常用指令。
+
+- **內容源在 repo**：`docs/notion/00-09*.md`（Notion 頁面由此建立）。
+- **權威來源仍是各分支的 `CLAUDE.md`**；Notion 是快照，同步節奏見入口頁「維護節奏」。
+- 更新 Notion 時用 MCP 的 `notion-update-page` 改既有頁面，**不要重建新頁**（連結會失效）。
+- Notion **teamspace 無法用 API/MCP 建立**，此「空間」是工作區頂層頁面。
 
 ## BoN＋驗證器（2026-07-18，判定不採用，`eval_out_xdomain/BON_VERIFIER_VERDICT.md`）
 
@@ -331,8 +411,10 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
    ≥0.85 偵測根治（2026-07-19，教學輪重講除外）。
 4. M4 型細膩跳步（宣告聽起來完整時不驗證）→ 可考慮把「宣告完成」也路由給後盾複核。
 5. on-track 奉送、等級 2 附算式 → 已由 driver 三項防護緩解（2026-07-11）；
-   訓練面補強樣本已寫入 `dialogues_journey.py`（2 題），但 v10 整體重訓守門未通過
-   （見下方 v10 判定），此弱點的訓練面根治尚未達成，資料保留供下次迭代。
+   訓練面補強樣本已寫入 `dialogues_journey.py`（2 題），但 v10、v11 兩次整體重訓守門
+   皆未通過（見上方 v10／v11 判定），此弱點的訓練面根治尚未達成，資料保留供下次迭代。
+   **下輪建議**：只取 on-track 與 outline-refusal 樣本做小幅增量訓練，先不放 journey
+   旅程對話（兩次判退共同指向它的「連續多輪深入追問」訓練訊號）。
 6. ~~不順學生的替代證法（英文殘留）~~ → v9（MAX_LEN=1024 重訓）**英文亦根治**
    （altmethod_en 0.833→1.0，守門通過，2026-07-18）。中文自 v8 已穩定 6/6。
 7. ~~S4 僅 3 案例~~ → 已擴到 6 案例（2026-07-16）。**教訓：輸入隨機的指標（S4 學生方案、
@@ -342,12 +424,17 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
    v9 由 driver 兩修復根治（2026-07-18）：寫完證明→review、宣告證完→`closed` 收尾階段
    （禁新問題/替代法/延伸）。dialogue_guidance_en 0.7333→回升、guidance_zh 反超基準。
 9. 缺「剛學完微積分但容易卡住」跨題型多輪對話 → 訓練樣本已寫入 `dialogues_journey.py`
-   （5 題跨主題旅程對話），但 v10 整體重訓守門未通過，根治尚未達成，資料保留供下次迭代。
+   （5 題跨主題旅程對話），但 v10／v11 整體重訓守門皆未通過，根治尚未達成，資料保留供下次迭代。
 10. 拒絕大綱式洩漏（學生要求先講完整思路）→ 訓練樣本已寫入 `dialogues_journey.py`
-    （1 題婉拒＋還主導權），同上，隨 v10 整體未通過，待下次迭代。
-11. **新發現（v10 實驗揭露）**：學生完成證明後若提出帶問句的反思，driver `closed`
-    收尾階段會排除該輪（設計上只收斂無問句的反思），此時完全依賴模型自律不主動延伸；
-    v10 重訓後這個自律在特定案例（H5）明顯減弱，出現未經請求的推廣/替代法延伸，
-    偶爾伴隨脫離參考解的數學錯誤。下次迭代方向：擴充 `closed` 階段邏輯涵蓋「帶問句
-    但問的是已完成證明範圍內」的情況，或在訓練資料補「模型主動延伸→應收手」的
-    負面對照樣本。詳見 `eval_out_xdomain/V10_VERDICT.md`。
+    （1 題婉拒＋還主導權），同上，隨 v10／v11 整體未通過，待下次迭代。
+11. ~~學生完成證明後提出帶問句的反思會跳出 `closed`，完全依賴模型自律~~ → 已由
+    **#11 driver 修復**根治（2026-07-24，Fork B：一律進 closed 簡答，只有斷言式質疑跳出）。
+12. ~~助教自己確認證明完成時 `done_closed` 沒 arm（只從學生宣告 arm）~~ → 已由
+    **#12 `_TUTOR_DONE_RE`** 根治（2026-07-24，措辭限「整個證明完成」等級防 mid-proof 誤判）。
+13. **多輪引導品質目前沒有可靠的量化守門**：`judge_dialogue_*` 已降 advisory（n=3 雜訊
+    無 ε 可擋），現階段靠 Tier 4 後盾（數學正確性）＋人工質性審閱。方法層可選方向：
+    多輪聚合（中位數／多次 rejudge 平均）再對基準，或加大 n。**在此之前，任何採用/判退
+    決策都不可用對話類分數當依據**（v10 判退是靠「質性內容跨四輪一致」認定的）。
+14. **商品化介面的 Low/Info 項未清**：F3（`check_ollama` 未關連線）、N2（錯誤 yield 樣板
+    重複、`opener_for` 重算）等；且 UI 互動層四情境仍需真模型＋瀏覽器手動驗收
+    （自動測試只涵蓋純邏輯）。詳見 `docs/code-review-product-ui.md`。
