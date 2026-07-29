@@ -711,6 +711,76 @@ wn.step("好吧，那我自己試試看，先從二項式定理下手。")
 check("拒絕洩漏時提到「寫出完整證明」→ 不得誤設 writeup_asked（反向閘）",
       not wn.state.get("writeup_asked"))
 
+print("[16] 對話中自然證完（全程沒有交稿步驟）→ 保底改請交稿（守門對話 X4 型）")
+# X4/zh：學生一問一答把推導走完，助教回「完全正確…」不含問句 → 舊行為補上通用
+# 追問「那你覺得，下一步該從哪裡下手？」，評審判為「已完成卻多餘追問」。
+# 這種情境正確的下一步是請他把證明寫出來（→ review → 審閱通過 → 收尾）。
+x4 = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"])
+x4.first = ("完全正確。核心是把「相異特徵值」這個條件用上，逼出係數只能是零。"
+            "你自己的推導比任何提示都清楚。")
+x4.regen = x4.first                      # 重生成仍無問句 → 走保底路徑
+x4.messages = [
+    {"role": "user", "content": "題目…我不知道怎麼開始。"},
+    {"role": "assistant", "content": "先看看那個線性組合等於零的假設能怎麼用？"},
+    {"role": "user", "content": "我想把 c1v1+c2v2=0 兩邊左乘 A 試試看。"},
+    {"role": "assistant", "content": "很好，那左乘之後的新式子要怎麼跟原式配合？"},
+    {"role": "user", "content": "應該是相減吧？可是兩項好像都還在。"},
+    {"role": "assistant", "content": "再想想，相減前要不要先讓其中一項的係數一致？"},
+    {"role": "user", "content": "原式同乘 λ1 再相減，就得到 c2(λ2−λ1)v2=0；"
+                                "因為 v2≠0 且特徵值相異，所以只能是 c2=0，"
+                                "再代回原本的式子就得到 c1 也必須是 0 了！"},
+]
+x4._tutor_turn()
+_out = x4.messages[-1]["content"]
+check("深度對話＋實質推導＋總評式肯定且無問句 → 補的是交稿請求",
+      "寫出來" in _out and "下一步該從哪裡下手" not in _out)
+check("→ 同時記下 writeup_asked（下一則草稿才進得了 review）",
+      x4.state.get("writeup_asked") is True)
+check("log.guards 記為 writeup_nudge", "writeup_nudge" in x4.state["turns"][-1].guards)
+
+# 負面 1：對話才第一輪、學生訊息很短 → 維持既有通用追問，不可誤把 mid-proof 推去交稿
+sh = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"])
+sh.first = "完全正確。這句話本身就在說鴿籠原理。"
+sh.regen = "還是沒有問句的重生成稿。"
+sh.messages = [{"role": "user", "content": "題目…我的想法是這樣"}]
+sh._tutor_turn()
+check("對話才第一輪（mid-proof）→ 仍用通用追問，不誤請交稿",
+      sh.messages[-1]["content"].endswith("那你覺得，下一步該從哪裡下手？")
+      and "writeup_nudge" not in sh.state["turns"][-1].guards)
+
+# 負面 2：深度對話但助教沒有下總評（只是普通肯定）→ 仍用通用追問
+nd = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"])
+nd.first = "嗯，這個方向可以，係數的部分再想想。"
+nd.regen = nd.first
+nd.messages = list(x4.messages[:7])
+nd._tutor_turn()
+check("深度對話但非總評式肯定 → 仍用通用追問",
+      "writeup_nudge" not in nd.state["turns"][-1].guards)
+
+print("[17] 助教本輪親口宣告完成 → 本輪就不補保底句（時序缺口）")
+# 守門 X4/zh 末輪實例：助教說「是的，證明到此完成。…」——命中 _TUTOR_DONE_RE，
+# 但該偵測放在 step() 開頭（掃上一則助教訊息），而保底句是本輪結尾補的，
+# 於是「宣告完成」與「被追問下一步」出現在同一則回覆裡。arm 必須在補句之前發生。
+tw = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"])
+tw.first = "是的，證明到此完成。你清楚知道那個條件是什麼時候才真正起作用，這比背公式重要得多。"
+tw.regen = tw.first                       # 重生成仍無問句
+tw.messages = [{"role": "user", "content": "所以整個論證就是這樣串起來的，我懂了。"}]
+tw._tutor_turn()
+check("本輪宣告整份證明完成 → 立即 arm done_closed", tw.state.get("done_closed") is True)
+check("→ 同一則回覆不得再被補上追問句",
+      tw.messages[-1]["content"] == tw.first
+      and "fallback" not in tw.state["turns"][-1].guards)
+
+# 負面：本輪只肯定某一步 → 不 arm、保底句照補（維持推進對話的既有行為）
+tstep = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"])
+tstep.first = "對，這一步的證明完成了。"
+tstep.regen = "換句話說也一樣成立。"
+tstep.messages = [{"role": "user", "content": "我想這一段應該可以了。"}]
+tstep._tutor_turn()
+check("只宣告某一步完成 → 不 arm、仍補追問句",
+      not tstep.state.get("done_closed")
+      and "fallback" in tstep.state["turns"][-1].guards)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

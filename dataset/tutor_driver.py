@@ -333,6 +333,11 @@ _FALLBACK_QS_EN = (
     " Which condition do you think is worth using next?",
     " What direction would you like to try from here?",
 )
+# 「證明其實已經走完、只是全程沒有交稿步驟」時的保底句（守門對話 X4 型）：
+# 這種輪次補通用追問會答非所問（評審判為「已完成卻多餘追問」），正確的下一步是
+# 請學生把證明寫出來——接上 writeup → review → 審閱通過 → 收尾這條既有路徑。
+WRITEUP_NUDGE = " 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+WRITEUP_NUDGE_EN = " Could you now write out the complete proof yourself? I'll review it for you."
 
 
 def is_stuck(student_text: str) -> bool:
@@ -417,6 +422,18 @@ _FLOURISH_RE = re.compile(
     r"beyond most students|a masterclass|impeccable",
     re.I,
 )
+
+
+def confirms_whole_proof_done(text: str) -> bool:
+    """助教這則回覆是否等於「整份證明確認完成」的宣告。
+
+    三道閘：還在問問題、講的是「還沒完成」、只在講某一步，都不算——
+    mid-proof 誤判會讓助教在證明途中就進 closed（被指示不准再問問題）。
+    """
+    return bool(text and _TUTOR_DONE_RE.search(text)
+                and not _QMARK_RE.search(text)
+                and not _NOT_DONE_RE.search(text)
+                and not _STEP_SCOPE_RE.search(text))
 
 
 def is_overpraising(reply: str, gaps: list | None) -> bool:
@@ -754,6 +771,11 @@ class TutorDriver:
                     "稱讚要具體、節制，不要用「完全正確」「無懈可擊」這類總評。"))
                 log.regenerated = True
 
+        # 本輪回覆若親口宣告整份證明完成 → 立刻 arm。arm 若等到下一輪 step() 開頭才做，
+        # 「宣告完成」與「下一步該從哪裡下手」會出現在同一則回覆裡（守門 X4/zh 末輪實例）。
+        if not peer and confirms_whole_proof_done(reply):
+            self.state["done_closed"] = True
+
         # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾；
         # 但學生已致謝/宣告完成 → 對話收尾，不強迫再問
         last_user = next((m["content"] for m in reversed(self.messages)
@@ -784,11 +806,22 @@ class TutorDriver:
                     # 其餘情況輪換措辭補上（不會連續出現同一句）。
                     prev = self.state["turns"][-1].guards if self.state["turns"] else []
                     if "fallback" not in prev:
-                        log.guards.append("fallback")
-                        pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
-                        i = self.state.get("fb_idx", 0)
-                        reply = reply.rstrip() + pool[i % len(pool)]
-                        self.state["fb_idx"] = i + 1
+                        # 對話已深入、學生剛交出實質推導、助教又下了總評式肯定——
+                        # 這是「證明其實已走完，只是全程沒有交稿步驟」的樣子。補通用
+                        # 追問會答非所問，改請他交稿（三道閘一起才算，避免 mid-proof
+                        # 的單步肯定被誤判成整份完成）。
+                        if (len(self.messages) >= 6
+                                and len(last_user.strip()) >= 80
+                                and _ENDORSE_RE.search(reply)):
+                            log.guards.append("writeup_nudge")
+                            reply = reply.rstrip() + (WRITEUP_NUDGE_EN if en else WRITEUP_NUDGE)
+                            self.state["writeup_asked"] = True
+                        else:
+                            log.guards.append("fallback")
+                            pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
+                            i = self.state.get("fb_idx", 0)
+                            reply = reply.rstrip() + pool[i % len(pool)]
+                            self.state["fb_idx"] = i + 1
 
         # 重複回問保底：與近 3 輪助教回覆相同 → 加強指示重生成一次（中英共用）
         if self._repeats_previous(reply):
@@ -950,11 +983,8 @@ class TutorDriver:
         if not self.is_peer():
             last_asst = next((m["content"] for m in reversed(self.messages)
                               if m["role"] == "assistant"), "")
-            if (last_asst and not self.state.get("done_closed")
-                    and _TUTOR_DONE_RE.search(last_asst)
-                    and not _QMARK_RE.search(last_asst)
-                    and not _NOT_DONE_RE.search(last_asst)
-                    and not _STEP_SCOPE_RE.search(last_asst)):
+            if (not self.state.get("done_closed")
+                    and confirms_whole_proof_done(last_asst)):
                 self.state["done_closed"] = True
             # 助教自行請學生交稿 → 補記 writeup_asked，讓下一則長訊息被認出是草稿、
             # 走 review（含後盾複核）；拒絕洩漏輪提到「完整證明」不算（反向閘）。
