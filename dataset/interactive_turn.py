@@ -94,13 +94,10 @@ def main():
     d = TutorDriver(tok, model, problem)
 
     if state_path.exists():
-        saved = json.loads(state_path.read_text(encoding="utf-8"))
-        d.messages = saved["messages"]
-        d.state["stuck_count"] = saved["state"]["stuck_count"]
-        d.state["ladder_idx"] = saved["state"]["ladder_idx"]
-        d.state["phase"] = saved["state"].get("phase")
-        d.state["writeup_asked"] = saved["state"].get("writeup_asked", False)
-        d.state["turns"] = []  # log 不需還原，僅供單輪除錯
+        # 整包還原（TutorDriver.load_state）。舊版只挑 4 個欄位還原，done_closed、
+        # fb_idx、walk_* 每輪歸零：收尾修復失效（完成後仍被追問同一句）、保底句無法
+        # 輪換、逐步教學卡在第一步。詳見 update.md 稽核 F2。
+        d.load_state(json.loads(state_path.read_text(encoding="utf-8")))
 
     if args.student is None and not state_path.exists():
         reply = d.start(opener=args.opener) if args.opener else d.start()
@@ -111,18 +108,13 @@ def main():
         sys.exit(1)
 
     turn_info = d.state["turns"][-1] if d.state["turns"] else TurnLog(level=0, stuck_count=0)
-    state_path.write_text(json.dumps({
-        "messages": d.messages,
-        "state": {
-            "stuck_count": d.state["stuck_count"],
-            "ladder_idx": d.state["ladder_idx"],
-            "phase": d.state.get("phase"),
-            "writeup_asked": d.state.get("writeup_asked", False),
-        },
-    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    state_path.write_text(json.dumps(d.dump_state(), ensure_ascii=False, indent=2),
+                          encoding="utf-8")
 
     print(f"[等級={turn_info.level} phase={d.state.get('phase')} "
-          f"stuck_count={d.state['stuck_count']} ladder_idx={d.state['ladder_idx']}]")
+          f"stuck_count={d.state['stuck_count']} ladder_idx={d.state['ladder_idx']} "
+          f"done_closed={bool(d.state.get('done_closed'))} "
+          f"guards={turn_info.guards}]")
     print("助教：" + reply)
 
 

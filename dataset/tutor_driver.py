@@ -119,14 +119,25 @@ _CLAIM_DONE_RE = re.compile(
 # 助教親口確認「整個證明完成」偵測（弱點 #12，2026-07-24）：對話中途自然證完時，
 # done_closed 原本只從學生宣告 arm（_CLAIM_DONE_RE），接不住「學生逐步推到終點、
 # 助教確認完成」——H5 型過度延伸即由此漏出（助教確認完成後主動延伸推廣）。
-# 措辭須是「整個證明完成」等級（非單步「這一步對」），避免 mid-proof 誤判。
+# 措辭須是「整個/你的/這份證明完成」等級（非單步「這一步對」），避免 mid-proof 誤判；
+# 主動語（你完成了證明）與「證明已完成」也算（update.md 稽核：原版漏掉最自然的說法）。
 _TUTOR_DONE_RE = re.compile(
-    r"整個證明.{0,4}(完成|完畢)|證明.{0,4}(完成了|完畢)|證明.{0,3}到此(完成|結束)|"
+    r"(整個|你的|這份|該)證明.{0,6}(完成|完畢)|證明已.{0,3}(完成|完畢)|"
+    r"證明.{0,4}(完成了|完畢)|證明.{0,3}到此(完成|結束)|"
     r"你.{0,4}(完成|寫完).{0,4}(整個)?證明|大功告成|"
     r"(the|your) proof is (now )?complete|proof is complete as written|"
     r"that completes (the|your) proof|you'?ve (now )?completed the (whole )?proof",
     re.I,
 )
+# 否定式（「還沒完成」）不算確認完成——放寬 _TUTOR_DONE_RE 後必須配這道反向閘。
+_NOT_DONE_RE = re.compile(
+    r"(還沒|尚未|還未|沒有?|不算|未)\s*(完成|完畢|寫完|證完)|"
+    r"(is )?not (yet )?complete|isn'?t (yet )?(complete|done)",
+    re.I,
+)
+# 「這一步的證明完成了」講的是單一步驟不是整份證明 → 不算確認完成。
+# mid-proof 誤 arm 會讓助教在證明途中就進 closed（被指示不准再問問題），比漏 arm 嚴重。
+_STEP_SCOPE_RE = re.compile(r"(這|那|該)一?步.{0,10}證明|(this|that) step'?s? proof", re.I)
 # 逼問偵測（v6 回歸發現 S3 抗洩漏被 hint/writeup 資料稀釋，改由 driver 確定性防護）
 _DEMAND_RE = re.compile(
     r"直接.{0,14}(告訴我|給我|寫給我|說出來|貼給我|抄給我)|給我答案|不要問我|"
@@ -374,6 +385,37 @@ _SPOONFEED_EN_RE = re.compile(
 def is_spoonfeeding(reply: str) -> bool:
     """回覆是否替學生指定了具體代數操作（on-track 洩漏模式；中英雙語）。"""
     return bool(_SPOONFEED_RE.search(reply) or _SPOONFEED_EN_RE.search(reply))
+
+
+# ── 稱讚校準（update.md 對話稽核：過度稱讚且與實際表現矛盾）────────────────────
+# 無條件背書措辭：後盾已找出缺漏時說這些＝錯誤背書，學生會以為錯的寫法被確認過了。
+# 只列「整份證明」等級的總評；「沒有問題」這類常用於局部肯定，不列入以免誤殺。
+_ENDORSE_RE = re.compile(
+    r"完全正確|完整正確|沒有(任何)?缺漏|無懈可擊|滴水不漏|完全掌握|"
+    r"(completely|perfectly) (correct|right)|flawless|no gaps|nothing (is )?missing",
+    re.I,
+)
+# 誇飾腔：這些措辭在 800 例訓練集出現 0 次，屬基底模型自帶的華麗辭藻。
+# 與學生實際表現脫鉤（log 中它們正好出現在證明仍有錯誤的輪次），一律重寫。
+_FLOURISH_RE = re.compile(
+    r"邏輯無縫|嚴謹性之魂|超過大多數|相當成熟的層次|"
+    r"beyond most students|a masterclass|impeccable",
+    re.I,
+)
+
+
+def is_overpraising(reply: str, gaps: list | None) -> bool:
+    """回覆的稱讚是否與已知事實矛盾或屬訓練外誇飾。
+
+    gaps：審閱後盾的缺漏清單（非空＝確知有缺漏，此時「總評式背書」就是錯誤背書；
+    []＝複核無誤，肯定是正當的；None＝後盾未啟用/失敗，無證據可判，只擋誇飾腔）。
+
+    有缺漏時只抓「不含問句」的回覆：助教若已用問句把缺漏點出來，前面那句局部肯定
+    （「這一步完全正確，那接下來…？」）是正常引導，學生不會被誤導，不該重生成。
+    """
+    if gaps and not _QMARK_RE.search(reply) and _ENDORSE_RE.search(reply):
+        return True
+    return bool(_FLOURISH_RE.search(reply))
 
 
 # 等級 2 禁算式：抓「含 = / ≤ / ≥ / \le / \ge 的連續數學片段」
@@ -683,12 +725,30 @@ class TutorDriver:
                     "絕對不要寫出任何等式或不等式，讓學生自己動筆推。"))
                 log.regenerated = True
 
+            # 稱讚校準：後盾已回報缺漏卻無條件背書（＝把錯誤寫法確認掉，最嚴重的過譽），
+            # 或出現訓練集從未教過的誇飾腔（基底模型漂移）→ 重寫成具體而節制的肯定
+            if is_overpraising(reply, self.state.get("backstop_gaps")):
+                log.guards.append("overpraise")
+                reply = self._regen(level, (
+                    "Your previous draft praised the student in a way that does not match their actual "
+                    "work (an unconditional endorsement, or exaggerated praise). Rewrite: affirm only "
+                    "the specific part that is genuinely correct, name what still needs fixing, and keep "
+                    "the praise plain and proportionate." if en else
+                    "上一稿給了與學生實際表現不符的稱讚（無條件背書，或誇大其詞）。"
+                    "重寫：只肯定真正正確的那一部分，明確點出還沒處理好的地方，"
+                    "稱讚要具體、節制，不要用「完全正確」「無懈可擊」這類總評。"))
+                log.regenerated = True
+
         # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾；
         # 但學生已致謝/宣告完成 → 對話收尾，不強迫再問
         last_user = next((m["content"] for m in reversed(self.messages)
                           if m["role"] == "user"), "")
+        # done_closed 後一律不硬補：證明已確認完成還被追問「下一步該從哪裡下手」是
+        # 最突兀的扣分項（update.md 稽核）。closed 階段本就不補，這道是階段判定沒落在
+        # closed（例如學生質疑而落回一般流程）時的保險。
         needs_q = (walkthrough or peer
                    or (level < 2 and phase in (None, "refuse_leak"))) \
+            and not self.state.get("done_closed") \
             and not (phase is None and _DONE_RE.search(last_user))
         if needs_q and not _QMARK_RE.search(reply):
             log.guards.append("no_question")
@@ -734,6 +794,12 @@ class TutorDriver:
                 disclaimer = PEER_DISCLAIMER_EN if en else PEER_DISCLAIMER
                 reply = disclaimer + " " + reply
 
+        # 審閱通過訊號：審閱輪的回覆若不含問句，代表助教沒有再要求任何修正＝證明過關
+        # → 此刻才 arm done_closed。這是確定性訊號，不必猜助教用哪種措辭宣告完成
+        # （原本靠 _TUTOR_DONE_RE 比對散文，實測常見說法多半漏接）。
+        if not peer and phase == "review" and not _QMARK_RE.search(reply):
+            self.state["done_closed"] = True
+
         if level == 2 and not walkthrough and not peer:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
             self.state["stuck_count"] = 0     # 給過想法後重新計數
@@ -761,8 +827,10 @@ class TutorDriver:
                 and not re.search(r"謝謝|感謝|thank", student_text, re.I)):
             # 帶實質內容的「宣告證完」＝口頭交稿 → 審閱（含後盾複核），防聽起來完整就放行
             # （致謝式收尾除外——那是道別不是交稿，交給 _DONE_RE 自然收尾）
+            # 注意：這裡**不 arm done_closed**。學生說「得證」不等於證明成立，審閱結果
+            # 都還沒產生就 arm，會讓他針對缺漏的追問被路由進 closed（助教被指示「已完成、
+            # 不要再問」）而中斷糾錯——update.md 稽核的 F3。arm 改由審閱通過時決定。
             self.state["phase"] = "review"
-            self.state["done_closed"] = True      # 之後非質疑輪走 closed，不再推替代法
         elif _DEMAND_RE.search(student_text):
             self.state["phase"] = "refuse_leak"
         elif _ATTEMPT_RE.search(student_text):
@@ -808,6 +876,32 @@ class TutorDriver:
             self.state.update(walk_active=True, walk_idx=0, walk_retry=0,
                               phase="walkthrough", stuck_count=0)
 
+    # ---- session 快照（逐輪 CLI 每輪都是新行程，需跨行程還原）------------------
+    def dump_state(self) -> dict:
+        """可 JSON 序列化的完整 session 快照。
+
+        整包存（而非逐欄列舉）是刻意的：舊版 interactive_turn.py 只存
+        stuck_count/ladder_idx/phase/writeup_asked，於是 done_closed、fb_idx、
+        walk_* 每輪歸零——#11/#12 的收尾修復、保底句輪換、逐步教學進度在逐輪 CLI 上
+        全部失效（update.md 稽核的 F2）。整包存之後新增狀態欄位會自動跟著存。
+        turns 內含 TurnLog 物件，只保留上一輪的 guards（保底連補守衛唯一會讀的東西）。
+        """
+        last = self.state["turns"][-1] if self.state.get("turns") else None
+        return {
+            "messages": self.messages,
+            "state": {k: v for k, v in self.state.items() if k != "turns"},
+            "last_guards": list(last.guards) if last else [],
+        }
+
+    def load_state(self, saved: dict) -> None:
+        """還原 dump_state() 的快照（舊格式的部分欄位也吃得下，缺的維持預設）。"""
+        self.messages = saved.get("messages", [])
+        self.state.update(saved.get("state", {}))
+        guards = list(saved.get("last_guards") or [])
+        self.state["turns"] = (
+            [TurnLog(level=0, stuck_count=self.state.get("stuck_count", 0), guards=guards)]
+            if guards else [])
+
     # ---- 對外 API -------------------------------------------------------------
     def start(self, opener: str | None = None) -> str:
         # session 語言：有 opener 依 opener 判定，否則依題目陳述
@@ -835,10 +929,16 @@ class TutorDriver:
                 self.state["lang"] = detect_lang(student_text)
         # #12：對話中途自然證完、助教上一則親口確認整個證明完成 → arm done_closed，
         # 使本輪起的反思（含帶問句）走 closed（接上 #11），收斂 H5 型過度延伸。
+        # 附帶三道閘（放寬措辭後的安全網）：該則回覆若還在問問題、講的是「還沒完成」、
+        # 或只在講某一步，都不算確認完成。
+        # （審閱輪的 arm 走 _tutor_turn 的「審閱通過」訊號，不靠措辭比對。）
         if not self.is_peer() and not self.state.get("done_closed"):
             last_asst = next((m["content"] for m in reversed(self.messages)
                               if m["role"] == "assistant"), "")
-            if last_asst and _TUTOR_DONE_RE.search(last_asst):
+            if (last_asst and _TUTOR_DONE_RE.search(last_asst)
+                    and not _QMARK_RE.search(last_asst)
+                    and not _NOT_DONE_RE.search(last_asst)
+                    and not _STEP_SCOPE_RE.search(last_asst)):
                 self.state["done_closed"] = True
         self._detect_phase(student_text)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):

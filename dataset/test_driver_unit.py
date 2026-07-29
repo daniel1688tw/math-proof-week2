@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """test_driver_unit.py — tutor_driver 的純邏輯單元測試（不載模型、不需 GPU、不打 Ollama）。"""
+import json
 import os
 import sys
 from pathlib import Path
@@ -121,11 +122,29 @@ d5.step("好，我來寫。證明：令 f(t)=e^t 在 [0,x] 上連續且可微，
         "e^x-1=e^c·x，因 c>0 故 e^c>1，於是 e^x-1>x，得 e^x>1+x，證畢。")
 check("寫證明後的長訊息 → review（不再叫他重寫）", d5.state["phase"] == "review")
 
-d6 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+class _ReviewStub(_StubDriver):
+    """審閱／糾錯輪的回覆可指定，其餘輪照常提問。
+
+    審閱輪回覆「是否含問句」就是 driver 判定「還有缺漏」／「審閱通過」的確定性訊號
+    （update.md 稽核 F1：原本靠 _TUTOR_DONE_RE 比對助教散文，常見說法多半漏接）。"""
+    review_reply: str = "完全正確，每一步的依據都交代清楚了。"
+
+    def _generate(self, level):
+        self.generated_levels.append(level)
+        if self.state.get("phase") in ("review", "rectify"):
+            return self.review_reply
+        n = len(self.generated_levels)
+        return f"（等級{level}的回覆，第{n}輪）{_STUB_VARIANTS[n % len(_STUB_VARIANTS)]}"
+
+    def _regen(self, level, note):
+        return self._generate(level)
+
+
+d6 = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A6"])
 d6.generated_levels = []
 d6.start(opener="所以我們就證完了，對吧？最小值是 0 且在 x=0 取得，因此對所有 x 都成立。")
-check("實質宣告證完 → review 且 arm done_closed",
-      d6.state["phase"] == "review" and d6.state.get("done_closed"))
+check("實質宣告證完 → 口頭交稿走 review", d6.state["phase"] == "review")
+check("審閱通過（該輪回覆無問句）→ arm done_closed", d6.state.get("done_closed"))
 d6.step("嗯，這樣整個就串起來了。不過我發現我剛才對 x≤0 那段講得有點含糊，其實應該更明確說明。")
 check("完成後的反思閒聊 → closed（不推替代法）", d6.state["phase"] == "closed")
 check("closed 指示禁新問題／替代法",
@@ -144,12 +163,13 @@ check("完成後斷言式質疑（_CHALLENGE_RE 命中）→ 不走 closed",
       d6.state["phase"] != "closed")
 
 # 英文平行：完成後帶問句的好奇 → closed（雙語一致）
-d7 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+d7 = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A6"])
 d7.generated_levels = []
+d7.review_reply = "Completely correct — every step is justified."
 d7.start(opener="So that completes the proof, right? The minimum value is 0, attained "
                 "only at x = 0, so it holds for all x.")
-check("EN 實質宣告證完 → review 且 arm done_closed",
-      d7.state["phase"] == "review" and d7.state.get("done_closed"))
+check("EN 實質宣告證完 → review", d7.state["phase"] == "review")
+check("EN 審閱通過（回覆無問句）→ arm done_closed", d7.state.get("done_closed"))
 d7.step("So does this also hold for x < 0?")
 check("EN 完成後帶問句好奇 → closed（#11）", d7.state["phase"] == "closed")
 check("EN closed 新指示：只答那一個問題、不延伸",
@@ -529,6 +549,134 @@ dc4.start(opener="Please guide me through this one.")
 dc4.step("Setting a_n = n^(1/n) − 1, the binomial theorem gives n ≥ C(n,2)a_n², hence a_n ≤ √(2/(n−1)) → 0 "
          "by squeezing, so the limit equals 1, and that completes the proof.")
 check("英文長論證＋宣告 → review", dc4.state.get("phase") == "review")
+
+print("[14] 收尾 arm 時機、追問抑制與稱讚校準（update.md 對話稽核）")
+
+
+# 口頭宣告式交稿（不以「證明：」開頭 → 走 _CLAIM_DONE_RE 分支），且 δ 取法有缺漏
+_CLAIM = ("我把式子拆成 |x-2||x+2|，先限制 |x-2|<1 得到 |x+2|<5，"
+          "再取 δ = ε/5，這樣 |x^2-4| < 5·(ε/5) = ε，因此得證。")
+
+rv = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A2"])
+rv.generated_levels = []
+rv.review_reply = "你取 δ 的時候，前面 |x-2|<1 的限制還保得住嗎？"
+rv.start(opener=_CLAIM)
+check("宣告式交稿 → review", rv.state.get("phase") == "review")
+check("審閱結果未知時不得 arm done_closed（F3：arm 早於審閱＝糾錯會被吞）",
+      not rv.state.get("done_closed"))
+rv.step("你是說 δ 的取法有問題嗎？")
+check("審閱指出缺漏後、學生帶問句追問 → 不進 closed，糾錯續行（F3 回歸）",
+      rv.state.get("phase") != "closed")
+
+rv2 = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A2"])
+rv2.generated_levels = []
+rv2.review_reply = "完全正確，每一步都有依據，這份證明可以了。"
+rv2.start(opener=_CLAIM)
+check("審閱通過（該輪回覆無問句）→ arm done_closed（F1：不靠措辭正則）",
+      rv2.state.get("done_closed"))
+rv2.step("原來取 min 是為了同時控制兩個因子。")
+check("審閱通過後的反思（無謝謝、無問號）→ closed", rv2.state.get("phase") == "closed")
+
+
+class _NoQ2Stub(TutorDriver):
+    """首輪帶問句（不觸發保底），之後每輪都不含問句 → 測追問保底是否被抑制。"""
+
+    def _generate(self, level):
+        if len(self.messages) <= 1:
+            return "先想想 |x^2-4| 可以怎麼分解？"
+        return f"這一點你說得有道理，我再想一下（第{len(self.messages)}輪）。"
+
+    def _regen(self, level, note):
+        return f"確實值得再檢查一次（第{len(self.messages)}輪）。"
+
+
+nq2 = _NoQ2Stub(tok=None, model=_StubModel(), problem=probs["A2"])
+nq2.start(opener="請引導我，我想自己試試看。")
+check("首輪有問句 → 未動用保底", "fallback" not in nq2.state["turns"][-1].guards)
+nq2.state["done_closed"] = True
+r_ch = nq2.step("你錯了吧，這一步根本不成立。")
+check("證明已確認完成後 → 即使落回一般流程也不再硬補追問句",
+      not r_ch.rstrip().endswith("？") and "fallback" not in nq2.state["turns"][-1].guards)
+
+# 放寬 _TUTOR_DONE_RE 後的邊界守衛：mid-proof 誤 arm 會讓助教在證明中途就進收尾模式
+# （被指示「不要再拋出任何新問題」）＝比漏 arm 嚴重得多，兩種近似措辭都必須擋掉
+for _txt, _why in (("很好，這一步的證明完成了。", "只講某一步完成"),
+                   ("你的證明還沒完成，中間少了一個條件。", "否定式"),
+                   ("這樣整個證明就完成了，你自己補上了關鍵那一步。", "確實宣告整份完成")):
+    _d = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+    _d.generated_levels = []
+    _d.start()
+    _d.messages.append({"role": "assistant", "content": _txt})
+    _d.step("嗯，我想想看。")
+    _should = _why == "確實宣告整份完成"
+    check(f"助教說「{_txt[:12]}…」（{_why}）→ {'arm' if _should else '不 arm'} done_closed",
+          bool(_d.state.get("done_closed")) is _should)
+
+# F2：逐輪 CLI 跨行程還原——done_closed / fb_idx / lang / 上輪 guards 都要活下來
+snap = json.loads(json.dumps(rv2.dump_state()))
+rv3 = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A2"])
+rv3.load_state(snap)
+check("dump/load 保住 done_closed（F2：CLI 每輪重建 driver）",
+      rv3.state.get("done_closed") is True)
+check("dump/load 保住 messages 與 lang",
+      rv3.messages == rv2.messages and rv3.state.get("lang") == rv2.state.get("lang"))
+nq_snap = json.loads(json.dumps(nq2.dump_state()))
+nq3 = _NoQ2Stub(tok=None, model=_StubModel(), problem=probs["A2"])
+nq3.load_state(nq_snap)
+check("dump/load 保住 fb_idx（否則保底句永遠是同一句）",
+      nq3.state.get("fb_idx") == nq2.state.get("fb_idx"))
+check("dump/load 保住上一輪 guards（連兩輪不硬補的守衛才有效）",
+      (nq3.state["turns"][-1].guards if nq3.state["turns"] else [])
+      == (nq2.state["turns"][-1].guards if nq2.state["turns"] else []))
+
+# F6：稱讚校準——後盾已回報缺漏卻無條件背書 → 重生成（錯誤背書是最嚴重的一種過譽）
+op = _GuardStub(tok=None, model=_StubModel(), problem=probs["A2"])
+op.first = "完全正確，你的證明沒有任何缺漏，可以收工了。"
+op.regen = "主要方向正確，但取 δ 那一行還有一個條件沒顧到，你看得出是哪個嗎？"
+op.messages = [{"role": "user", "content": "證明：我先把 |x^2-4| 拆開……"}]
+op.state["phase"] = "review"
+op.state["backstop_gaps"] = ["取 δ 時未保留 |x-2|<1 的限制"]
+op._tutor_turn()
+check("後盾已回報缺漏卻說『完全正確』→ 重生成（F6 錯誤背書）",
+      op.messages[-1]["content"] == op.regen)
+check("log.guards 記錄 overpraise", "overpraise" in op.state["turns"][-1].guards)
+
+op2 = _GuardStub(tok=None, model=_StubModel(), problem=probs["A2"])
+op2.first = "很好，你的論證邏輯無縫，已經超過大多數學生的水準了。"
+op2.regen = "這一步的依據交代得清楚。接下來 |x+2| 你打算怎麼估？"
+op2.messages = [{"role": "user", "content": "我覺得這樣拆應該就可以了"}]
+op2.state["phase"] = "rectify"
+op2._tutor_turn()
+check("訓練集 0 次的誇飾腔（邏輯無縫／超過大多數）→ 重生成（F6 基底模型漂移）",
+      op2.messages[-1]["content"] == op2.regen)
+
+op2b = _GuardStub(tok=None, model=_StubModel(), problem=probs["A2"])
+op2b.first = "拆成兩個絕對值這一步完全正確。那取 δ 的時候，|x-2|<1 這個限制還在嗎？"
+op2b.regen = "（不該被觸發的重生成稿）"
+op2b.messages = [{"role": "user", "content": "證明：我先把 |x^2-4| 拆開……"}]
+op2b.state["phase"] = "review"
+op2b.state["backstop_gaps"] = ["取 δ 時未保留 |x-2|<1 的限制"]
+op2b._tutor_turn()
+check("有缺漏但已用問句點出（局部肯定＋引導）→ 不算錯誤背書，不重生成",
+      op2b.messages[-1]["content"] == op2b.first)
+
+op3 = _GuardStub(tok=None, model=_StubModel(), problem=probs["A2"])
+op3.first = "很好，這一步是對的。接下來 |x+2| 怎麼估？"
+op3.regen = "（不該被觸發的重生成稿）"
+op3.messages = [{"role": "user", "content": "我先把它拆成兩個絕對值相乘"}]
+op3._tutor_turn()
+check("正常肯定（很好／這一步是對的）→ 不觸發 overpraise",
+      op3.messages[-1]["content"] == op3.first)
+
+op4 = _GuardStub(tok=None, model=_StubModel(), problem=probs["A2"])
+op4.first = "完全正確，每一步的依據都交代了。"
+op4.regen = "（不該被觸發的重生成稿）"
+op4.messages = [{"role": "user", "content": "證明：……（完整草稿）"}]
+op4.state["phase"] = "review"
+op4.state["backstop_gaps"] = []          # 後盾複核無誤 → 肯定是正當的
+op4._tutor_turn()
+check("後盾複核無誤時的『完全正確』→ 不觸發 overpraise",
+      op4.messages[-1]["content"] == op4.first)
 
 print()
 if FAIL:
