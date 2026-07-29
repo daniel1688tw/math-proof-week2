@@ -138,6 +138,21 @@ _NOT_DONE_RE = re.compile(
 # 「這一步的證明完成了」講的是單一步驟不是整份證明 → 不算確認完成。
 # mid-proof 誤 arm 會讓助教在證明途中就進 closed（被指示不准再問問題），比漏 arm 嚴重。
 _STEP_SCOPE_RE = re.compile(r"(這|那|該)一?步.{0,10}證明|(this|that) step'?s? proof", re.I)
+# 助教自行請學生交稿偵測（2026-07-29 守門 H5/zh 實例）：driver 只在 _UNDERSTOOD_RE
+# 命中時才進 writeup_request 並記下 writeup_asked，但模型常自己開口請學生寫證明
+# （學生用「這樣就算證完了嗎」表達理解時尤其如此，那不命中 _UNDERSTOOD_RE）。
+# 沒記錄下來，學生接著交出的草稿就走不到「已請學生寫證明」分支 → 不進 review →
+# 拿不到審閱通過訊號 → 收尾輪被補上保底追問句。與 #12 是對稱的補丁。
+_TUTOR_ASK_WRITEUP_RE = re.compile(
+    r"把.{0,12}證明.{0,6}寫(出來|下來|出|下)|寫(出|下).{0,10}完整.{0,4}證明|"
+    r"完整.{0,4}證明.{0,6}寫(出來|下來)|自己.{0,4}寫.{0,6}證明|"
+    r"write (out|up) (the|your) (full |complete |whole )?proof|"
+    r"write (the|your) (full|complete|whole) proof",
+    re.I,
+)
+# 拒絕洩漏輪也會提到「寫出完整證明」（「我不能直接寫出完整證明給你」）→ 反向閘
+_REFUSE_WRITEUP_RE = re.compile(
+    r"不能|不會|無法|不可以|不該|won'?t|can'?t|cannot|will not", re.I)
 # 逼問偵測（v6 回歸發現 S3 抗洩漏被 hint/writeup 資料稀釋，改由 driver 確定性防護）
 _DEMAND_RE = re.compile(
     r"直接.{0,14}(告訴我|給我|寫給我|說出來|貼給我|抄給我)|給我答案|不要問我|"
@@ -932,14 +947,21 @@ class TutorDriver:
         # 附帶三道閘（放寬措辭後的安全網）：該則回覆若還在問問題、講的是「還沒完成」、
         # 或只在講某一步，都不算確認完成。
         # （審閱輪的 arm 走 _tutor_turn 的「審閱通過」訊號，不靠措辭比對。）
-        if not self.is_peer() and not self.state.get("done_closed"):
+        if not self.is_peer():
             last_asst = next((m["content"] for m in reversed(self.messages)
                               if m["role"] == "assistant"), "")
-            if (last_asst and _TUTOR_DONE_RE.search(last_asst)
+            if (last_asst and not self.state.get("done_closed")
+                    and _TUTOR_DONE_RE.search(last_asst)
                     and not _QMARK_RE.search(last_asst)
                     and not _NOT_DONE_RE.search(last_asst)
                     and not _STEP_SCOPE_RE.search(last_asst)):
                 self.state["done_closed"] = True
+            # 助教自行請學生交稿 → 補記 writeup_asked，讓下一則長訊息被認出是草稿、
+            # 走 review（含後盾複核）；拒絕洩漏輪提到「完整證明」不算（反向閘）。
+            if (last_asst and not self.state.get("writeup_asked")
+                    and _TUTOR_ASK_WRITEUP_RE.search(last_asst)
+                    and not _REFUSE_WRITEUP_RE.search(last_asst)):
+                self.state["writeup_asked"] = True
         self._detect_phase(student_text)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(student_text)

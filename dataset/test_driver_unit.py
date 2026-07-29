@@ -678,6 +678,39 @@ op4._tutor_turn()
 check("後盾複核無誤時的『完全正確』→ 不觸發 overpraise",
       op4.messages[-1]["content"] == op4.first)
 
+print("[15] 助教自行要求交稿也要記錄（守門對話 H5 型）")
+# driver 只在 _UNDERSTOOD_RE 命中時才進 writeup_request；但模型常自己開口要求交稿，
+# 沒記下來的話，學生接著交出的草稿不會被判定為交稿 → 不進 review → 拿不到審閱通過
+# 訊號 → 收尾時被補上保底追問句（2026-07-29 守門 H5/zh 實例）。
+_H5_DRAFT = ("好啊，我試試看！是不是要先設 $f(t) = e^t$，然後說明它在 $[0, x]$ 連續、"
+             "在 $(0, x)$ 可微，所以存在 $c \\in (0, x)$ 使得 $\\frac{e^x - 1}{x} = e^c$？"
+             "接下來再把 $c > 0$ 推出 $e^c > 1$ 寫上去，這樣邏輯就完整了嗎？")
+
+wa = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A6"])
+wa.generated_levels = []
+wa.review_reply = "完全正確，你甚至把均值定理可用的前提都補上了。"
+wa.start()
+wa.messages.append({"role": "assistant",
+                    "content": "對，你已經自己看出「正式證明」需要把前提明確寫出來。"
+                               "那你能把完整的證明寫出來，我來幫你審閱嗎？"})
+wa.step(_H5_DRAFT)
+check("助教自行要求交稿 → 記錄 writeup_asked", wa.state.get("writeup_asked") is True)
+check("→ 學生交出的長草稿路由 review（而非落回一般引導輪）",
+      wa.state.get("phase") == "review")
+check("→ 審閱通過後 arm done_closed，收尾不再補追問句",
+      wa.state.get("done_closed") is True
+      and "fallback" not in wa.state["turns"][-1].guards)
+
+wn = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A6"])
+wn.generated_levels = []
+wn.start()
+wn.messages.append({"role": "assistant",
+                    "content": "我不能直接寫出完整證明給你，自己推導才真的有用。"
+                               "你打算先用題目的哪個條件？"})
+wn.step("好吧，那我自己試試看，先從二項式定理下手。")
+check("拒絕洩漏時提到「寫出完整證明」→ 不得誤設 writeup_asked（反向閘）",
+      not wn.state.get("writeup_asked"))
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
