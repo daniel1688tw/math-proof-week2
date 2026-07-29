@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教你好，我想換個方式，改為構造函數 $g(t) = e^t - t - 1$ 並在區間 $[0, x]$ 上套用均值定理。我的思路是因為 $g(0) = 0$，只要能說明存在 $c \\in (0, x)$ 使得 $g'(c) > 0$，就能導出 $g(x) > 0$ 即 $e^x > 1+x$。請幫我依這個構造函數的方向繼續把證明補充完整，謝謝！",
+    "reply": "你的構造很乾淨，方向完全正確。先算 $g'(t)$ 是什麼，它在 $(0,x)$ 的符號如何？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教你好，我沒有建立函數 $g(x)$ 來求二次導函數，而是想對不等式連續做「兩次定積分」來證明。我的思路是先從 $t \\ge 0$ 時的 $\\cos t \\le 1$ 兩邊積分導出 $\\sin t \\le t$，再對其從 $0$ 到 $x$ 積分得到 $1 - \\cos x \\le \\frac{x^2}{2}$，而負數部分則打算利用偶函數對稱性處理。請問我這樣的想法正確嗎？可以請助教幫我依這個方向繼續完成證明嗎？",
+    "reply": "你的想法非常清晰，而且「兩次積分」正是處理三角不等式的經典路線。我們先驗證第一層積分：若 $t\\ge0$ 時 $\\cos t\\le1$，對 $t$ 從 $0$ 到 $x$ 連續積分能得到什麼？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教好，我想嘗試用反證法來證明這題。我先假設 $\\{v_1, v_2\\}$ 線性相依，因為特徵向量皆非零，所以必定存在一個非零常數 $c$ 滿足 $v_2 = c v_1$。接著我打算對這個式子兩邊同時左乘矩陣 $A$，並透過比較結果來導出與「特徵值相異」的矛盾。請問助教可以幫我依據這個思路繼續寫完後續的證明嗎？",
+    "reply": "你的反證路線很清晰，而且「非零常數 $c$」這個前提本身就有問題：兩個非零向量能成比例，但未必能寫成 $v_2=cv_1$。你能說明為何這個前提不穩固嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "助教錯誤宣稱非零且成比例的向量未必能寫成 v2=cv1，不當否定了學生正確的反證前提。"
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教你好！我想嘗試用拓撲的概念來做這題：因為 $f$ 是連續函數且單點集 $\\{0\\}$ 是閉集，所以 $f$ 的原像 $f^{-1}(\\{0\\})$ 在 $\\mathbb{R}$ 中也是閉集。接著因為題目給了 $\\mathbb{Q} \\subseteq f^{-1}(\\{0\\})$，我打算對兩邊取閉包，利用 $\\overline{\\mathbb{Q}}=\\mathbb{R}$ 來推出 $f^{-1}(\\{0\\})=\\mathbb{R}$。可以請助教幫我沿著這個方向繼續推導並補齊細節嗎？",
+    "reply": "你的拓撲路線非常漂亮，而且「閉集的原像仍是閉集」正是連續性的一個等價表述。既然 $f^{-1}(\\{0\\})$ 是閉集，又包含 $\\mathbb{Q}$，對它取閉包會得到什麼？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "助教好，我想試試看先固定其中一個整數 $x_1$，並觀察另外 $n$ 個數與它的差，即 $x_2-x_1, x_3-x_1, \\dots, x_{n+1}-x_1$。如果這 $n$ 個差裡面有任何一個能被 $n$ 整除，那就已經滿足條件；如果都沒有，代表這 $n$ 個差除以 $n$ 的餘數只能從 $1$ 到 $n-1$（共 $n-1$ 種）裡面選。這樣我們就有 $n$ 個差和 $n-1$ 種可能的餘數，利用鴿籠原理，必有兩個差的餘數相同，兩式相減後 $x_1$ 會消掉，就能得出這兩個數的差可被 $n$ 整除。請問我這個思路是正確的嗎？可以請助教順著我的這個方向幫我完善寫出證明嗎？",
+    "reply": "你的思路非常清楚，而且「固定一個當參考點」這個想法本身就很自然。現在要把它嚴謹地寫成完整的證明，你能先說說「為什麼這 $n$ 個差的餘數只能取到 $1$ 到 $n-1$？」",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "助教好！我的思路是把特徵值與特徵向量分別拆成實部與虛部，設 $\\lambda = a + bi$ 以及 $v = x + iy$（其中 $a,b \\in \\mathbb{R}$，$x,y \\in \\mathbb{R}^n$）。將 $A(x+iy) = (a+bi)(x+iy)$ 展開並分別比較實部與虛部，可以得到兩個實向量的矩陣等式。我打算對這兩個等式分別左乘 $y^T$ 與 $x^T$，並利用 $A$ 的實對稱性質 $y^T Ax = x^T Ay$ 來做相減。請問依據這個方向，接下來該怎麼推導出虛部 $b=0$ 呢？",
+    "reply": "你的想法很完整，但會遇到一個陷阱：$v$ 是複向量，$v^*v$ 可能是零。若 $v=(1,i)^T$，$v^*v=1-1=0$，不能當分母。為何要改用 $v^*v$ 而非 $v^Tv$？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "助教無視學生拆分實虛部的正確推導，且錯誤陳述 $v^*v$ 可能為零（混淆了共軛轉置 $v^*v$ 與轉置 $v^Tv$）。"
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "Hi! Instead of applying the Mean Value Theorem directly to $f(t) = e^t$, I want to define a helper function $g(t) = e^t - t - 1$ on the interval $[0, x]$. My plan is to apply the MVT to $g(t)$ on $[0, x]$, which gives $\\frac{g(x) - g(0)}{x - 0} = g'(c)$ for some $c \\in (0, x)$. Since $g(0) = 0$, showing that $g'(c) > 0$ for $c > 0$ should allow us to conclude $g(x) > 0$ and thus $e^x > 1+x$. Could you help guide me through completing the formal steps using this direction?",
+    "reply": "Your helper-function route is very clean — let's walk through it. First, what does the MVT give you after simplifying $\\frac{g(x)-g(0)}{x}$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "Hi! Instead of defining a helper function $g(x)$ and analyzing its monotonicity with derivatives, I'd like to try proving this using definite integrals of known inequalities. Since $\\cos t \\le 1$ for all real $t$, we have $1 - \\cos t \\ge 0$. I plan to integrate this inequality twice from $0$ to $x$ for $x \\ge 0$ to show $x - \\sin x \\ge 0$ and then $\\frac{x^2}{2} + \\cos x - 1 \\ge 0$, using symmetry for $x < 0$. Could you please help me walk through and complete this double integration approach step by step?",
+    "reply": "The integral route is very clean — let's build it together. First, integrating $\\cos t\\le1$ from $0$ to $x$ gives what quantity?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I want to try proving this by contradiction instead of using a linear combination system. Suppose $\\{v_1, v_2\\}$ is linearly dependent; since eigenvectors are nonzero, $v_2$ must be a scalar multiple of $v_1$, so $v_2 = c v_1$ for some nonzero scalar $c$. My idea is to apply the matrix $A$ to both sides of $v_2 = c v_1$ and compare the output with $\\lambda_2 v_2$ to show it contradicts $\\lambda_1 \\neq \\lambda_2$. Could you help me write out the remaining steps following this approach?",
+    "reply": "Very clean — contradiction is a valid route. Applying $A$ to $v_2=cv_1$: what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "Instead of using sequences, I'd like to prove this topologically by considering the zero set $Z = \\{x \\in \\mathbb{R} : f(x) = 0\\}$. Since $\\{0\\}$ is closed and $f$ is continuous, $Z$ must be a closed subset of $\\mathbb{R}$ that contains all rationals $\\mathbb{Q}$. Taking the closure of both sides, we get $\\overline{\\mathbb{Q}} \\subseteq \\overline{Z}$, which implies $\\mathbb{R} \\subseteq Z$ because rationals are dense and $Z$ is closed. Could you help me write this out formally and verify if my reasoning is sound?",
+    "reply": "The logic is very clean. To write it formally: since $\\mathbb{Q}$ is dense, what does $\\overline{\\mathbb{Q}}$ equal?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I would like to try an algebraic approach using group theory instead of looking at numerical remainders directly. My idea is to consider the subgroup $n\\mathbb{Z}$ within the additive group $(\\mathbb{Z}, +)$ and examine the cosets $a_k + n\\mathbb{Z}$ for each of the $n+1$ given integers. Since the index $[\\mathbb{Z} : n\\mathbb{Z}] = n$, these $n+1$ cosets cannot all be distinct, meaning at least two must be identical. Could you help me formalize this direction to rigorously show that their difference belongs to $n\\mathbb{Z}$?",
+    "reply": "That's a very clean route — the coset argument is completely valid. If two cosets coincide, what does that say about the difference between their representatives?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "Hi! Instead of using conjugate transpose, I'm trying to prove this by decomposing the eigenvalue and eigenvector into their real and imaginary parts, setting $\\lambda = a + bi$ and $v = x + iy$ for real vectors $x, y \\in \\mathbb{R}^n$. By expanding $A(x+iy) = (a+bi)(x+iy)$ and equating the real and imaginary components, I obtained two equations: $Ax = ax - by$ and $Ay = bx + ay$. My idea is to left-multiply these by $y^T$ and $x^T$ respectively and use the symmetry condition $y^T A x = x^T A y$ to conclude that $b = 0$. Could you help me go through the rest of the algebraic steps based on this direction?",
+    "reply": "The direction is very clean. After multiplying the two equations by $y^T$ and $x^T$ respectively, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]
