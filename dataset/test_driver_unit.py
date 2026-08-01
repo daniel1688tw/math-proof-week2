@@ -36,6 +36,18 @@ check("實質嘗試（含定理）→ 非 stuck", not is_stuck("我想用均值�
 check("長回覆含『不確定』但有嘗試 → 非 stuck（長度>60）",
       not is_stuck("我不確定對不對，但我試著設 g(x)=f(x)-kx，然後算它的導數 g'(x)=f'(x)-k，接著看端點的符號，g'(a)<0 而 g'(b)>0。"))
 check("正確回答 → 非 stuck", not is_stuck("部分和是遞增的，因為每一項都是正的。"))
+# 副詞插入（2026-08-01，加「重度卡關型」persona 時用 agy 實測學生產出才發現）：
+# 英文口語極常見的 "I don't even know" / "not really sure" 會把原本要求連續的
+# don't know / not sure 打斷 → 學生明說不會卻拿不到提示升級。
+check("『I don't even know how to find that.』→ stuck（副詞插入）",
+      is_stuck("What do you mean by the supremum? I don't even know how to find that."))
+check("『But I'm not really sure about it.』→ stuck（副詞插入）",
+      is_stuck("I guess it goes to 0, but I'm not really sure about it."))
+check("『I don't quite know where to start.』→ stuck", is_stuck("I don't quite know where to start."))
+check("『I know exactly what to do here.』→ 非 stuck（不可誤殺肯定句）",
+      not is_stuck("I know exactly what to do here."))
+check("『I'm sure the limit is zero.』→ 非 stuck（不可誤殺肯定句）",
+      not is_stuck("I'm sure the limit is zero."))
 
 print("[2] 單問句截斷 enforce_single_question")
 r = enforce_single_question("先化簡差。分子是什麼？分母又是什麼？")

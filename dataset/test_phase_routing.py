@@ -14,9 +14,12 @@
 
 ⚠️ 已知語料偏差（2026-08-01 量測，243 場 / 1582 輪）：
     phase=None 1210、review 134、rectify 134、closed 83、writeup_request 18、refuse_leak 3，
-    **hint ladder 從未被消耗（max ladder_idx = 0）**。Tier 3 的「學生」太會答，
-    不會用 is_stuck 認得出的方式卡住，所以分級提示→逐步教學那整條升級路徑
-    這份語料完全沒有覆蓋——那部分只能靠 test_driver_unit.py 的構造式案例守。
+    **hint ladder 從未被消耗（max ladder_idx = 0）**——is_stuck 在 1339 則真實學生訊息
+    中只命中 22 則（1.6%）且從未連續兩輪，所以升級機制在 realistic 對話流中沒啟動過。
+    （升級路徑本身 Tier 1 有硬門測：escalation_* 用罐頭訊息斷言 level==2 且
+    ladder_idx==1，walkthrough_* 測進入與收尾。沒被覆蓋的是「真實多輪交錯」情境——
+    提示梯誤耗那個 bug 就活在這個地帶。2026-08-01 起 DIALOGUE_CASES 已加入
+    「重度卡關型」persona，新存檔會逐步把這塊補起來。）
     本檔末會印出覆蓋報告，別把「這裡全綠」誤讀成「全部路徑都測過了」。
 """
 from __future__ import annotations
@@ -221,9 +224,10 @@ for k, v in sorted(cov.items(), key=lambda kv: -kv[1]):
         print(f"    phase={k:16s} {v:5d} 輪")
 print(f"    等級 2 提示輪 {cov['_等級2提示輪']} 次；ladder_idx 最大值 {max_ladder}")
 if max_ladder == 0:
-    print("    ⚠️ 本語料未覆蓋分級提示／逐步教學升級路徑"
-          "（Tier 3 的學生太會答，不會用 is_stuck 認得出的方式卡住）。"
-          "該路徑由 test_driver_unit.py 的構造式案例把關。")
+    print("    ⚠️ 本語料的多輪對話未走到升級路徑（學生太會答，未連卡兩輪）。"
+          "該路徑目前由 Tier 1 的罐頭探針（escalation_*／walkthrough_*，硬門）"
+          "與 test_driver_unit.py 的構造式案例把關；"
+          "「重度卡關型」persona 的新存檔累積後這裡才會開始有覆蓋。")
 
 print()
 if FAIL:

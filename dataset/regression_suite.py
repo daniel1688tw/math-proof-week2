@@ -90,7 +90,7 @@ JUDGE_EPSILON_OVERRIDE = {
 #     掉（一輪 zh 過 en 掉、下一輪反之），non-gateable。
 # 兩者改由 Tier 4 審閱後盾（math）+ 質性審閱（guidance）把關。硬性守門＝確定性 +
 # 單輪評審（n≈13 穩定）+ altmethod（含 ε）+ 後盾。詳見 eval_out_xdomain/V11_VERDICT.md。
-ADVISORY_METRICS = ("judge_dialogue",)
+ADVISORY_METRICS = ("judge_dialogue", "dialogue_ladder_used")
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
 S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."
@@ -125,6 +125,15 @@ DIALOGUE_CASES = [
     ("H5", "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來"),
     ("M2", "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據"),
     ("X4", "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正"),
+    # 重度卡關型（2026-08-01 新增）：回放 243 場既有對話量到 **ladder_idx 最大值 = 0**
+    # ——上面三個 persona 都太會答，realistic 對話從未連卡兩輪，於是分級提示→逐步教學
+    # 這條升級路徑在多輪情境下從來沒被走過（Tier 1 只用罐頭訊息單獨測過它）。
+    # 措辭經 agy 實測校準：中英各 3/3 觸發 is_stuck（含「除非講出定理名稱否則答不出來」
+    # 這道約束，否則 LLM 學生會自己推出答案就跳出卡住狀態）。
+    ("M1", "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**"
+           "（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、"
+           "換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」"
+           "「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案"),
 ]
 DIALOGUE_TURNS = 6
 
@@ -505,8 +514,15 @@ def tier3_generate(tok, model, lang: str = "zh") -> list:
             history.append(("學生", stu.strip().strip('"')))
             reply = d.step(history[-1][1])
             history.append(("助教", reply))
+        # 升級軌跡（供覆蓋度追蹤，不進 pass/fail）：多輪情境下提示梯到底有沒有被用到。
+        # 這幾個欄位也讓 --rejudge 讀存檔時不必重跑 GPU 就能算覆蓋度。
+        esc = {"ladder_idx": d.state["ladder_idx"],
+               "walk_active": bool(d.state.get("walk_active")),
+               "max_level": max((t.level for t in d.state["turns"]), default=0)}
+        print(f"  [{pid}/{lang}] 升級軌跡 ladder_idx={esc['ladder_idx']} "
+              f"max_level={esc['max_level']} walkthrough={esc['walk_active']}")
         records.append({"id": pid, "persona": persona, "history": history,
-                        "lang": lang, "verdict": None})
+                        "lang": lang, "verdict": None, "escalation": esc})
     return records
 
 
@@ -533,6 +549,18 @@ def tier3_judge(records: list, metrics: dict, lang: str = "zh") -> None:
         metrics["judge_dialogue_math_ok" + sfx] = round(math_ok_n / judged, 4)
     if guidance:
         metrics["judge_dialogue_guidance" + sfx] = round(sum(guidance) / len(guidance) / 5, 4)
+    # 覆蓋度指標（advisory，不進 pass/fail）：多輪情境下提示梯有沒有真的被用到。
+    # 刻意不做成硬門——學生由 LLM 即興扮演＝輸入隨機，連學生生成失敗都會讓它歸零，
+    # 正是 CLAUDE.md 弱點 #7 說的「輸入隨機的指標不可棘輪」。它的價值在於把
+    # 「有走過升級路徑」的對話寫進存檔，之後由 test_phase_routing.py 的確定性
+    # 不變式（Tier 0）永久把關。
+    esc = [r.get("escalation") for r in records if r.get("escalation")]
+    if esc:
+        metrics["dialogue_ladder_used" + sfx] = round(
+            sum(1 for e in esc if e["ladder_idx"] >= 1) / len(esc), 4)
+        print(f"  [覆蓋/{lang}] 用到提示梯的對話 "
+              f"{sum(1 for e in esc if e['ladder_idx'] >= 1)}/{len(esc)}；"
+              f"進到逐步教學 {sum(1 for e in esc if e['walk_active'])}")
 
 
 # ── S4：學生用不同但正確的證法 → 助教是否順著學生邏輯（不硬拉回參考解）─────────────

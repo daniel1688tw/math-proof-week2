@@ -79,8 +79,11 @@ _STUCK_RE = re.compile(
     r"不知道|不會|想不到|想不出|沒(有)?頭緒|不確定|不太?懂|不明白|卡住|再提示|"
     r"沒(有)?想法|毫無頭緒|完全沒概念"
 )
+# 「don't know」「not sure」允許中間插最多兩個副詞：口語極常見的
+# "I don't even know" / "I'm not really sure" 若要求連續就會漏接，學生明說不會
+# 卻拿不到提示升級（2026-08-01 加「重度卡關型」persona 時，用 agy 實測學生產出才發現）。
 _STUCK_EN_RE = re.compile(
-    r"i don'?t know|no idea|no clue|not sure|stuck|confused|"
+    r"i don'?t (?:\w+ ){0,2}know|no idea|no clue|not (?:\w+ ){0,2}sure|stuck|confused|"
     r"can'?t (figure|see|think|do)|i can'?t\.?$|(completely|totally)? ?lost|"
     r"(another|more|give me a) hint",
     re.I,
