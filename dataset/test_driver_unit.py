@@ -502,13 +502,17 @@ print("[12] 回問保底：措辭輪換＋連續缺問句不硬補")
 
 
 class _NoQStub(TutorDriver):
-    """生成與重生成都不含問句 → 每輪都走保底附加路徑。"""
+    """生成與重生成都不含問句 → 每輪都走保底附加路徑。
+
+    重生成稿刻意**不**宣告整份證明完成：否則會命中 _TUTOR_DONE_RE 而 arm
+    done_closed，保底句整段停用，就測不到本組要測的「措辭輪換」了
+    （該互動另由 [12b] 專門驗證）。"""
 
     def _generate(self, level):
         return f"Good, that completes the argument (turn {len(self.messages)})."
 
     def _regen(self, level, note):
-        return f"Nice work, the proof is complete (turn {len(self.messages)})."
+        return f"Nice work, that part holds up (turn {len(self.messages)})."
 
 
 nq = _NoQStub(tok=None, model=_StubModel(), problem=dict(_en_prob))
@@ -525,6 +529,32 @@ nqz = _NoQStub(tok=None, model=_StubModel(), problem=probs["A6"])
 nqz.start(opener="請引導我，我想自己試試看。")
 rz = nqz.step("謝謝，我都清楚了，沒有其他問題。")
 check("中文致謝收尾 → 不再追問", not rz.rstrip().endswith("？") and not rz.rstrip().endswith("?"))
+
+print("[12b] repeat 的重生成若宣告整份證明完成 → arm done_closed，不得再補保底句")
+# repeat 守衛排在回問保底之前，因此它的重生成稿會成為本輪最終回覆。若那一稿親口
+# 宣告整份證明完成，補上「下一步該從哪裡下手？」正是弱點 #7／X4 型的扣分行為。
+
+
+class _RepeatDoneStub(TutorDriver):
+    """初稿與上一則助教回覆逐字相同（觸發 repeat），重生成稿宣告整份證明完成。"""
+    SAME = "這個方向是對的，你已經把關鍵的不等式建立起來了，接下來只要收尾就好。"
+
+    def _generate(self, level):
+        return self.SAME
+
+    def _regen(self, level, note):
+        return "是的，整個證明完成了。"
+
+
+rd = _RepeatDoneStub(tok=None, model=_StubModel(), problem=probs["A6"])
+rd.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": _RepeatDoneStub.SAME},
+               {"role": "user", "content": "所以就這樣結束了嗎？"}]
+rd._tutor_turn()
+check("repeat 重生成宣告完成 → arm done_closed", rd.state.get("done_closed") is True)
+check("→ 該輪不得再補保底追問句",
+      rd.messages[-1]["content"] == "是的，整個證明完成了。"
+      and "fallback" not in rd.state["turns"][-1].guards)
 
 print("[13] 宣告完成 → 口頭交稿路由審閱（弱點 #3）")
 dc = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
@@ -780,6 +810,165 @@ tstep._tutor_turn()
 check("只宣告某一步完成 → 不 arm、仍補追問句",
       not tstep.state.get("done_closed")
       and "fallback" in tstep.state["turns"][-1].guards)
+
+class _SeqStub(TutorDriver):
+    """first 為初稿，regens 依序供應每一次重生成（用完重複最後一則）。
+
+    _GuardStub 每次重生成都回同一稿，測不出「重生成結果要再過一次防護」；
+    這個 stub 讓每道守衛拿到不同的重生成稿，才能驗證守衛鏈的串接。"""
+    first: str
+    regens: list
+
+    def _generate(self, level):
+        return self.first
+
+    def _regen(self, level, note):
+        i = getattr(self, "_ri", 0)
+        self._ri = i + 1
+        return self.regens[min(i, len(self.regens) - 1)]
+
+
+print("[18] 交稿請求偵測必須限定「整份證明」範圍（mid-proof 誤判會反噬收尾流程）")
+# 助教在證明途中說「把這一步寫下來」「你能自己寫出證明的第一步嗎」是常態引導，
+# 誤記成 writeup_asked 有兩個下游傷害：(a) 之後的長訊息被當成完整草稿送審（後盾
+# 會拿半成品逐步找碴）；(b) writeup_asked 是單向閂，真正該請他交稿時再也進不去。
+
+
+def _tutor_says(reply: str, student: str, problem=None):
+    """助教說了 reply、學生接著說 student → 回傳該輪結束後的 driver。"""
+    d = _ReviewStub(tok=None, model=_StubModel(), problem=problem or probs["A6"])
+    d.generated_levels = []
+    d.start()
+    d.messages.append({"role": "assistant", "content": reply})
+    d.step(student)
+    return d
+
+
+_MID_SHORT = "嗯，好，我再想想。"
+for _r in ("很好。你能自己試著寫出這個證明的第一步嗎？",
+           "那就把這一步的證明寫下來，我們再看下一步。",
+           "關鍵是均值定理。你能用它自己寫出證明的關鍵等式嗎？"):
+    check(f"mid-proof 局部要求不得誤設 writeup_asked：「{_r[:14]}…」",
+          not _tutor_says(_r, _MID_SHORT).state.get("writeup_asked"))
+
+for _r in ("思路已經完整了。現在請把完整證明一步步寫出來，我會幫你審閱。",
+           "很好，關鍵都有了。把完整證明寫出來吧，不會太難。",
+           "你已經掌握主線。請自己寫出完整證明，不能只寫結論。"):
+    check(f"真正的交稿請求要記下 writeup_asked：「{_r[:14]}…」",
+          _tutor_says(_r, _MID_SHORT).state.get("writeup_asked") is True)
+
+check("真正的拒絕洩漏仍不得設 writeup_asked（反向閘只看同一子句）",
+      not _tutor_says("我不能直接把完整證明寫出來給你，你先試試第一步？",
+                      _MID_SHORT).state.get("writeup_asked"))
+
+_MID_LONG = ("我試著往下推：因為 a_n > 0 且 (1+a_n)^n = n，我想先把兩邊取對數，"
+             "得到 n·ln(1+a_n) = ln n，然後因為 ln(1+x) 在 x 小的時候接近 x，"
+             "所以大概是 n·a_n ≈ ln n，這樣 a_n 大概是 (ln n)/n。不過我還沒處理"
+             "ln(1+x) ≤ x 的方向問題，這裡卡住了。")
+check("→ 誤設的下游：推導途中的長訊息不得被路由進 review",
+      _tutor_says("很好。你能自己試著寫出這個證明的第一步嗎？",
+                  _MID_LONG).state.get("phase") != "review")
+
+_d18 = _tutor_says("很好。你能自己試著寫出這個證明的第一步嗎？", "好。")
+_d18.step("喔我懂了，整個思路我都清楚了！")
+check("→ 誤設的下游：不得吃掉真正的 writeup_request 時機",
+      _d18.state.get("phase") == "writeup_request")
+
+print("[19] 收尾兩道守衛的重生成仍須經過內容防護")
+# 回問保底與重複偵測的 _regen 結果原本直接落地，不再經洩漏／防奉送／禁算式／
+# 稱讚校準——是全檔唯一讓未經檢查的生成落地的路徑，正好架空 S3 抗洩漏防護。
+_LEAK_Q = (r"由二項式定理，$n=(1+a_n)^n\ge \binom{n}{2}a_n^2=\frac{n(n-1)}{2}a_n^2$，"
+           r"你看出來了嗎？")
+lk = _SeqStub(tok=None, model=_StubModel(), problem=probs["A6"])
+lk.first = "這一步是對的。"                      # 無問句 → 觸發回問保底
+lk.regens = [_LEAK_Q,                            # 有問號但洩漏參考解
+             "那你打算怎麼替 a_n 找一個夠好的上界？"]
+lk.messages = [{"role": "user", "content": "題目…"},
+               {"role": "user", "content": "我算到這裡。"}]
+lk._tutor_turn()
+check("回問保底的重生成若洩漏參考解 → 不得直接落地",
+      not leaks_reference(lk.messages[-1]["content"], probs["A6"]["reference_proof"],
+                          exclude=probs["A6"].get("statement", "")))
+check("→ 洩漏被攔下後仍要留下問句", "？" in lk.messages[-1]["content"])
+
+_LONG_REPLY = ("這個方向是對的。你已經注意到 a_n 是正的，而且 (1+a_n)^n 剛好等於 n，"
+               "接下來的關鍵是要找到一個夠好的下界，把 a_n 的大小控制住，"
+               "這樣才能說明它會趨近於零，而不是停在某個正數上。")
+rp = _SeqStub(tok=None, model=_StubModel(), problem=probs["A6"])
+rp.first = _LONG_REPLY                           # 與上一則助教回覆逐字相同
+rp.regens = ["先想想二項式展開。"]                # 重生成稿沒有問句
+rp.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": _LONG_REPLY},
+               {"role": "user", "content": "嗯，我在想。"}]
+rp._tutor_turn()
+check("repeat 的重生成不得蓋掉保底問句（最終回覆仍須帶問句）",
+      "？" in rp.messages[-1]["content"] or "?" in rp.messages[-1]["content"])
+
+print("[20] 特殊 phase 不得消耗提示梯")
+# 階段指示優先於等級指示：phase 有值時 system 注入的是階段指示、根本沒有提示內容，
+# 卻仍把 ladder_idx 記為已用 → 提示被「用掉」但學生從未看到。
+
+
+def _ladder_after(phase):
+    d = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+    d.generated_levels = []
+    d.messages = [{"role": "user", "content": "題目…"}]
+    d.state["stuck_count"] = 2                   # 等級 2
+    d.state["phase"] = phase
+    d._tutor_turn()
+    return d.state["ladder_idx"]
+
+
+for _ph in ("refuse_leak", "rectify", "review", "writeup_request", "closed"):
+    check(f"{_ph} 輪不得推進 ladder_idx", _ladder_after(_ph) == 0)
+check("一般引導輪（phase=None）等級 2 仍要推進 ladder_idx", _ladder_after(None) == 1)
+
+# 危害重現：一串糾錯輪把提示梯吃光 → 學生一條提示都沒拿到就被推進逐步教學
+ep = _StubDriver(tok=None, model=_StubModel(),
+                 problem=dict(probs["A6"],
+                              teach_steps=[{"explain": "步驟一", "check": "懂嗎？"}]))
+ep.generated_levels = []
+ep.start(opener="我看了題目但不知道怎麼開始，可以給我第一個引導提示嗎？")
+for _m in ("我覺得可以用二項式，但我不確定。", "這樣對嗎？我還是不太懂。",
+           "我認為要取平方，可是不知道怎麼做。", "我覺得是這樣，但想不出下一步。",
+           "還是不知道。", "真的想不到。"):
+    ep.step(_m)
+check("糾錯輪不得把學生推進逐步教學（提示梯並未真正用過）",
+      not ep.state.get("walk_active"))
+
+print("[21] 同學模式的權威背書守衛")
+# 無可靠參考解時，任何「整份證明」等級的總評式背書都是不該有的權威口吻
+# （實測 v11 端對端：同儕首輪誠實聲明有效，之後卻大量「完全正確／你已完全掌握」）。
+_PEER_P = {"id": "P2", "statement": "未驗證難題", "grounding": "unverified"}
+# first 一律自帶問句：否則無問句會先觸發回問保底重生成，測不出背書守衛本身
+pe = _SeqStub(tok=None, model=_StubModel(), problem=dict(_PEER_P))
+pe.first = "你的推導完全正確，完整無誤，你已完全掌握這題了，要不要換下一題？"
+pe.regens = ["我猜這樣可能可以，但我不太確定第二步，你覺得呢？"]
+pe.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": "我猜可以先試試看，你說呢？"},
+               {"role": "user", "content": "我覺得這樣就對了。"}]
+pe._tutor_turn()
+check("同學模式的總評式背書 → 重生成", pe.messages[-1]["content"] == pe.regens[0])
+check("log.guards 記錄 peer_endorse", "peer_endorse" in pe.state["turns"][-1].guards)
+
+pf = _SeqStub(tok=None, model=_StubModel(), problem=dict(_PEER_P))
+pf.first = "你的論證邏輯無縫，超過大多數同學，下一步想做什麼？"
+pf.regens = ["我不太確定這一步，你要不要再檢查一次？"]
+pf.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": "我猜可以先試試看，你說呢？"},
+               {"role": "user", "content": "我寫好了。"}]
+pf._tutor_turn()
+check("同學模式的誇飾腔 → 重生成", "peer_endorse" in pf.state["turns"][-1].guards)
+
+pk = _SeqStub(tok=None, model=_StubModel(), problem=dict(_PEER_P))
+pk.first = "我猜這一步應該可以，不過我不太確定收斂的理由，你怎麼看？"
+pk.regens = ["（不該被呼叫）"]
+pk.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": "先試試看？"},
+               {"role": "user", "content": "我覺得這樣就對了。"}]
+pk._tutor_turn()
+check("同儕正常的不確定語氣 → 不誤殺",
+      "peer_endorse" not in pk.state["turns"][-1].guards)
 
 print()
 if FAIL:

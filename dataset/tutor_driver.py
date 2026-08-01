@@ -143,16 +143,41 @@ _STEP_SCOPE_RE = re.compile(r"(這|那|該)一?步.{0,10}證明|(this|that) step
 # （學生用「這樣就算證完了嗎」表達理解時尤其如此，那不命中 _UNDERSTOOD_RE）。
 # 沒記錄下來，學生接著交出的草稿就走不到「已請學生寫證明」分支 → 不進 review →
 # 拿不到審閱通過訊號 → 收尾輪被補上保底追問句。與 #12 是對稱的補丁。
-_TUTOR_ASK_WRITEUP_RE = re.compile(
-    r"把.{0,12}證明.{0,6}寫(出來|下來|出|下)|寫(出|下).{0,10}完整.{0,4}證明|"
-    r"完整.{0,4}證明.{0,6}寫(出來|下來)|自己.{0,4}寫.{0,6}證明|"
-    r"write (out|up) (the|your) (full |complete |whole )?proof|"
-    r"write (the|your) (full|complete|whole) proof",
+#
+# 措辭必須帶「完整／整份／整個」等**整份範圍**：「把這一步的證明寫下來」「你能自己
+# 寫出證明的第一步嗎」是證明途中的常態引導，誤記成交稿請求有兩個下游傷害——
+#   (a) 之後的長訊息被當成完整草稿路由進 review（後盾拿半成品逐步找碴）；
+#   (b) writeup_asked 是單向閂（_detect_phase 的 not writeup_asked），誤設之後
+#       學生真的說「我懂了」時再也進不了 writeup_request。
+_ASK_WRITEUP_RE = re.compile(
+    r"(完整|整份|整個).{0,4}證明.{0,8}寫(出來|下來|出|下)|"
+    r"寫(出|下).{0,8}(完整|整份|整個).{0,4}證明|"
+    r"write (out |up )?(the|your) (full|complete|whole) proof",
     re.I,
 )
-# 拒絕洩漏輪也會提到「寫出完整證明」（「我不能直接寫出完整證明給你」）→ 反向閘
+# 拒絕洩漏輪也會提到「寫出完整證明」（「我不能直接寫出完整證明給你」）→ 反向閘。
+# 只看命中片段所在的**子句**：掃整則會被別句的否定詞誤殺（「把完整證明寫出來吧，
+# 不會太難」「請自己寫出完整證明，不能只寫結論」實測都會被擋掉）。
 _REFUSE_WRITEUP_RE = re.compile(
     r"不能|不會|無法|不可以|不該|won'?t|can'?t|cannot|will not", re.I)
+_CLAUSE_SPLIT_RE = re.compile(r"[。！？；，、\n.!?;,]")
+
+
+def asks_for_full_writeup(text: str) -> bool:
+    """助教這則回覆是否等於「請學生把完整證明交出來」。"""
+    if not text:
+        return False
+    m = _ASK_WRITEUP_RE.search(text)
+    if not m:
+        return False
+    left = 0
+    for sep in _CLAUSE_SPLIT_RE.finditer(text, 0, m.start()):
+        left = sep.end()
+    sep = _CLAUSE_SPLIT_RE.search(text, m.end())
+    clause = text[left:sep.start() if sep else len(text)]
+    return not _REFUSE_WRITEUP_RE.search(clause)
+
+
 # 逼問偵測（v6 回歸發現 S3 抗洩漏被 hint/writeup 資料稀釋，改由 driver 確定性防護）
 _DEMAND_RE = re.compile(
     r"直接.{0,14}(告訴我|給我|寫給我|說出來|貼給我|抄給我)|給我答案|不要問我|"
@@ -703,6 +728,69 @@ class TutorDriver:
             difflib.SequenceMatcher(None, norm, _normalize(p)).ratio() >= 0.85
             for p in prev if p)
 
+    def _content_guards(self, reply: str, level: int, log: TurnLog) -> str:
+        """四道內容防護：洩漏／on-track 防奉送／等級 2 禁算式／稱讚校準。
+
+        只在有參考解、且非教學輪時運作（同學模式無解可護；教學步驟本就要講出來）。
+
+        抽成方法是為了讓**每一次重生成的結果都能再過一次**：原本回問保底與重複偵測
+        的 _regen 結果直接落地，是全檔唯一未經內容檢查就送到學生面前的路徑——實測
+        可讓一段逐字複製參考解、結尾帶問號的回覆完整落地，正好架空 S3 抗洩漏防護。
+        """
+        if self.is_peer() or self.state.get("phase") == "walkthrough":
+            return reply
+        en = self.lang == "en"
+        phase = self.state.get("phase")
+
+        # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
+        # （exclude=題目 statement：複述題幹不算洩漏，只抓解法專屬內容）
+        if level < 2 and leaks_reference(reply, self.problem["reference_proof"],
+                                         exclude=self.problem.get("statement", "")):
+            log.leak_flag = True
+            reply = self._regen(level, (
+                "Your previous draft quoted the reference proof verbatim. Rewrite it and avoid "
+                "reproducing any formula word-for-word." if en else
+                "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。"))
+            log.regenerated = True
+
+        # on-track 防奉送：一般引導輪與拒絕輪（refuse_leak 規則本就禁止給步驟），
+        # 等級 <2 不得替學生指定具體代數操作
+        if level < 2 and phase in (None, "refuse_leak") and is_spoonfeeding(reply):
+            log.guards.append("spoonfeed")
+            reply = self._regen(level, (
+                "Your previous draft prescribed a concrete algebraic operation (such as multiplying, "
+                "subtracting, substituting). Rewrite: state no operation step; instead ask the "
+                "student an open question like how they plan to proceed." if en else
+                "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
+                "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。"))
+            log.regenerated = True
+
+        # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
+        if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
+            log.guards.append("formula")
+            reply = self._regen(level, (
+                "Your previous draft contained a formula. Rewrite: state only the theorem/technique "
+                "name or idea from the hint, and never write any equation or inequality; let the "
+                "student derive it themselves." if en else
+                "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
+                "絕對不要寫出任何等式或不等式，讓學生自己動筆推。"))
+            log.regenerated = True
+
+        # 稱讚校準：後盾已回報缺漏卻無條件背書（＝把錯誤寫法確認掉，最嚴重的過譽），
+        # 或出現訓練集從未教過的誇飾腔（基底模型漂移）→ 重寫成具體而節制的肯定
+        if is_overpraising(reply, self.state.get("backstop_gaps")):
+            log.guards.append("overpraise")
+            reply = self._regen(level, (
+                "Your previous draft praised the student in a way that does not match their actual "
+                "work (an unconditional endorsement, or exaggerated praise). Rewrite: affirm only "
+                "the specific part that is genuinely correct, name what still needs fixing, and keep "
+                "the praise plain and proportionate." if en else
+                "上一稿給了與學生實際表現不符的稱讚（無條件背書，或誇大其詞）。"
+                "重寫：只肯定真正正確的那一部分，明確點出還沒處理好的地方，"
+                "稱讚要具體、節制，不要用「完全正確」「無懈可擊」這類總評。"))
+            log.regenerated = True
+        return reply
+
     def _tutor_turn(self) -> str:
         level = min(self.state["stuck_count"], 2)
         phase = self.state.get("phase")
@@ -721,55 +809,33 @@ class TutorDriver:
         if phase in ("review", "rectify") and self.state.get("backstop_gaps") is not None:
             log.guards.append("backstop")
 
-        # 內容防護只在有參考解、且非教學輪時運作（同學模式無解可護；教學步驟本就要講出來）
-        if not peer and not walkthrough:
-            # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
-            # （exclude=題目 statement：複述題幹不算洩漏，只抓解法專屬內容）
-            if level < 2 and leaks_reference(reply, self.problem["reference_proof"],
-                                             exclude=self.problem.get("statement", "")):
-                log.leak_flag = True
-                reply = self._regen(level, (
-                    "Your previous draft quoted the reference proof verbatim. Rewrite it and avoid "
-                    "reproducing any formula word-for-word." if en else
-                    "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。"))
-                log.regenerated = True
+        reply = self._content_guards(reply, level, log)
 
-            # on-track 防奉送：一般引導輪與拒絕輪（refuse_leak 規則本就禁止給步驟），
-            # 等級 <2 不得替學生指定具體代數操作
-            if level < 2 and phase in (None, "refuse_leak") and is_spoonfeeding(reply):
-                log.guards.append("spoonfeed")
-                reply = self._regen(level, (
-                    "Your previous draft prescribed a concrete algebraic operation (such as multiplying, "
-                    "subtracting, substituting). Rewrite: state no operation step; instead ask the "
-                    "student an open question like how they plan to proceed." if en else
-                    "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
-                    "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。"))
-                log.regenerated = True
+        # 同學模式的權威背書守衛：沒有參考解可對照，任何「整份論證」等級的總評式背書
+        # 都是不該有的口吻（v11 端對端：首輪誠實聲明有效，之後卻大量「完全正確／
+        # 完整無誤／你已完全掌握」）。內容防護對 peer 停用，這道是它的同儕版對應物。
+        if peer and (_ENDORSE_RE.search(reply) or _FLOURISH_RE.search(reply)):
+            log.guards.append("peer_endorse")
+            reply = self._regen(level, (
+                "Your previous draft endorsed the student's work in an authoritative tone. You are a "
+                "fellow student without a reliable solution — never certify the whole argument as "
+                "correct. Rewrite: mark your view as uncertain and ask what they think." if en else
+                "上一稿用權威口吻替學生的推導背書。你是沒有可靠解法的同學，"
+                "不該替整份論證掛保證。重寫：把你的看法明確標為不確定，並問學生他怎麼看。"))
+            log.regenerated = True
 
-            # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
-            if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
-                log.guards.append("formula")
-                reply = self._regen(level, (
-                    "Your previous draft contained a formula. Rewrite: state only the theorem/technique "
-                    "name or idea from the hint, and never write any equation or inequality; let the "
-                    "student derive it themselves." if en else
-                    "上一稿包含了算式。重寫：只說出提示裡的定理／技巧名稱或想法，"
-                    "絕對不要寫出任何等式或不等式，讓學生自己動筆推。"))
-                log.regenerated = True
-
-            # 稱讚校準：後盾已回報缺漏卻無條件背書（＝把錯誤寫法確認掉，最嚴重的過譽），
-            # 或出現訓練集從未教過的誇飾腔（基底模型漂移）→ 重寫成具體而節制的肯定
-            if is_overpraising(reply, self.state.get("backstop_gaps")):
-                log.guards.append("overpraise")
-                reply = self._regen(level, (
-                    "Your previous draft praised the student in a way that does not match their actual "
-                    "work (an unconditional endorsement, or exaggerated praise). Rewrite: affirm only "
-                    "the specific part that is genuinely correct, name what still needs fixing, and keep "
-                    "the praise plain and proportionate." if en else
-                    "上一稿給了與學生實際表現不符的稱讚（無條件背書，或誇大其詞）。"
-                    "重寫：只肯定真正正確的那一部分，明確點出還沒處理好的地方，"
-                    "稱讚要具體、節制，不要用「完全正確」「無懈可擊」這類總評。"))
-                log.regenerated = True
+        # 重複回問保底：與近 3 輪助教回覆相同 → 加強指示重生成一次（中英共用）。
+        # 必須排在回問保底**之前**：排在後面時，這裡的重生成會把剛補上的保底問句
+        # 整個蓋掉，最終回覆反而沒有問句（保底保證失效）。
+        if self._repeats_previous(reply):
+            log.guards.append("repeat")
+            reply = self._content_guards(self._regen(level, (
+                "Your previous draft repeated a question you already asked. Do not repeat any earlier "
+                "question; respond to the student's latest message and ask one new question that moves "
+                "to the next step." if en else
+                "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
+                "問一個推進到下一步的新問題。")), level, log)
+            log.regenerated = True
 
         # 本輪回覆若親口宣告整份證明完成 → 立刻 arm。arm 若等到下一輪 step() 開頭才做，
         # 「宣告完成」與「下一步該從哪裡下手」會出現在同一則回覆裡（守門 X4/zh 末輪實例）。
@@ -799,7 +865,7 @@ class TutorDriver:
                     "the student to the next step." if en else
                     "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。"))
                 if _QMARK_RE.search(regen):
-                    reply = regen
+                    reply = self._content_guards(regen, level, log)
                     log.regenerated = True
                 else:
                     # 上一輪才剛補過保底句 → 這輪不再硬補（避免對話收尾時連輪追問）；
@@ -823,17 +889,6 @@ class TutorDriver:
                             reply = reply.rstrip() + pool[i % len(pool)]
                             self.state["fb_idx"] = i + 1
 
-        # 重複回問保底：與近 3 輪助教回覆相同 → 加強指示重生成一次（中英共用）
-        if self._repeats_previous(reply):
-            log.guards.append("repeat")
-            reply = self._regen(level, (
-                "Your previous draft repeated a question you already asked. Do not repeat any earlier "
-                "question; respond to the student's latest message and ask one new question that moves "
-                "to the next step." if en else
-                "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
-                "問一個推進到下一步的新問題。"))
-            log.regenerated = True
-
         # 同學模式首輪：確定性補上誠實聲明（不賭模型自己說）
         if peer and not any(m["role"] == "assistant" for m in self.messages):
             has_hedge = ("沒有把握" not in reply and "不確定" not in reply[:30]
@@ -848,7 +903,12 @@ class TutorDriver:
         if not peer and phase == "review" and not _QMARK_RE.search(reply):
             self.state["done_closed"] = True
 
-        if level == 2 and not walkthrough and not peer:
+        # 提示梯只有在「這一輪真的把提示送出去」時才推進。階段指示優先於等級指示
+        # （見 _system），phase 有值時 system 裡根本沒有提示內容，卻照樣把 ladder_idx
+        # 記為已用 → 提示被消耗但學生從未看到；更糟的是 walkthrough 的進入條件是
+        # ladder_idx >= 梯長，一串糾錯輪就能把梯吃光、讓學生一條提示都沒拿到就被推進
+        # 逐步教學（等於跳過分級引導直接開始講解）。
+        if level == 2 and phase is None and not peer:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
             self.state["stuck_count"] = 0     # 給過想法後重新計數
         self.state["turns"].append(log)
@@ -988,9 +1048,7 @@ class TutorDriver:
                 self.state["done_closed"] = True
             # 助教自行請學生交稿 → 補記 writeup_asked，讓下一則長訊息被認出是草稿、
             # 走 review（含後盾複核）；拒絕洩漏輪提到「完整證明」不算（反向閘）。
-            if (last_asst and not self.state.get("writeup_asked")
-                    and _TUTOR_ASK_WRITEUP_RE.search(last_asst)
-                    and not _REFUSE_WRITEUP_RE.search(last_asst)):
+            if not self.state.get("writeup_asked") and asks_for_full_writeup(last_asst):
                 self.state["writeup_asked"] = True
         self._detect_phase(student_text)
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
