@@ -228,7 +228,11 @@ def parse_json_obj(content: str | None) -> dict | None:
 # ── Tier 0 ────────────────────────────────────────────────────────────────────
 def tier0() -> bool:
     ok = True
-    for script in ("test_driver_unit.py", "validate.py", "test_dataset.py"):
+    # test_phase_routing.py：把歷次守門存下的真實對話回放進確定性層驗階段路由不變式。
+    # 與 test_driver_unit.py 互補——後者的台詞是人寫的（證明狀態機邏輯正確），前者用
+    # 真模型講過的話（證明那些散文比對的正則在真實措辭下不會誤判）。
+    for script in ("test_driver_unit.py", "test_phase_routing.py",
+                   "validate.py", "test_dataset.py"):
         r = subprocess.run([PY, str(HERE / script)], capture_output=True, text=True,
                            encoding="utf-8", errors="replace")
         print(f"  [{'✓' if r.returncode == 0 else '✗'}] {script}")

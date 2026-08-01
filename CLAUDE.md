@@ -92,6 +92,7 @@ week3/
 │   ├── eval_xdomain.py               # 跨領域遷移三情境（部署形態）
 │   ├── eval_final_ollama.py          # Ollama 對照（歷史對決用，需 Ollama）
 │   ├── test_driver_unit.py / test_driver_integration.py / test_driver_phase.py  # driver 測試
+│   ├── test_phase_routing.py         # ★ 真實對話回放驗階段路由不變式（Tier 0，無 GPU）
 │   ├── test_backstop.py / eval_backstop_e2e.py      # 後盾準確度（需 Ollama）/ 端對端對照
 │   ├── test_auto_reference.py / eval_svt_e2e.py     # 備課盲測 / walkthrough+同學模式端對端
 │   ├── regression_suite.py           # ★ 推送前守門（預設 agy/Gemini 當評審+學生；退步即 exit 1）
@@ -140,7 +141,8 @@ conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_q
 
 ### 測試與評估
 ```powershell
-python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（127 條斷言 / 13 組）
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（186 條斷言 / 22 組）
+python dataset\test_phase_routing.py                                      # 真實對話回放驗階段路由（無 GPU，243 場存檔）
 python dataset\test_app.py                                                # 介面純邏輯，無 GPU、不連 Ollama
 conda run -n lora_project --live-stream python dataset\test_driver_integration.py   # 分級提示（GPU）
 conda run -n lora_project --live-stream python dataset\test_driver_phase.py         # 階段管理（GPU）
@@ -431,6 +433,55 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 **末輪 guards 全部清空**，X4 的通用追問由 2 次降為 0 次。單元測試 150 → **162 條 / 17 組**。
 ⚠️ 這批改動會改變階段路由（system 指示隨之不同），**不像上批可證明對生成零影響**，
 推送前需重跑一次完整守門。
+
+## 守衛鏈五項缺陷修復＋守門覆蓋補強（2026-08-01，分支 `fix/driver-guard-hardening`）
+
+對 `feature/product-ui` 做 code review，逐項以可執行證據確認後修復（全程 TDD，先看
+24 條新斷言以正確理由失敗才實作）。單元測試 162 → **186 條 / 22 組**。
+
+- **重生成繞過內容防護（最嚴重）**：回問保底與重複偵測的 `_regen` 結果**直接落地**，
+  不再經洩漏／防奉送／禁算式／稱讚校準——全檔唯一未經內容檢查就送到學生面前的路徑。
+  實測可讓一段逐字複製參考解、結尾帶問號的回覆完整落地（`guards` 只記到 `no_question`），
+  正好架空招牌的 S3 抗洩漏。修法：四道防護抽成 `_content_guards()`，每次重生成後再跑一次。
+  併修順序缺陷：`repeat` 原排在回問保底之後，其重生成會把剛補上的保底問句整個蓋掉。
+- **`_TUTOR_ASK_WRITEUP_RE` mid-proof 誤命中（`a9b3abc` 引進的回歸）**：「你能自己試著
+  寫出這個證明的第一步嗎」等常態引導都會誤記 `writeup_asked`，兩個下游傷害實測皆重現——
+  推導途中的長訊息被當完整草稿送 review（後盾拿半成品找碴）；`writeup_asked` 是單向閂，
+  誤設後真正該交稿時再也進不了 `writeup_request`。改用 `asks_for_full_writeup()`，
+  措辭須帶「完整／整份／整個」整份範圍。
+- **`_REFUSE_WRITEUP_RE` 過寬**：回覆任何位置出現 `不能/不會/無法` 就整條否決，
+  實測 4 句合理交稿請求誤殺 2 句。改為只看命中片段所在的**子句**。
+- **特殊 phase 消耗提示梯**：`phase` 有值時 system 注入的是階段指示、根本沒有提示內容，
+  卻照樣推進 `ladder_idx`；更糟的是 walkthrough 進入條件為 `ladder_idx >= 梯長`，實測
+  一串糾錯輪就能把梯吃光，**學生一條提示都沒拿到就被推進逐步教學**。改為只在
+  `phase is None` 時推進。（`phase與算式防護確認.md` 另兩點——walkthrough／peer 也會
+  消耗——**實測不成立**，早已由 `not walkthrough and not peer` 擋掉。）
+- **同學模式沒有背書守衛**：`is_overpraising` 被關在 `if not peer` 內，同儕模式完全不生效
+  ——正是 `v11_改進實測評估.md`「首輪誠實聲明有效、之後大量『完全正確／你已完全掌握』」
+  的根因。新增 `peer_endorse` 守衛（`_ENDORSE_RE`／`_FLOURISH_RE`）。
+
+**完整守門 exit 0**（計分卡 `2026-08-01T193728_8be3255.json`）：25 項硬性指標全 ≥ 基準，
+10 項確定性指標維持 1.0。⚠️ 但 Tier 1/2 的 **104 筆回覆與上輪逐字比對 104/104 相同**
+＝本批對固定探針零影響，所有 `judge_*` 波動皆評審雜訊，**不可當成修復有效的證據**。
+
+### `test_phase_routing.py`：用真實對話回放補守門覆蓋（本輪最重要的產出）
+
+`test_driver_unit.py` 的每句台詞都是人寫的——能證明狀態機邏輯正確，證明不了**真模型
+講出來的話會不會踩中那些正則**（收尾／交稿／完成宣告偵測全在比對散文，稽核 F1 就是
+實測 8 種自然措辭只命中 2 種）。新測試把 `regression_scores/*_dialogues.json` 累積的
+**243 場真實守門對話**（42 輪存檔）回放進確定性層，檢查 5 條不變式，納入 Tier 0（無 GPU）。
+
+靈敏度已驗證（還原修復即觸發）：還原 F3 → V3 抓到 **14 筆**；拿掉 `done_closed` 閘 →
+V3/V4 各抓到 2 筆，證據逐字重現當年的 bug（「證明到此完成。…那你覺得，下一步該從哪裡下手？」）。
+> 教訓：**V4 初版是空的**——它用 `confirms_whole_proof_done` 判斷，而該函式本身就排除
+> 帶問句的回覆，永遠不可能觸發。每條不變式都必須實際還原一次 bug 驗證會響，否則只是裝飾。
+
+**⚠️ 量測到的守門盲區（比修復本身更值得記）**：這 243 場對話的階段分佈為
+`None 1210 / review 134 / rectify 134 / closed 83 / writeup_request 18 / refuse_leak 3`，
+而 **`ladder_idx` 最大值 = 0——提示梯從未被消耗過一次**。Tier 3 的「學生」（Gemini/Claude
+扮演）太會答，不會用 `is_stuck` 認得出的方式卡住，**整條分級提示→逐步教學的升級路徑，
+守門從來沒測過**。這正是 `a9b3abc` 能通過完整守門的結構性原因。該路徑目前只由
+`test_driver_unit.py` 的構造式案例把關；下輪可考慮加一個「會卡住的 persona」進 Tier 3。
 
 ## 專案文件空間（Notion，2026-07-28）
 
