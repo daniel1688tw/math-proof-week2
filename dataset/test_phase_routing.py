@@ -12,6 +12,9 @@
 本輪助教回覆改由存檔指定（重生成亦回同一則），於是狀態轉移就是「真實措辭下的轉移」。
 接著檢查一組不變式。存檔隨每輪守門累積，語料只會愈來愈多。
 
+（2026-08-02 更新：加入「重度卡關型」persona 後，語料首度出現 walkthrough 與等級 2
+提示輪，V1 提示梯守恆從此不再是空跑的不變式。以下為加入前的量測，保留供對照。）
+
 ⚠️ 已知語料偏差（2026-08-01 量測，243 場 / 1582 輪）：
     phase=None 1210、review 134、rectify 134、closed 83、writeup_request 18、refuse_leak 3，
     **hint ladder 從未被消耗（max ladder_idx = 0）**——is_stuck 在 1339 則真實學生訊息
@@ -94,9 +97,20 @@ def _hint_injected(sys_txt: str) -> bool:
     return "提示內容：" in sys_txt or "\nHint:" in sys_txt
 
 
+# 回放用的佔位教學步驟：對話一旦走進 walkthrough，_system() 會呼叫
+# _ensure_teach_steps()，題目若沒自帶 teach_steps 就會去打 Ollama 切分參考解
+# （本機 6GB 卡被 HF 模型佔住時它落到 CPU，一次要好幾分鐘）——那會讓這支
+# 「無 GPU、無 Ollama」的 Tier 0 測試變成又慢又有外部相依。回放只在乎狀態轉移，
+# 教學步驟的實際內容無關緊要，直接塞佔位值把外部呼叫切斷。
+_REPLAY_TEACH_STEPS = [{"explain": f"（回放佔位步驟 {i + 1}）", "check": "這一步理解了嗎？"}
+                       for i in range(6)]
+
+
 def replay(rec: dict):
     """回放一場對話，回傳 (driver, 每輪快照)。history = [["助教"|"學生", 內容], …]。"""
-    d = _ReplayDriver(tok=None, model=_StubModel(), problem=PROBLEMS[rec["id"]])
+    prob = dict(PROBLEMS[rec["id"]])
+    prob.setdefault("teach_steps", _REPLAY_TEACH_STEPS)
+    d = _ReplayDriver(tok=None, model=_StubModel(), problem=prob)
     d.sys_seen, d.cur = [], ""
     hist = rec["history"]
     snaps = []
