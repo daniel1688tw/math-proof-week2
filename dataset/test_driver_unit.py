@@ -1136,6 +1136,60 @@ rec2.step("喔我懂了，用二項式展開取第二項當下界。")
 check("學生恢復 → stuck_count 歸零、等級回到 0",
       rec2.state["stuck_count"] == 0 and rec2.generated_levels[-1] == 0)
 
+print("[25] 重生成成本控制（教學輪延遲：學生每輪等待）")
+# 計數 stub 實測：walkthrough 探針整段 22 次生成、7200 tokens，repeat+repeat_unresolved
+# 每輪都觸發＝每輪多付 2 次生成。但教學輪的內容由 teach_steps 決定，模型重複時叫它
+# 「不要重複」而注入的仍是同一個步驟，幾乎不可能有幫助——那次重生成是純浪費。
+# 有效的是確定性補救（推進到下一個教學步驟），故教學輪直接跳過「勸他別重複」那次。
+
+
+class _CountingStub(TutorDriver):
+    """計生成次數；回傳固定句以逼出 repeat（最壞情況）。"""
+    n = 0
+
+    def _raw_generate(self, msgs, max_new):
+        self.n += 1
+        return "先觀察這個序列的行為。"
+
+
+_TS = dict(probs["A6"], teach_steps=[
+    {"explain": f"步驟{i + 1}", "check": "這步懂嗎？"} for i in range(6)])
+cw = _CountingStub(tok=None, model=_StubModel(), problem=_TS)
+cw.n = 0
+cw.state["lang"] = "zh"
+cw.state.update(phase="walkthrough", walk_active=True, walk_idx=0)
+cw.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": "先觀察這個序列的行為。"},
+               {"role": "user", "content": "還是不懂。"}]
+cw._tutor_turn()
+check(f"教學輪重複時只重生成一次（實得生成 {cw.n} 次）", cw.n <= 2)
+check("→ 仍推進 walk_idx（確定性補救保留）", cw.state.get("walk_idx") == 1)
+check("→ 仍記錄 repeat_unresolved（失敗仍可被量測）",
+      "repeat_unresolved" in cw.state["turns"][-1].guards)
+
+# 一般輪（非教學輪）保留「勸他別重複」的重生成——那裡換措辭是有意義的
+cg = _CountingStub(tok=None, model=_StubModel(), problem=probs["A6"])
+cg.n = 0
+cg.state["lang"] = "zh"
+cg.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": "先觀察這個序列的行為。"},
+               {"role": "user", "content": "然後呢？"}]
+cg._tutor_turn()
+check("一般輪仍會嘗試重生成（不誤傷既有行為）",
+      "repeat" in cg.state["turns"][-1].guards and cg.n >= 2)
+
+# 每輪重生成次數硬上限（安全閥：任何守衛組合都不得無上限消耗）
+from tutor_driver import _MAX_REGEN_PER_TURN  # noqa: E402
+cap = _CountingStub(tok=None, model=_StubModel(), problem=probs["A6"])
+cap.n = 0
+cap.state["lang"] = "zh"
+cap.messages = [{"role": "user", "content": "題目…"},
+                {"role": "assistant", "content": "先觀察這個序列的行為。"},
+                {"role": "user", "content": "然後呢？"}]
+cap._tutor_turn()
+check(f"單輪生成次數不得超過 1+上限（{1 + _MAX_REGEN_PER_TURN}，實得 {cap.n}）",
+      cap.n <= 1 + _MAX_REGEN_PER_TURN)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

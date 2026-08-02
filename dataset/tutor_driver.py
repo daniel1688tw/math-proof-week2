@@ -485,6 +485,11 @@ def is_overpraising(reply: str, gaps: list | None) -> bool:
 # 掃描候選特徵後採「有新數學內容 → 否決卡住判定」：P=0.737 / R=0.667 / F1=0.700。
 # ⚠️ 反過來用（無新內容＝卡住）只有 F1=0.192，比現況更差——大多數訊息本來就沒什麼
 #    新數學，那樣會命中所有人。這個特徵只適合當否決，不適合當判定。
+# 單輪「品質類」守衛的重生成次數上限（安全閥）。每次重生成在 6GB 卡上要數十秒，
+# 而等待的人正是逐步教學裡最需要幫助的學生。⚠️ 內容防護（洩漏／防奉送／禁算式／
+# 稱讚校準）**不受此限**——那是安全性，不能為了省時間放行。
+_MAX_REGEN_PER_TURN = 2
+
 _MATH_NGRAM = 3          # 字元 n-gram 粒度
 _MATH_NEW_RATIO = 0.30   # 新 n-gram 占比達此值即視為「帶進新內容」
 _MATH_MIN_CHARS = 4      # 數學片段短於此則不表態（談不上新內容）
@@ -739,8 +744,13 @@ class TutorDriver:
         max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
         return self._raw_generate(msgs, max_new)
 
+    def _regen_budget_left(self) -> bool:
+        """本輪「品質類」重生成的配額是否還有剩（安全閥，見 _MAX_REGEN_PER_TURN）。"""
+        return self.state.get("_regens", 0) < _MAX_REGEN_PER_TURN
+
     def _regen(self, level: int, note: str) -> str:
         """以加強約束的 system 重生成一次（greedy 下改變輸入才會改變輸出）。"""
+        self.state["_regens"] = self.state.get("_regens", 0) + 1
         stronger = self._system(level) + f"\n（注意：{note}）"
         msgs = [{"role": "system", "content": stronger}] + self.messages
         max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
@@ -873,6 +883,7 @@ class TutorDriver:
         en = self.lang == "en"
         peer = self.is_peer()
         walkthrough = phase == "walkthrough"
+        self.state["_regens"] = 0          # 本輪重生成配額歸零（見 _MAX_REGEN_PER_TURN）
         reply = self._generate(level)
         if not walkthrough:                   # 教學輪允許「講解＋確認問題」多句結構
             reply = enforce_single_question(reply)
@@ -910,21 +921,25 @@ class TutorDriver:
                      "question that moves to the next step." if en else
                      "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
                      "問一個推進到下一步的新問題。")
-            reply = self._content_guards(self._regen(level, _note), level, log)
-            log.regenerated = True
-            # 複驗：greedy 解碼下 system 只多一句提醒，重生成常常還是同一段話。原本
-            # 不複驗就採用，學生會連看好幾輪一模一樣的回覆（弱點 #17 的成因 (b)，
-            # 2026-08-02 守門 M1 中英兩場 guidance 皆 1 分的直接原因）。
-            if self._repeats_previous(reply):
+            if walkthrough:
+                # 教學輪的內容由 teach_steps 決定：叫模型「不要重複」但注入的仍是同一個
+                # 步驟，幾乎不可能有幫助（計數 stub 實測每輪都白付一次生成）。跳過那次
+                # 勸說，直接走確定性補救——推進到下一個教學步驟重講。
+                # （teach_steps 此時已被 _system() 快取，不會再打 Ollama。）
                 log.guards.append("repeat_unresolved")
-                if walkthrough:
-                    # 教學輪有確定性的前進方向：與其原地重講同一步，直接推進到下一步。
-                    # （此時 teach_steps 已被 _system() 快取，不會再打 Ollama。）
-                    steps = self._ensure_teach_steps()
-                    if self.state.get("walk_idx", 0) + 1 < len(steps):
-                        self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
-                        self.state["walk_retry"] = 0
-                        reply = self._content_guards(self._regen(level, _note), level, log)
+                steps = self._ensure_teach_steps()
+                if self.state.get("walk_idx", 0) + 1 < len(steps):
+                    self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
+                    self.state["walk_retry"] = 0
+                    reply = self._regen(level, _note)
+                    log.regenerated = True
+            elif self._regen_budget_left():
+                reply = self._content_guards(self._regen(level, _note), level, log)
+                log.regenerated = True
+                # 複驗：greedy 解碼下 system 只多一句提醒，重生成常常還是同一段話。
+                # 不複驗就採用，學生會連看好幾輪一模一樣的回覆（弱點 #17 成因 (b)）。
+                if self._repeats_previous(reply):
+                    log.guards.append("repeat_unresolved")
 
         # 本輪回覆若親口宣告整份證明完成 → 立刻 arm。arm 若等到下一輪 step() 開頭才做，
         # 「宣告完成」與「下一步該從哪裡下手」會出現在同一則回覆裡（守門 X4/zh 末輪實例）。
@@ -949,10 +964,12 @@ class TutorDriver:
                 idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
                 reply = reply.rstrip() + " " + steps[idx]["check"]
             else:
+                # 配額用盡就不再賭模型服從，直接走下面的確定性補救（保底句／交稿請求）
                 regen = self._regen(level, (
                     "Your previous draft had no question. Rewrite: it must end with one question guiding "
                     "the student to the next step." if en else
-                    "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。"))
+                    "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。"
+                )) if self._regen_budget_left() else ""
                 if _QMARK_RE.search(regen):
                     reply = self._content_guards(regen, level, log)
                     log.regenerated = True
