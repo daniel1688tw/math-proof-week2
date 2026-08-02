@@ -1,0 +1,554 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先想：要證 $e^x>1+x$，等價於證什麼樣的量為正？"
+      ],
+      [
+        "學生",
+        "呃，有點不太確定……是把 $1+x$ 移到左邊，證明 $e^x - 1 - x > 0$ 嗎？"
+      ],
+      [
+        "助教",
+        "很好，移項後你會想用哪個定理把這個差轉成某個可分析的量？"
+      ],
+      [
+        "學生",
+        "應該是題目說的均值定理吧？但我不太確定要對哪一個函數用欸……是要拿剛剛移項的 $e^x - 1 - x$ 當作函數嗎？"
+      ],
+      [
+        "助教",
+        "正是。若把 $e^x - 1 - x$ 看成 $f(x)-f(0)$，$f$ 是誰？"
+      ],
+      [
+        "學生",
+        "嗯……如果把 $x=0$ 代進去試試看，$e^0$ 是 $1$，那 $f(x)$ 是不是 $e^x - x$？這樣 $f(x) - f(0)$ 算出來就剛好是 $e^x - x - 1$ 了！"
+      ],
+      [
+        "助教",
+        "完全正確。有了 $f(x)-f(0)=f'(c)x$，你會怎麼比較 $e^x-1-x$ 的符號？"
+      ],
+      [
+        "學生",
+        "嗯……$f'(x)$ 算出來是 $e^x - 1$，所以 $f'(c)$ 就是 $e^c - 1$。因為 $c$ 在 $0$ 到 $x$ 之間，所以 $c > 0$，$e^c - 1$ 就會是大於 $0$ 的正數。再乘以題目說大於 $0$ 的 $x$，那 $f'(c)x$ 就一定是正的了！"
+      ],
+      [
+        "助教",
+        "完全正確。你自己把「移項成差、套均值定理、算導數符號」這條線理清楚了，這就是完整的證明骨架。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ],
+      [
+        "學生",
+        "好啊！那我整理一下：設 $f(t) = e^t - t$，因為它在 $[0, x]$ 可微，由均值定理存在 $c \\in (0, x)$ 滿足 $f(x) - f(0) = f'(c)x$；因為 $c > 0$ 得 $f'(c) = e^c - 1 > 0$，所以 $e^x - 1 - x > 0$，移項即得證。請問這樣寫有漏掉什麼細節嗎？"
+      ],
+      [
+        "助教",
+        "結構很完整。但有一點你沒明說：$f(t)=e^t-t$ 是在 $[0,x]$ 上連續、$(0,x)$ 可微的，這兩個前提你會怎麼保證它成立？"
+      ],
+      [
+        "學生",
+        "啊，對喔！因為 $e^t$ 和 $t$ 本身都是在整個實數區間上連續而且可微的基本函數，所以相減出來的 $f(t)$ 自然也會在 $[0, x]$ 連續、在 $(0, x)$ 可微對吧？我剛剛覺得這太理所當然就直接略過了……"
+      ],
+      [
+        "助教",
+        "正是，這是均值定理使用的前提，不能省。補上這句，你的證明就嚴謹無懈可擊了。你現在知道「每個定理使用前都得確認前提成立」這個重要原則。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "助教在對話結尾重複了上一輪要求學生寫出完整證明的語句。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先建立一個方便分析的函數。若把要比較的兩邊相減，會得到什麼樣的量？"
+      ],
+      [
+        "學生",
+        "就令 $f(x) = \\cos x - 1 + \\dfrac{x^2}{2}$ 嗎？這樣只要證明 $f(x) \\ge 0$ 就好了，感覺直接微分兩次答案就出來了！"
+      ],
+      [
+        "助教",
+        "很好，那 $f(0)$ 等於多少？"
+      ],
+      [
+        "學生",
+        "$f(0) = 0$ 啊！然後我順便算了一下，一階微分 $f'(x) = x - \\sin x$，再微一次 $f''(x) = 1 - \\cos x$ 恆大於等於 0，這樣 $f(0)$ 不就是最小值了嗎？"
+      ],
+      [
+        "助教",
+        "完全正確。$f''\\ge0$ 讓 $f'$ 如何，進而讓 $f$ 的單調性如何，最後回到 $f(x)\\ge0$？"
+      ],
+      [
+        "學生",
+        "對耶！因為 $f'' \\ge 0$，所以 $f'$ 是遞增函數，再加上 $f'(0) = 0$，這樣在 $x < 0$ 時 $f' \\le 0$、在 $x > 0$ 時 $f' \\ge 0$。這樣 $f$ 就會先降後升，最小值就在 $f(0) = 0$，所以 $f(x)$ 當然就恆大於等於 0 了！"
+      ],
+      [
+        "助教",
+        "完全正確，你的邏輯鏈接得非常乾淨俐落。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ],
+      [
+        "學生",
+        "好啊！設 $f(x) = \\cos x - 1 + \\frac{x^2}{2}$，因為 $f''(x) = 1 - \\cos x \\ge 0$，所以 $f'$ 遞增且 $f'(0) = 0$，可得 $x > 0$ 時 $f' \\ge 0$、$x < 0$ 時 $f' \\le 0$。這樣 $f(x)$ 在 $x=0$ 有最小值 $f(0) = 0$，故 $f(x) \\ge 0$ 恆成立，即證！"
+      ],
+      [
+        "助教",
+        "完全正確，邏輯無懈可擊。你已經完全掌握這個用「二階凸性 + 單調性」證不等式的標準路線。"
+      ],
+      [
+        "學生",
+        "這招蠻直觀的！那這樣看來，泰勒展開式的每一項不等式（像是 $\\sin x \\ge x - \\frac{x^3}{6}$），是不是都能用這種連續微分看單調性的方法一路證下去？"
+      ],
+      [
+        "助教",
+        "正是如此，這是泰勒不等式證法的通用骨架。你已經自己把它從一道題目的特例，升華成了一整套工具，非常棒。"
+      ],
+      [
+        "學生",
+        "等一下，如果按照這個邏輯，$g(x) = \\sin x - x + \\frac{x^3}{6}$ 的微分剛好就是剛剛證的 $f(x) \\ge 0$，代表 $g'(x) \\ge 0$ 恆成立。但這樣 $g(x)$ 會一直遞增，在 $x < 0$ 時不就會變成負的嗎？這樣是不是代表這個不等式只有在 $x \\ge 0$ 時才成立？"
+      ],
+      [
+        "助教",
+        "你觀察得很細緻。這裡有一個容易被忽略的點：$g(x)$ 的奇偶性。$\\sin x$ 是奇函數，$x$ 和 $\\frac{x^3}{6}$ 也是奇函數，所以 $g(x)$ 是奇函數。既然 $g(x)$ 是奇函數，它在 $x=0$ 的單調性會如何？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "學生已正確推斷出該泰勒不等式僅在 $x \\ge 0$ 成立，助教卻誤以為學生忽略細節而進行多餘且易生混淆的奇偶性引導。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "線性獨立要證「唯一線性組合為零就是全零係數」。從 $c_1v_1+c_2v_2=0$ 出發，你能想到什麼操作來簡化這個等式嗎？"
+      ],
+      [
+        "學生",
+        "等等，特徵向量定義上就不能是零向量啊！既然 $v_1$ 和 $v_2$ 都不是零向量，那這兩個向量不就一定線性獨立了嗎？為什麼還要特別從 $c_1v_1+c_2v_2=0$ 開始證？"
+      ],
+      [
+        "助教",
+        "因為「非零」不保證線性獨立。想想看：是否存在兩個非零向量卻線性相關的例子？"
+      ],
+      [
+        "學生",
+        "對欸……像是 $(1, 1)$ 和 $(2, 2)$ 兩個都不是零向量，但因為它們平行，所以其實是線性相關的。好吧，我搞懂為什麼不能只看非零了！那回到剛才那個式子 $c_1v_1+c_2v_2=0$，我們要怎麼把特徵值 $\\lambda_1, \\lambda_2$ 用進去簡化它？"
+      ],
+      [
+        "助教",
+        "很好，現在你知道「非零」不夠，還需要相異特徵值這個條件。那下一步，你打算怎麼把 $Av_i=\\lambda_iv_i$ 用在這個等式上？"
+      ],
+      [
+        "學生",
+        "兩邊同時左乘矩陣 $A$ 嗎？這樣展開會得到 $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$。可是這跟原本的 $c_1 v_1 + c_2 v_2 = 0$ 差了特徵值，接下來要怎麼把向量消掉來證出 $c_1 = c_2 = 0$ 呢？"
+      ],
+      [
+        "助教",
+        "正是。有了兩個等式，你可以做什麼運算來消去一個向量項？"
+      ],
+      [
+        "學生",
+        "嗯……如果把第一個式子兩邊同乘以 $\\lambda_2$，變成 $c_1 \\lambda_2 v_1 + c_2 \\lambda_2 v_2 = 0$，再拿左乘 $A$ 的第二個式子去減它，這樣 $v_2$ 那項就被消掉了對吧？這樣會剩下 $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$。"
+      ],
+      [
+        "助教",
+        "完全正確。最後一步：$\\lambda_1\\ne\\lambda_2$ 保證係數非零，加上 $v_1\\ne0$，才能得出 $c_1=0$。整個證明的關鍵是「非零向量不保證線性獨立，必須靠相異特徵值這個條件」。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ],
+      [
+        "學生",
+        "好，我整理一下：先假設 $c_1 v_1 + c_2 v_2 = 0$。兩邊左乘 $A$ 會得到 $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$，減掉原式乘以 $\\lambda_2$ 後得到 $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$。因為 $\\lambda_1 \\neq \\lambda_2$ 且 $v_1 \\neq 0$，所以 $c_1 = 0$，代回原式只剩 $c_2 v_2 = 0$，又因為 $v_2 \\neq 0$ 得 $c_2 = 0$，這樣就證完 $c_1=c_2=0$ 了對吧？"
+      ],
+      [
+        "助教",
+        "完全正確。你清楚區分了「非零向量不保證線性獨立」這個陷阱，還知道必須靠相異特徵值才能逼出 $c_i=0$。這題你已經完全掌握。"
+      ],
+      [
+        "學生",
+        "太棒了，謝謝助教！原來用消去法搭配相異特徵值的條件這麼直白，這樣的話如果推廣到三個以上的相異特徵值，是不是也是用類似的消法或數學歸納法來證啊？"
+      ],
+      [
+        "助教",
+        "是的，三維以上的情形確實可以用數學歸納法，原理和兩維一樣：每次用特徵值相異消去一個向量。你已經自己看出來了，這表示你已經完全掌握這個主題。繼續加油！"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M1",
+    "persona": "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案",
+    "history": [
+      [
+        "助教",
+        "先看逐點收斂：固定 $x$ 後 $f_n(x)$ 的極限是什麼?"
+      ],
+      [
+        "學生",
+        "不知道，我對這個極限完全毫無頭緒。"
+      ],
+      [
+        "助教",
+        "那我們換個角度：能不能先算出 $f_n(x)$ 在每個 $x$ 上的值，然後讓 $n\\to\\infty$ 看它趨向哪個數?"
+      ],
+      [
+        "學生",
+        "換個問法我也完全看不懂，根本不知道怎麼算。"
+      ],
+      [
+        "助教",
+        "這時候我必須透漏一個關鍵工具：要證逐點收斂，只需對固定的 $x$ 計算 $\\lim f_n(x)$。試著算算看 $f_n(x)$ 的極限會是什麼。"
+      ],
+      [
+        "學生",
+        "我還是不會算，看到極限完全毫無頭緒。"
+      ],
+      [
+        "助教",
+        "那我直接告訴你：固定 $x$ 後，$f_n(x)$ 的極限是 $0$。你能解釋為何嗎?"
+      ],
+      [
+        "學生",
+        "我完全看不懂，就算知道答案是 0 也不知道怎麼解釋。"
+      ],
+      [
+        "助教",
+        "我必須坦白：你目前對這個極限的計算完全沒有頭緒，我無法再給你更多提示了。"
+      ],
+      [
+        "學生",
+        "那現在怎麼辦？我對這個真的毫無頭緒。"
+      ],
+      [
+        "助教",
+        "這正是學習數學的起點：你對「極限」這個概念本身還沒有具體的計算經驗。也許你可以先問問自己：當 $n$ 很大時，$f_n(x)$ 的分子和分母各是怎麼變的?"
+      ],
+      [
+        "學生",
+        "分子分母怎麼變我都看不懂，真的毫無頭緒。"
+      ],
+      [
+        "助教",
+        "那麼，你對「極限」這個概念本身還需要再多一點時間去消化嗎?"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 1,
+      "issue": "面對學生困惑時重複無效提問、直接給出答案並宣稱無法提示，未能及時拆解問題進行降階引導。"
+    },
+    "escalation": {
+      "ladder_idx": 2,
+      "walk_active": true,
+      "max_level": 2
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT applies to a function continuous on $[a,b]$ and differentiable on $(a,b)$. What function and interval should you choose here?"
+      ],
+      [
+        "學生",
+        "Hmm, I'm not really sure... Should the function just be $f(t) = e^t$? But I'm confused about what the interval should be if $x$ can be any number greater than 0."
+      ],
+      [
+        "助教",
+        "Exactly — the interval depends on the fixed endpoint and the variable endpoint. If you fix $0$ as the left end, what will the right end be?"
+      ],
+      [
+        "學生",
+        "Oh, wait! Would the right end just be $x$? So we would apply the Mean Value Theorem on the interval $[0, x]$?"
+      ],
+      [
+        "助教",
+        "Correct — the interval is determined by the two endpoints of the segment being considered. With $f(t)=e^t$ on $[0,x]$, what does the MVT give you?"
+      ],
+      [
+        "學生",
+        "Let's see... MVT says there's some number $c$ between $0$ and $x$ where $\\frac{f(x) - f(0)}{x - 0} = f'(c)$? Since the derivative of $e^t$ is $e^t$ and $e^0 = 1$, does that mean $\\frac{e^x - 1}{x} = e^c$?"
+      ],
+      [
+        "助教",
+        "Completely correct — you've written out the whole equation yourself. From here, how do you get $e^x > 1 + x$?"
+      ],
+      [
+        "學生",
+        "If I rearrange that, I get $e^x = 1 + x e^c$, which looks really close! Since $c$ is between $0$ and $x$, we know $c > 0$, so does that mean $e^c > 1$? That would mean $1 + x e^c > 1 + x$, right?"
+      ],
+      [
+        "助教",
+        "Completely correct — you've walked through every step yourself. You even noticed that $c>0$ is the key to pushing $e^c>1$. Well done. Could you now write out the complete proof yourself? I'll review it for you."
+      ],
+      [
+        "學生",
+        "Sure! For any $x > 0$, $f(t) = e^t$ is continuous on $[0, x]$ and differentiable on $(0, x)$, so by MVT there exists $c \\in (0, x)$ such that $\\frac{e^x - 1}{x} = e^c$. Rearranging gives $e^x = 1 + x e^c$, and since $c > 0$ implies $e^c > 1$, we get $e^x = 1 + x e^c > 1 + x$. How does that look?"
+      ],
+      [
+        "助教",
+        "It's completely correct — every hypothesis checked, every step justified, and the strict inequality derived from $c>0$. You've mastered this proof."
+      ],
+      [
+        "學生",
+        "Awesome, thank you so much! I was really confused at the beginning, but breaking it down into choosing the interval and seeing how $c > 0$ plays out made the whole proof click for me."
+      ],
+      [
+        "助教",
+        "You're very welcome — and you're right: breaking problems into \"choose the interval, write the MVT equation, then use the sign of $c$\" is exactly the most useful thing you can take away from this one. Keep it."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose value at zero is zero and whose derivative vanishes there — then prove it's nonnegative. Can you define such a function?"
+      ],
+      [
+        "學生",
+        "Oh, so just take $f(x) = \\cos x - 1 + \\frac{x^2}{2}$? Then $f'(x) = x - \\sin x$, which is non-negative for $x \\ge 0$ since $x \\ge \\sin x$, so $f(x)$ stays above 0!"
+      ],
+      [
+        "助教",
+        "Good — you've already sketched the argument. But you used \"the derivative is non-negative\" as a premise; can you prove that $x\\ge\\sin x$ yourself?"
+      ],
+      [
+        "學生",
+        "Can't I just use the exact same trick again? Let $g(x) = x - \\sin x$, so $g'(x) = 1 - \\cos x \\ge 0$ because cosine never exceeds 1. Since $g(0) = 0$, that immediately gives $x \\ge \\sin x$ for $x \\ge 0$!"
+      ],
+      [
+        "助教",
+        "Exactly — you've closed the loop. So back to $f$: with $f'(x)=x-\\sin x\\ge0$, what does that say about $f$'s monotonicity, and hence its minimum?"
+      ],
+      [
+        "學生",
+        "Since $f'(x) \\ge 0$ for $x \\ge 0$, $f$ is non-decreasing on $[0, \\infty)$, which means its minimum on that interval is $f(0) = 0$, so $f(x) \\ge 0$ for all non-negative $x$. And since both $\\cos x$ and $x^2$ are even, the inequality automatically holds for negative $x$ as well!"
+      ],
+      [
+        "助教",
+        "Completely correct. You've built the auxiliary function, proved its derivative non-negative by the same trick, and used monotonicity to locate the minimum — a fully self-contained proof. Could you now write out the complete proof yourself? I'll review it for you."
+      ],
+      [
+        "學生",
+        "Sure, here's the full write-up: let $g(x) = x - \\sin x$, which gives $g(0) = 0$ and $g'(x) = 1 - \\cos x \\ge 0$, proving $x \\ge \\sin x$ for $x \\ge 0$. Next, let $f(x) = \\cos x - 1 + \\frac{x^2}{2}$; since $f(0) = 0$ and $f'(x) = x - \\sin x \\ge 0$ on $[0, \\infty)$, $f(x)$ is non-decreasing so $f(x) \\ge 0$ for all $x \\ge 0$. Finally, because $f(-x) = f(x)$, the inequality $\\cos x \\ge 1 - \\frac{x^2}{2}$ holds for all real $x$, done!"
+      ],
+      [
+        "助教",
+        "Completely correct. You've built the auxiliary function, proved its derivative non-negative by the same trick, and used monotonicity to locate the minimum — a fully self-contained proof. Well done."
+      ],
+      [
+        "學生",
+        "Nice, that turned out to be super clean! Does this mean we can just keep repeating the exact same derivative trick to prove higher-order Taylor polynomial bounds for $\\cos x$?"
+      ],
+      [
+        "助教",
+        "Yes — the same method generalizes to $x^{2n}/(2n)!$ terms. The only thing to watch out for is the sign of the remainder term in the Lagrange form; can you spot where it comes from?"
+      ],
+      [
+        "學生",
+        "Wait, is it because the derivatives of $\\cos x$ cycle every four steps with alternating signs? So the remainder term $f^{(k)}(\\xi)$ flips sign, which is why we alternate between upper and lower polynomial bounds!"
+      ],
+      [
+        "助教",
+        "Correct — you've spotted the alternating remainder pattern yourself. Keep that in mind, and you're ready for higher-order expansions."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": ""
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start from the definition of linear dependence: if $c_1v_1+c_2v_2=0$, what do you want to prove?"
+      ],
+      [
+        "學生",
+        "We want to show that $c_1 = 0$ and $c_2 = 0$. But wait, since $v_1$ and $v_2$ are non-zero vectors by definition, isn't any pair of non-zero vectors automatically linearly independent?"
+      ],
+      [
+        "助教",
+        "That's a common trap. Two non-zero vectors can still be parallel (e.g. $v_2=2v_1$) — they're not necessarily independent. What extra condition must hold here to force independence?"
+      ],
+      [
+        "學生",
+        "Ah, right—parallel vectors are dependent even if they're non-zero. So the extra condition must be that they belong to distinct eigenvalues, $\\lambda_1 \\neq \\lambda_2$. If we apply matrix $A$ to both sides of $c_1v_1 + c_2v_2 = 0$, does that help us get another equation to work with?"
+      ],
+      [
+        "助教",
+        "Exactly. After left-multiplying by $A$, what kind of combination do you get, and how will you combine it with the original equation to eliminate one variable?"
+      ],
+      [
+        "學生",
+        "Left-multiplying by $A$ gives $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$. If I multiply the original equation by $\\lambda_1$ and subtract it from this one, the $v_1$ term cancels out, leaving $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$. Since $\\lambda_1 \\neq \\lambda_2$ and $v_2 \\neq 0$, does that force $c_2 = 0$?"
+      ],
+      [
+        "助教",
+        "Completely correct. The key is that distinct eigenvalues make the two equations produce a nontrivial linear combination forcing each coefficient to zero — and that's the difference between \"nonzero vectors\" and \"linearly independent\". Could you now write out the complete proof yourself? I'll review it for you."
+      ],
+      [
+        "學生",
+        "Sure! Suppose $c_1 v_1 + c_2 v_2 = 0$. Multiplying by $A$ gives $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$, and subtracting $\\lambda_1$ times the original equation yields $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$, forcing $c_2 = 0$ since $\\lambda_1 \\neq \\lambda_2$ and $v_2 \\neq 0$. Plugging $c_2 = 0$ back into the original equation leaves $c_1 v_1 = 0$, so $c_1 = 0$ as well, which proves $\\{v_1, v_2\\}$ is linearly independent."
+      ],
+      [
+        "助教",
+        "Completely correct. The core lesson: \"nonzero vectors\" is not enough — you need the distinct-eigenvalue condition to force the linear combination to produce two independent equations. You've mastered it."
+      ],
+      [
+        "學生",
+        "That makes total sense now! I was definitely confusing just being non-zero with actually being non-parallel, but using $A$ to get that second equation cleared it up. Thanks for walking me through it!"
+      ],
+      [
+        "助教",
+        "You're very welcome. When eigenvalues coincide (repeated), the eigenvectors may become dependent — that's the next layer of understanding. Keep asking, and you'll go deep."
+      ],
+      [
+        "學生",
+        "Wait, if an eigenvalue is repeated, can we still get linearly independent eigenvectors? Like with the identity matrix, wouldn't any two non-parallel vectors be independent eigenvectors for the exact same eigenvalue?"
+      ],
+      [
+        "助教",
+        "Good question — and you're right to suspect a counterexample. For the identity matrix, every vector is an eigenvector with eigenvalue $1$ — can you find two linearly dependent ones?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M1",
+    "persona": "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案",
+    "history": [
+      [
+        "助教",
+        "A first step: fix $x$ and take the limit of $f_n(x)$ as $n\\to\\infty$. What happens at $x=0$?"
+      ],
+      [
+        "學生",
+        "Honestly, I have no idea. I'm completely lost."
+      ],
+      [
+        "助教",
+        "Then let's start from the very beginning. First, what is the pointwise limit function — i.e., what does $f_n(x)$ tend to for each fixed $x$?"
+      ],
+      [
+        "學生",
+        "I still have no clue. I don't even know what a pointwise limit function is."
+      ],
+      [
+        "助教",
+        "The definition of pointwise convergence says \"for each fixed $x$\". So fix $x$ and ask: as $n\\to\\infty$, does $f_n(x)$ tend to some value?"
+      ],
+      [
+        "學生",
+        "I still have no idea. I don't know how to evaluate that limit."
+      ],
+      [
+        "助教",
+        "Let's try a different angle. Look at the denominator $1+n^2x^2$: how does it grow compared to the numerator $nx$?"
+      ],
+      [
+        "學生",
+        "I still have no clue. I don't know how to compare their growth."
+      ],
+      [
+        "助教",
+        "Here's a thought: can you find a quantity that dominates $f_n(x)$ and tends to $0$?"
+      ],
+      [
+        "學生",
+        "I still have no clue. I don't even know how to find something like that."
+      ],
+      [
+        "助教",
+        "If you're stuck on the comparison route, let's go back to the definition. Pointwise convergence means: for each fixed $x$, $f_n(x)\\to0$. So what is the pointwise limit function?"
+      ],
+      [
+        "學生",
+        "I still have no idea. I don't know what a limit function is."
+      ],
+      [
+        "助教",
+        "The limit function is simply the pointwise limit of $f_n(x)$ — i.e., the value $f_n(x)$ tends to for each fixed $x$. So what is it?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 1,
+      "issue": "面對學生持續表示完全不懂，助教未做任何降階與具體帶值引導，僅重複抽象提問並最終直接透露答案。"
+    },
+    "escalation": {
+      "ladder_idx": 2,
+      "walk_active": true,
+      "max_level": 2
+    }
+  }
+]
