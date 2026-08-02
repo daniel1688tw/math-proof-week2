@@ -16,6 +16,7 @@ except Exception:
 from tutor_driver import (
     PHASE_INSTRUCTIONS, TutorDriver, enforce_single_question, gives_new_equation,
     is_spoonfeeding, is_stuck, leaks_reference, load_problems_with_ladders,
+    _FALLBACK_QS, _FALLBACK_QS_EN,
 )
 
 FAIL = []
@@ -981,6 +982,76 @@ pk.messages = [{"role": "user", "content": "題目…"},
 pk._tutor_turn()
 check("同儕正常的不確定語氣 → 不誤殺",
       "peer_endorse" not in pk.state["turns"][-1].guards)
+
+print("[22] 重複偵測：保底句不得稀釋相似度、重生成後必須複驗（弱點 #17）")
+# 2026-08-02 守門實證：「重度卡關型」學生連說毫無頭緒，助教第 8/10/12 輪逐字相同。
+# 成因 (a)：上一輪被 driver 補了保底句，本輪逐字相同的回覆與它的 difflib 相似度掉到
+# 0.768 < 0.85 → repeat 根本沒觸發。成因 (b)：真觸發時 _regen 回同一段文字，不複驗就採用。
+_LOOP = "也許你該先查查這個序列的圖形長什麼樣子，再試著猜它的逐點極限。"
+
+rl = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+rl.generated_levels = []
+rl.state["lang"] = "zh"
+# 上一輪助教回覆＝同一句 ＋ driver 補的保底句（真實 log 就長這樣）
+rl.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": _LOOP + _FALLBACK_QS[0]},
+               {"role": "user", "content": "不知道，我毫無頭緒。"}]
+check("上一輪帶保底句時，逐字相同的回覆仍要判為重複",
+      rl._repeats_previous(_LOOP))
+rl_en = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+rl_en.generated_levels = []
+rl_en.state["lang"] = "en"
+_LOOP_EN = "Maybe look at the graph of this sequence first, then guess the pointwise limit."
+rl_en.messages = [{"role": "user", "content": "problem…"},
+                  {"role": "assistant", "content": _LOOP_EN + _FALLBACK_QS_EN[1]},
+                  {"role": "user", "content": "No idea."}]
+check("英文同上（保底句不得稀釋相似度）", rl_en._repeats_previous(_LOOP_EN))
+
+nd2 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+nd2.generated_levels = []
+nd2.state["lang"] = "zh"
+nd2.messages = [{"role": "user", "content": "題目…"},
+                {"role": "assistant", "content": _LOOP + _FALLBACK_QS[0]},
+                {"role": "user", "content": "嗯。"}]
+check("內容真的不同 → 不得誤判為重複",
+      not nd2._repeats_previous("那你先算算 $n=1,2,3$ 時的值，看得出什麼趨勢嗎？"))
+
+
+class _AlwaysRepeatStub(TutorDriver):
+    """初稿與重生成都回同一句 → 模擬「重生成沒解決重複」。"""
+    LOOP = _LOOP
+
+    def _generate(self, level):
+        return self.LOOP
+
+    def _regen(self, level, note):
+        return self.LOOP
+
+
+rr = _AlwaysRepeatStub(tok=None, model=_StubModel(),
+                       problem=dict(probs["A6"], teach_steps=[
+                           {"explain": "步驟一", "check": "這步懂嗎？"},
+                           {"explain": "步驟二", "check": "那這步呢？"},
+                           {"explain": "步驟三", "check": "這樣清楚嗎？"}]))
+rr.state["lang"] = "zh"
+rr.state.update(phase="walkthrough", walk_active=True, walk_idx=0)
+rr.messages = [{"role": "user", "content": "題目…"},
+               {"role": "assistant", "content": _LOOP},
+               {"role": "user", "content": "還是不懂。"}]
+rr._tutor_turn()
+check("教學輪重生成後仍重複 → 推進 walk_idx（不原地打轉）",
+      rr.state.get("walk_idx") == 1)
+check("log.guards 記錄 repeat_unresolved",
+      "repeat_unresolved" in rr.state["turns"][-1].guards)
+
+rr2 = _AlwaysRepeatStub(tok=None, model=_StubModel(), problem=probs["A6"])
+rr2.state["lang"] = "zh"
+rr2.messages = [{"role": "user", "content": "題目…"},
+                {"role": "assistant", "content": _LOOP},
+                {"role": "user", "content": "還是不懂。"}]
+rr2._tutor_turn()
+check("一般輪重生成後仍重複 → 記錄 repeat_unresolved（讓失敗可被量測）",
+      "repeat_unresolved" in rr2.state["turns"][-1].guards)
 
 print()
 if FAIL:

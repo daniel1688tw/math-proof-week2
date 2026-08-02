@@ -714,14 +714,34 @@ class TutorDriver:
         student = "".join(m["content"] for m in self.messages if m["role"] == "user")
         return self.problem["statement"] + hint + student
 
+    def _strip_driver_tail(self, text: str) -> str:
+        """剝除 driver 自己補在句尾的內容（保底追問／交稿請求／教學步驟確認問句）。
+
+        比對重複前必須先剝除：模型逐字重複、只是上一輪被 driver 補過保底句時，
+        相似度會被那截尾巴稀釋到門檻以下而漏抓（2026-08-02 守門實測 0.768 < 0.85，
+        學生因此連看三輪一模一樣的回覆——弱點 #17 的成因 (a)）。
+        只讀 problem 裡既有的 teach_steps，不呼叫 _ensure_teach_steps（那會打 Ollama）。
+        """
+        t = (text or "").rstrip()
+        tails = [s.strip() for s in _FALLBACK_QS + _FALLBACK_QS_EN]
+        tails += [WRITEUP_NUDGE.strip(), WRITEUP_NUDGE_EN.strip()]
+        tails += [s["check"] for s in (self.problem.get("teach_steps") or [])
+                  if isinstance(s, dict) and s.get("check")]
+        for tail in tails:
+            if tail and t.endswith(tail):
+                return t[: -len(tail)].rstrip()
+        return t
+
     def _repeats_previous(self, reply: str) -> bool:
         """回覆是否重複最近 3 輪助教回覆：完全相同，或高度相似（換句話重問同一題）。
 
         相似度用 difflib ratio ≥0.85（正規化後）：抓「改寫式重問」——學生卡住時
         tutor 換個說法問一模一樣的問題，逐字比對抓不到。教學輪（walkthrough）除外：
-        重講同一步（walk_retry）本就刻意相似，只用完全相同判定。"""
-        prev = [m["content"] for m in self.messages if m["role"] == "assistant"][-3:]
-        norm = _normalize(reply)
+        重講同一步（walk_retry）本就刻意相似，只用完全相同判定。
+        比對前兩邊都先剝除 driver 補的句尾（見 _strip_driver_tail）。"""
+        prev = [self._strip_driver_tail(m["content"])
+                for m in self.messages if m["role"] == "assistant"][-3:]
+        norm = _normalize(self._strip_driver_tail(reply))
         if any(norm == _normalize(p) for p in prev):
             return True
         if self.state.get("phase") == "walkthrough":
@@ -832,13 +852,26 @@ class TutorDriver:
         # 整個蓋掉，最終回覆反而沒有問句（保底保證失效）。
         if self._repeats_previous(reply):
             log.guards.append("repeat")
-            reply = self._content_guards(self._regen(level, (
-                "Your previous draft repeated a question you already asked. Do not repeat any earlier "
-                "question; respond to the student's latest message and ask one new question that moves "
-                "to the next step." if en else
-                "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
-                "問一個推進到下一步的新問題。")), level, log)
+            _note = ("Your previous draft repeated a question you already asked. Do not repeat any "
+                     "earlier question; respond to the student's latest message and ask one new "
+                     "question that moves to the next step." if en else
+                     "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
+                     "問一個推進到下一步的新問題。")
+            reply = self._content_guards(self._regen(level, _note), level, log)
             log.regenerated = True
+            # 複驗：greedy 解碼下 system 只多一句提醒，重生成常常還是同一段話。原本
+            # 不複驗就採用，學生會連看好幾輪一模一樣的回覆（弱點 #17 的成因 (b)，
+            # 2026-08-02 守門 M1 中英兩場 guidance 皆 1 分的直接原因）。
+            if self._repeats_previous(reply):
+                log.guards.append("repeat_unresolved")
+                if walkthrough:
+                    # 教學輪有確定性的前進方向：與其原地重講同一步，直接推進到下一步。
+                    # （此時 teach_steps 已被 _system() 快取，不會再打 Ollama。）
+                    steps = self._ensure_teach_steps()
+                    if self.state.get("walk_idx", 0) + 1 < len(steps):
+                        self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
+                        self.state["walk_retry"] = 0
+                        reply = self._content_guards(self._regen(level, _note), level, log)
 
         # 本輪回覆若親口宣告整份證明完成 → 立刻 arm。arm 若等到下一輪 step() 開頭才做，
         # 「宣告完成」與「下一步該從哪裡下手」會出現在同一則回覆裡（守門 X4/zh 末輪實例）。
