@@ -1097,6 +1097,45 @@ esc_en.start(opener="I have no idea how to start. Could you give me a first hint
 esc_en.step("I don't know, I can't figure it out.")
 check("英文純困惑 → 仍計為卡住", esc_en.state["stuck_count"] == 1)
 
+print("[24] 持續卡關時支援等級必須單調遞增（弱點 #17 的根因）")
+# 2026-08-02 守門 M1 回放診斷：等級序列是 0→1→2→1→2→1→walkthrough。
+# 給完等級 2 提示後 stuck_count 被歸零，於是下一輪掉回等級 1——而等級 1 的指示是
+# 「拆成更小的子問題，仍然不要點名定理」＝比上一輪給得更少。學生越卡，助教給的
+# 幫助反而在 2 和 1 之間震盪，walkthrough 因此拖到第 6 輪才觸發。
+# 那個歸零是多餘的：學生真的恢復時 step() 本來就會把 stuck_count 設回 0。
+# 預先供給 teach_steps：修復生效後 walkthrough 真的會觸發，而 A6 題目沒自帶步驟，
+# _ensure_teach_steps() 會去打 Ollama——純邏輯測試不得有外部相依。
+_MONO_PROB = dict(probs["A6"], teach_steps=[
+    {"explain": "步驟一", "check": "這步懂嗎？"},
+    {"explain": "步驟二", "check": "那這步呢？"}])
+mono = _StubDriver(tok=None, model=_StubModel(), problem=_MONO_PROB)
+mono.generated_levels = []
+mono.start()
+_STUCKS = ["我不知道。", "還是不會。", "完全沒頭緒。", "真的不知道。", "還是毫無頭緒。"]
+_walk_at = None
+for _i, _m in enumerate(_STUCKS):
+    mono.step(_m)
+    if _walk_at is None and mono.state.get("walk_active"):
+        _walk_at = _i + 1
+_lv = mono.generated_levels
+check(f"連續卡住時等級不得下降（實得 {_lv}）",
+      all(b >= a for a, b in zip(_lv[1:3], _lv[2:4])) and 1 not in _lv[3:])
+check("提示梯兩條都送出去（ladder_idx 到 2）", mono.state["ladder_idx"] == 2)
+check(f"提示梯用盡後盡快進入逐步教學（第 {_walk_at} 次卡住時）",
+      _walk_at is not None and _walk_at <= 4)
+
+# 既有行為不得破壞：學生恢復後 stuck_count 要歸零、等級回到 0
+rec2 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+rec2.generated_levels = []
+rec2.start()
+rec2.step("我不知道。")
+rec2.step("還是不會。")
+check("連卡兩次 → 等級 2 且 ladder_idx=1（罐頭升級路徑不變）",
+      rec2.generated_levels[-1] == 2 and rec2.state["ladder_idx"] == 1)
+rec2.step("喔我懂了，用二項式展開取第二項當下界。")
+check("學生恢復 → stuck_count 歸零、等級回到 0",
+      rec2.state["stuck_count"] == 0 and rec2.generated_levels[-1] == 0)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

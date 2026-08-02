@@ -999,7 +999,11 @@ class TutorDriver:
         # 逐步教學（等於跳過分級引導直接開始講解）。
         if level == 2 and phase is None and not peer:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
-            self.state["stuck_count"] = 0     # 給過想法後重新計數
+            # ⚠️ 這裡曾把 stuck_count 歸零（「給過想法後重新計數」）。對**恢復的**學生
+            # 那是對的，但那種情況 step() 本來就會歸零；對**持續卡住**的學生它是有害的：
+            # 下一輪掉回等級 1（指示是「拆更小的子問題、仍不點名定理」＝比上一輪給得更少），
+            # 支援等級在 2↔1 之間震盪而非單調遞增，walkthrough 也被拖延。
+            # 2026-08-02 守門 M1 回放實測等級序列 0→1→2→1→2→1，兩場 guidance 皆 1 分。
         self.state["turns"].append(log)
         self.messages.append({"role": "assistant", "content": reply})
         return reply
