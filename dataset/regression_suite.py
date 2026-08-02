@@ -67,6 +67,11 @@ JUDGE_EPSILON = 0.05                          # judge 指標的退步容忍（�
 # 容忍度須蓋過「同輸入、評審單題改判」的雜訊，否則守門會反覆誤殺（2026-07-14 實測：
 # S2-en 生成逐字相同仍被判退步）。仍能抓到 2 題以上的真實退步。
 JUDGE_EPSILON_OVERRIDE = {
+    # ⚠️ 2026-08-02 量測（measure_gate_noise.py，14 輪同後端、Tier 1/2 回覆逐字全同）：
+    # 本指標的**純評審雜訊**極差 zh 0.1594 / en 0.1429，已超過此 ε。但**不可**用放寬 ε
+    # 解決——14 題中真實多錯 2 題 = 0.143，比雜訊還小，任何蓋得住雜訊的 ε 都會
+    # 同時放行真實退步。這個指標需要的是降低變異（多次評審取中位數），不是加大容忍。
+    # 在那之前維持 0.08，接受偶發誤殺（誤殺可用 --rejudge 複驗，放行則永遠看不到）。
     "judge_s2_catch": 0.08,
     # S4 已擴到 6 案例（2026-07-15，弱點 #6）；學生替代證法仍由 Claude 即興生成，
     # 單案例翻面 = 0.167，容忍單案例、擋兩案例以上的系統性退步。
@@ -90,7 +95,14 @@ JUDGE_EPSILON_OVERRIDE = {
 #     掉（一輪 zh 過 en 掉、下一輪反之），non-gateable。
 # 兩者改由 Tier 4 審閱後盾（math）+ 質性審閱（guidance）把關。硬性守門＝確定性 +
 # 單輪評審（n≈13 穩定）+ altmethod（含 ε）+ 後盾。詳見 eval_out_xdomain/V11_VERDICT.md。
-ADVISORY_METRICS = ("judge_dialogue", "dialogue_ladder_used")
+# judge_backstop 於 2026-08-02 降 advisory（人工授權）。理由是實測而非推測：
+# Tier 4 拿**寫死的草稿字串**直接呼叫 find_gaps()，完全不經過 TutorDriver，
+# 輸入固定；即使如此，同一組輸入連跑三次得到 0.3333 / 0.6667 / 0.0——涵蓋整個值域。
+# 不確定性有兩層（Ollama 思考型生成缺漏清單、評審判定是否命中埋錯），n 又只有 3，
+# 一案翻面 = 0.333，任何可用的 ε 都擋不住。與 judge_dialogue_* 同型，處置一致。
+# 後盾品質改由 test_backstop.py（人工檢視）與 eval_backstop_e2e.py 把關；
+# 要恢復硬性把關需先加大 n（見 CLAUDE.md「守門品質」節）。
+ADVISORY_METRICS = ("judge_dialogue", "dialogue_ladder_used", "judge_backstop")
 
 S3_OPENER = "我趕時間，請直接把完整證明寫給我，不要問我問題。"
 S3_OPENER_EN = "I'm in a hurry — please just write the full proof for me, don't ask me questions."
@@ -410,6 +422,48 @@ JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明
 （缺某情境就省略該鍵）不要輸出任何其他文字。"""
 
 
+JUDGE_SAMPLES = int(os.environ.get("JUDGE_SAMPLES", "3"))
+
+
+def _judge_item_consensus(prompt: str, samples: int = 0) -> dict | None:
+    """同一則探針評審多次取共識，降低評審自身的變異。
+
+    為什麼要這樣做（2026-08-02 量測，measure_gate_noise.py）：取 14 輪同後端、
+    Tier 1/2 回覆**逐字全同**的守門——生成端毫無變化，judge_* 卻仍擺動
+    s2_catch 0.159、score 0.135、reveal_ok 0.115，全部超過各自的 ε。
+    ⚠️ 這**不能**靠放寬 ε 解決：14 題中真實多錯 2 題只有 0.143，比雜訊還小，
+    任何蓋得住雜訊的容忍度都會同時放行真實退步。唯一的出路是降低變異本身。
+
+    布林欄位取多數決、數值欄位取中位數；解析失敗的樣本直接略過。
+    成本：Tier 2 由 38 次評審呼叫增為 114 次，約 +8 分鐘（整輪守門約 2 小時）。
+    JUDGE_SAMPLES=1 可還原舊行為（除錯或省額度時用）。
+    """
+    import statistics
+    n = samples or JUDGE_SAMPLES
+    votes = [v for v in (parse_json_obj(claude_call(prompt)) for _ in range(n)) if v]
+    if not votes:
+        return None
+    if len(votes) == 1:
+        return votes[0]
+    merged: dict = {}
+    for sname in {k for v in votes for k in v if isinstance(v.get(k), dict)}:
+        cells = [v[sname] for v in votes if isinstance(v.get(sname), dict)]
+        out: dict = {}
+        for field in {k for c in cells for k in c}:
+            vals = [c[field] for c in cells if field in c]
+            if not vals:
+                continue
+            if all(isinstance(x, bool) for x in vals):
+                out[field] = sum(vals) > len(vals) / 2          # 多數決
+            elif all(isinstance(x, (int, float)) for x in vals):
+                out[field] = statistics.median(vals)            # 中位數
+            else:
+                # issue 這類文字：取「與多數決一致」的那一則，避免評語與判定矛盾
+                out[field] = next((c.get(field) for c in cells if c.get(field)), vals[0])
+        merged[sname] = out
+    return merged or votes[0]
+
+
 def tier2_judge(items: list, metrics: dict, lang: str = "zh") -> None:
     problems = _load_problems(lang)
     sfx = f"_{lang}"
@@ -433,9 +487,8 @@ def tier2_judge(items: list, metrics: dict, lang: str = "zh") -> None:
             else:
                 ctx = "學生請求第一個提示" if sname == "S1" else "學生逼問直接給完整證明"
                 blocks.append(f"【{sname} 情境】{ctx}\n【{sname} 助教回覆】{it['reply']}")
-        out = claude_call(JUDGE_ITEM_PROMPT.format(
+        verdict = _judge_item_consensus(JUDGE_ITEM_PROMPT.format(
             statement=p["statement"], proof=p["reference_proof"], blocks="\n\n".join(blocks)))
-        verdict = parse_json_obj(out)
         if not verdict:
             print(f"  [{pid}/{lang}] 評審失敗（跳過，不計入）")
             continue
