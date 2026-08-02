@@ -478,6 +478,50 @@ def is_overpraising(reply: str, gaps: list | None) -> bool:
     return bool(_FLOURISH_RE.search(reply))
 
 
+# ── 「帶進新數學內容」否決條件（2026-08-02，量測驅動）──────────────────────────
+# 251 則真實訊息標註量測：is_stuck 的 P=0.484 / R=0.714 / F1=0.577，**precision 更差**。
+# 誤判集中在「短訊息＋語氣遲疑＋其實推對了」（「呃…就是 $e^x-1-x>0$？…但我不確定
+# 這樣有什麼用」）——判他卡住＝白白消耗一級提示、還可能提早推進 walkthrough。
+# 掃描候選特徵後採「有新數學內容 → 否決卡住判定」：P=0.737 / R=0.667 / F1=0.700。
+# ⚠️ 反過來用（無新內容＝卡住）只有 F1=0.192，比現況更差——大多數訊息本來就沒什麼
+#    新數學，那樣會命中所有人。這個特徵只適合當否決，不適合當判定。
+_MATH_NGRAM = 3          # 字元 n-gram 粒度
+_MATH_NEW_RATIO = 0.30   # 新 n-gram 占比達此值即視為「帶進新內容」
+_MATH_MIN_CHARS = 4      # 數學片段短於此則不表態（談不上新內容）
+_MATH_SPAN_RE = re.compile(r"\$[^$]*\$")
+_MATH_BARE_RE = re.compile(r"[^\s，。、；？！,.;?!（）]{2,}")
+
+
+def math_text(s: str) -> str:
+    """只保留訊息中的數學片段並正規化（$...$ 行內數學、含運算子的拉丁片段）。
+
+    刻意不解析語法：目的只是「這段數學內容跟先前出現過的有多少重疊」，
+    字元層級的粗略比對就夠，也才不會被 LaTeX 寫法差異絆倒。
+    """
+    parts = _MATH_SPAN_RE.findall(s or "")
+    for tok in _MATH_BARE_RE.findall(s or ""):
+        if re.search(r"[=<>≤≥^_\\]|\d", tok) and re.search(r"[A-Za-z\\]", tok):
+            parts.append(tok)
+    return _normalize("".join(parts))
+
+
+def has_new_math(student_text: str, prior_text: str) -> bool:
+    """student_text 是否帶進 prior_text 中未出現過的數學內容（字元 n-gram 比對）。
+
+    模組級函式而非只做成方法：量測腳本（measure_stuck_detection.py）要在
+    對話脈絡上重算這個判準來驗證改動有沒有真的提升 F1，不該為此建一個 driver。
+    """
+    cur = math_text(student_text)
+    if len(cur) < _MATH_MIN_CHARS:
+        return False
+    prior = math_text(prior_text)
+    n = _MATH_NGRAM
+    grams = {prior[i:i + n] for i in range(len(prior) - n + 1)}
+    total = max(len(cur) - n + 1, 1)
+    new = sum(1 for i in range(total) if cur[i:i + n] not in grams)
+    return new / total >= _MATH_NEW_RATIO
+
+
 # 等級 2 禁算式：抓「含 = / ≤ / ≥ / \le / \ge 的連續數學片段」
 _EQ_TOKEN_RE = re.compile(r"[^\s，。？！；、]*(?:=|≤|≥|\\le\b|\\ge\b)[^\s，。？！；、]*")
 
@@ -713,6 +757,15 @@ class TutorDriver:
         hint = ladder[idx] if ladder else ""
         student = "".join(m["content"] for m in self.messages if m["role"] == "user")
         return self.problem["statement"] + hint + student
+
+    def _has_new_math(self, student_text: str) -> bool:
+        """學生這則訊息有沒有帶進「對話中尚未出現過」的數學內容。"""
+        return has_new_math(student_text, self.problem.get("statement", "")
+                            + "".join(m["content"] for m in self.messages))
+
+    def _is_stuck_now(self, student_text: str) -> bool:
+        """本輪學生是否真的卡住＝說了卡住的話，且交不出新的數學內容。"""
+        return is_stuck(student_text) and not self._has_new_math(student_text)
 
     def _strip_driver_tail(self, text: str) -> str:
         """剝除 driver 自己補在句尾的內容（保底追問／交稿請求／教學步驟確認問句）。
@@ -999,7 +1052,7 @@ class TutorDriver:
                 self.state["walk_active"] = False
                 return
             steps = self._ensure_teach_steps()
-            if is_stuck(student_text) and not self.state.get("walk_retry"):
+            if self._is_stuck_now(student_text) and not self.state.get("walk_retry"):
                 self.state["walk_retry"] = 1          # 同一步換簡單說法重講一次
             else:
                 self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
@@ -1091,7 +1144,9 @@ class TutorDriver:
             self._consult_backstop(student_text)
         else:
             self.state["backstop_gaps"] = None
-        if is_stuck(student_text):
+        # 卡住判定加「新數學內容」否決（量測：precision 0.484→0.737，誤判 16→5）：
+        # 學生語氣遲疑但確實推出了新式子時不該消耗提示梯。
+        if self._is_stuck_now(student_text):
             self.state["stuck_count"] += 1
         else:
             self.state["stuck_count"] = 0

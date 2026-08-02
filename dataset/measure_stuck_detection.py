@@ -35,7 +35,7 @@ try:
 except Exception:
     pass
 
-from tutor_driver import is_stuck  # noqa: E402
+from tutor_driver import has_new_math, is_stuck  # noqa: E402
 
 LABELS_PATH = HERE / "stuck_labels.json"
 
@@ -58,18 +58,19 @@ LABEL_PROMPT = """你在標註數學助教對話的語料。下面是學生（�
 
 
 def load_student_messages() -> list[dict]:
+    """去重的真實學生訊息，附上「該則之前的對話內容」——脈絡是 has_new_math 的必要輸入。"""
     seen, out = set(), []
     for f in sorted(glob.glob(str(HERE / "regression_scores" / "*_dialogues.json"))):
         for rec in json.loads(Path(f).read_text(encoding="utf-8")):
+            acc = []
             for who, txt in rec.get("history", []):
-                if who != "學生":
-                    continue
                 t = (txt or "").strip()
-                if not t or t in seen:
-                    continue
-                seen.add(t)
-                out.append({"text": t, "lang": rec.get("lang", "zh"),
-                            "persona": rec.get("persona", "")[:3]})
+                if who == "學生" and t and t not in seen:
+                    seen.add(t)
+                    out.append({"text": t, "lang": rec.get("lang", "zh"),
+                                "persona": rec.get("persona", "")[:3],
+                                "prior": "\n".join(acc)})
+                acc.append(t)
     return out
 
 
@@ -131,36 +132,47 @@ def main():
         print(f"[標註] 已存檔 {LABELS_PATH.name}（{len(cached)} 則）")
 
     graded = [m for m in sample if m["text"] in cached]
-    tp = fp = fn = tn = 0
-    misses, falses = [], []
-    for m in graded:
-        pred, truth = is_stuck(m["text"]), cached[m["text"]]
-        if pred and truth:
-            tp += 1
-        elif pred and not truth:
-            fp += 1
-            falses.append(m)
-        elif not pred and truth:
-            fn += 1
-            misses.append(m)
-        else:
-            tn += 1
 
-    print(f"\n[混淆矩陣] 已標註 {len(graded)} 則")
-    print(f"    真陽 {tp:3d}   假陽 {fp:3d}")
-    print(f"    假陰 {fn:3d}   真陰 {tn:3d}")
-    prec = tp / (tp + fp) if tp + fp else 0.0
-    rec = tp / (tp + fn) if tp + fn else 0.0
-    f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
-    print(f"    precision {prec:.3f}｜recall {rec:.3f}｜F1 {f1:.3f}")
-    print("    （recall 是重點：漏接＝學生明說不會卻拿不到提示升級）")
+    def evaluate(name, predict):
+        tp = fp = fn = tn = 0
+        misses, falses = [], []
+        for m in graded:
+            pred, truth = predict(m), cached[m["text"]]
+            if pred and truth:
+                tp += 1
+            elif pred and not truth:
+                fp += 1
+                falses.append(m)
+            elif not pred and truth:
+                fn += 1
+                misses.append(m)
+            else:
+                tn += 1
+        prec = tp / (tp + fp) if tp + fp else 0.0
+        rec = tp / (tp + fn) if tp + fn else 0.0
+        f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
+        print(f"\n[{name}] 已標註 {len(graded)} 則")
+        print(f"    真陽 {tp:3d}   假陽 {fp:3d}")
+        print(f"    假陰 {fn:3d}   真陰 {tn:3d}")
+        print(f"    precision {prec:.3f}｜recall {rec:.3f}｜F1 {f1:.3f}")
+        return f1, misses, falses
 
-    print(f"\n[漏接實例] 該判卡住卻沒判，共 {fn} 則：")
-    for m in misses[:15]:
-        print(f"    [{m['lang']}] {m['text'][:78]}")
-    print(f"\n[誤判實例] 判成卡住但其實不是，共 {fp} 則：")
+    f1_base, _, base_falses = evaluate(
+        "基準：純 is_stuck（詞表＋長度門檻）", lambda m: is_stuck(m["text"]))
+    f1_veto, misses, falses = evaluate(
+        "現行：is_stuck 且未帶進新數學內容",
+        lambda m: is_stuck(m["text"]) and not has_new_math(m["text"], m["prior"]))
+    print(f"\n[結論] F1 {f1_base:.3f} → {f1_veto:.3f}"
+          f"（誤判 {len(base_falses)} → {len(falses)} 則）")
+    print("    誤判成本：白白消耗一級提示，還可能提早把學生推進逐步教學。")
+    print("    漏接成本：學生明說不會卻拿不到提示升級。")
+
+    print(f"\n[漏接實例] 該判卡住卻沒判，共 {len(misses)} 則：")
+    for m in misses[:12]:
+        print(f"    [{m['lang']}] {m['text'][:76]}")
+    print(f"\n[誤判實例] 判成卡住但其實不是，共 {len(falses)} 則：")
     for m in falses[:8]:
-        print(f"    [{m['lang']}] {m['text'][:78]}")
+        print(f"    [{m['lang']}] {m['text'][:76]}")
 
 
 if __name__ == "__main__":

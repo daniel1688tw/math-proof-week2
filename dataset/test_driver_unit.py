@@ -1053,6 +1053,50 @@ rr2._tutor_turn()
 check("一般輪重生成後仍重複 → 記錄 repeat_unresolved（讓失敗可被量測）",
       "repeat_unresolved" in rr2.state["turns"][-1].guards)
 
+print("[23] 「帶進新數學內容」否決卡住判定（弱點 #17 的量測驅動解法）")
+# 251 則真實訊息標註量測：is_stuck 的 P=0.484 / R=0.714 / F1=0.577，**precision 更差**。
+# 誤判集中在「短訊息＋語氣遲疑＋其實推對了」，例如
+#   「呃…就是 $e^x-1-x>0$？感覺就是移項而已，但我不確定這樣有什麼用。」
+# 判他卡住＝白白消耗一級提示、還可能提早推進 walkthrough（與弱點 #17 同源的傷害）。
+# 掃描候選特徵（scratchpad/probe_feature.py）：把「有帶進新數學內容」當**否決條件**
+# 得 P=0.737 / R=0.667 / F1=0.700；反過來當「無新內容＝卡住」只有 F1=0.192（更差）。
+# 閾值在 n=2–3、ratio=0.2–0.3、minlen=4–6 皆同分＝非過擬合。
+nc = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+nc.generated_levels = []
+nc.messages = [{"role": "user", "content": "題目：證明 $\\lim n/2^n = 0$。"},
+               {"role": "assistant", "content": "試著用二項式定理把 $2^n$ 展開找下界。"}]
+check("推出新的式子 → 有新內容",
+      nc._has_new_math("那我取 $\\binom{n}{2}$ 當下界，得到 $2^n \\ge n(n-1)/2$。"))
+check("引進新的輔助函數 → 有新內容",
+      nc._has_new_math("我想設 $g(x)=x/2^x$ 然後對它微分看看。"))
+check("完全沒有數學內容 → 無新內容（否決不生效，卡住判定照舊）",
+      not nc._has_new_math("嗯……我再想想。"))
+check("只複述助教剛給的片段 → 無新內容",
+      not nc._has_new_math("嗯，你是說 $2^n$ 那個嗎？"))
+
+# 真實誤判案例：語氣遲疑但確實推出了新形式 → 否決，不得判為卡住
+fp1 = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+fp1.generated_levels = []
+fp1.start()
+fp1.step("呃…就是 $e^x - 1 - x > 0$？感覺就是移項而已，但我不確定這樣有什麼用。")
+check("真實誤判案例（遲疑但推對了）→ 不計為卡住", fp1.state["stuck_count"] == 0)
+
+# 罐頭升級路徑必須不受影響（守門硬性指標 escalation_* 走這條）
+esc = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+esc.generated_levels = []
+esc.start()
+esc.step("我不知道，想不出來。")
+check("純困惑、無數學內容 → 仍計為卡住（否決不誤傷）", esc.state["stuck_count"] == 1)
+esc.step("還是想不到，再提示一下。")
+check("連卡兩次 → 仍升到等級 2（罐頭升級路徑不受影響）",
+      esc.state["turns"][-1].level == 2 and esc.state["ladder_idx"] == 1)
+
+esc_en = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+esc_en.generated_levels = []
+esc_en.start(opener="I have no idea how to start. Could you give me a first hint?")
+esc_en.step("I don't know, I can't figure it out.")
+check("英文純困惑 → 仍計為卡住", esc_en.state["stuck_count"] == 1)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
