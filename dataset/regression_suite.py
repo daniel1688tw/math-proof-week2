@@ -323,6 +323,51 @@ _LANG_STR = {
            "got": "I understand this step."},
 }
 
+# ── 多輪確定性探針（2026-08-04）────────────────────────────────────────────────
+# 為什麼需要：Tier 1/2 的 S1/S2/S3 都只呼叫 start()，是**單輪**探針。實測連續 6 輪
+# 守門（期間改了守衛鏈順序、is_stuck、stuck_count 語意、重生成上限）——104 筆回覆
+# **始終 104/104 逐字相同**，亦即守門最貴的那一塊對這些改動的偵測力是 0。而這個
+# session 修掉的每一個缺陷都住在多輪路徑（重生成繞過防護、交稿誤判、提示梯誤耗、
+# 支援等級震盪、同儕背書）。
+#
+# 學生台詞寫死 ⇒ greedy 解碼下輸出可重現，與單輪探針同樣穩定；檢查的是**結構不變式**
+# （洩漏／單問句／階段轉換／提示梯守恆／收尾不追問），**完全不經評審** ⇒ 沒有評審
+# 雜訊、也沒有基準校準問題：確定性指標本來就該是 1.0，掉下來就是真的有 bug。
+MULTITURN_IDS = ["A6", "C8", "E4", "H5"]
+_MULTITURN_SCRIPT = {
+    "zh": [
+        "我不知道，想不出來。",                      # 卡 1 → 等級 1
+        "還是想不到，再提示一下。",                   # 卡 2 → 等級 2（給提示、消耗提示梯）
+        # ↓ 下兩則同時命中「卡住」與「交嘗試」：等級升到 2 但 phase=rectify，
+        #   system 注入的是階段指示、沒有提示內容 → 提示梯**不該**被記為已用。
+        #   這正是 2026-08-01 修掉的「特殊 phase 消耗提示梯」路徑，靈敏度已驗證。
+        "我覺得可以照你說的方向試，但我不確定。",        # → rectify ＋ 卡 1
+        "這樣對嗎？我還是不太懂。",                    # → rectify ＋ 卡 2（等級 2）
+        "喔我懂了，整個思路我都清楚了。",              # → writeup_request
+        ("這是我的完整證明：由題目的假設出發，先確立所需的前提條件，"
+         "接著依照剛才討論的關鍵步驟逐步推導，每一步都交代依據，"
+         "最後把不等式整理起來得到所要的結論，因此原命題成立，證畢。"),  # → review
+        # ↓ 交稿後針對缺漏的追問。若審閱輪還在問問題（代表有缺漏），這一輪**不得**
+        #   被路由進 closed——那會讓助教被指示「已完成、不要再問」而中斷糾錯，
+        #   正是 update.md 稽核的 F3。
+        "你提到的那個前提，我不太確定要怎麼交代，可以再說明一下嗎？",
+        "謝謝助教，我沒有其他問題了。",                # → 收尾（不得再被追問）
+    ],
+    "en": [
+        "I don't know, I can't figure it out.",
+        "I'm still stuck, please give another hint.",
+        "I think I can try that direction, but I'm not sure.",
+        "Is that right? I still don't quite understand.",
+        "Oh I understand now, the whole idea is clear to me.",
+        ("Here is my complete proof: starting from the hypotheses, I first establish the "
+         "required conditions, then follow the key steps we discussed, justifying each one, "
+         "and finally combine the inequalities to reach the desired conclusion. Hence the "
+         "statement holds, which completes the proof."),
+        "About that hypothesis you mentioned, I'm not sure how to justify it. Could you explain?",
+        "Thank you, I have no further questions.",
+    ],
+}
+
 
 def tier1(tok, model, metrics: dict, lang: str = "zh") -> list:
     """回傳 items：每筆 {id, scenario, reply, lang, ...} 供 Tier 2 評審。lang 決定語言與指標後綴。"""
@@ -420,6 +465,77 @@ JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明
 只輸出一個 JSON 物件，格式：
 {{"S1": {{"math_ok": true, "reveal_ok": true, "score": 4, "issue": ""}}, "S2": {{"math_ok": true, "caught": true, "reveal_ok": true, "score": 4, "issue": ""}}, "S3": {{"math_ok": true, "reveal_ok": true, "score": 4, "issue": ""}}}}
 （缺某情境就省略該鍵）不要輸出任何其他文字。"""
+
+
+def tier1_multiturn(tok, model, metrics: dict, lang: str = "zh") -> list:
+    """多輪確定性探針：固定學生台詞跑完整條路徑，檢查結構不變式（不經評審）。
+
+    回傳每場對話的存檔（供人工檢視與日後回放）。指標皆為確定性、零容忍。
+    """
+    from tutor_driver import TutorDriver, leaks_reference
+    problems = _load_problems(lang)
+    script = _MULTITURN_SCRIPT[lang]
+    sfx = f"_{lang}"
+    records = []
+    ok_leak = ok_single = ok_phase = ok_ladder = ok_close = ok_rectify = 0
+    for pid in MULTITURN_IDS:
+        p = problems[pid]
+        d = TutorDriver(tok, model, dict(p), backstop=False)
+        turns = []
+        reply = d.start()
+        turns.append({"student": None, "reply": reply, "phase": d.state.get("phase"),
+                      "level": d.state["turns"][-1].level, "ladder": d.state["ladder_idx"],
+                      "guards": list(d.state["turns"][-1].guards)})
+        for msg in script:
+            reply = d.step(msg)
+            turns.append({"student": msg, "reply": reply, "phase": d.state.get("phase"),
+                          "level": d.state["turns"][-1].level, "ladder": d.state["ladder_idx"],
+                          "guards": list(d.state["turns"][-1].guards),
+                          "done_closed": bool(d.state.get("done_closed"))})
+
+        # ① 全程不得洩漏參考解（等級 <2 的輪次；等級 2 本來就允許點名想法）
+        leak = any(t["level"] < 2 and leaks_reference(
+            t["reply"], p["reference_proof"], exclude=p.get("statement", "")) for t in turns)
+        ok_leak += not leak
+        # ② 每輪至多一個問號
+        single = all(len(_QMARK.findall(t["reply"])) <= 1 for t in turns)
+        ok_single += single
+        # ③ 階段轉換：說「我懂了」後要請他交稿，交出長草稿後要進審閱
+        phases = [t["phase"] for t in turns]
+        phase_ok = "writeup_request" in phases and "review" in phases \
+            and phases.index("writeup_request") < phases.index("review")
+        ok_phase += phase_ok
+        # ④ 提示梯守恆：消耗量不得超過真正發出等級 2 提示的輪數
+        lvl2 = sum(1 for t in turns if t["level"] == 2 and t["phase"] is None)
+        ladder_ok = d.state["ladder_idx"] <= lvl2
+        ok_ladder += ladder_ok
+        # ⑤ 收尾：學生道謝那一輪不得再被補上通用追問句
+        close_ok = "fallback" not in turns[-1]["guards"]
+        ok_close += close_ok
+        # ⑥ 糾錯不得被收尾中斷：審閱輪若還在問問題（＝仍有缺漏），學生針對缺漏的
+        #    追問就不該落進 closed（助教會被指示「已完成、不要再問」）——稽核 F3。
+        #    審閱一次就通過（回覆無問句）時本項不適用，記為通過。
+        ri = phases.index("review") if "review" in phases else None
+        if ri is not None and ri + 1 < len(turns) and _QMARK.search(turns[ri]["reply"]):
+            rectify_ok = turns[ri + 1]["phase"] != "closed"
+        else:
+            rectify_ok = True
+        ok_rectify += rectify_ok
+
+        flags = "".join("✓" if x else "✗" for x in
+                        (not leak, single, phase_ok, ladder_ok, close_ok, rectify_ok))
+        print(f"  [{pid}/{lang}] 多輪 洩漏/單問句/階段/提示梯/收尾/糾錯不中斷 = {flags}"
+              f"（phases={'>'.join(str(x) for x in phases)}）")
+        records.append({"id": pid, "lang": lang, "turns": turns})
+
+    n = len(MULTITURN_IDS)
+    metrics["mt_no_leak" + sfx] = round(ok_leak / n, 4)
+    metrics["mt_single_question" + sfx] = round(ok_single / n, 4)
+    metrics["mt_phase_flow" + sfx] = round(ok_phase / n, 4)
+    metrics["mt_ladder_conserved" + sfx] = round(ok_ladder / n, 4)
+    metrics["mt_clean_close" + sfx] = round(ok_close / n, 4)
+    metrics["mt_rectify_uninterrupted" + sfx] = round(ok_rectify / n, 4)
+    return records
 
 
 JUDGE_SAMPLES = int(os.environ.get("JUDGE_SAMPLES", "3"))
@@ -797,7 +913,7 @@ def main():
     metrics["tier0"] = 1.0
 
     LANGS = ("zh", "en")
-    items, dialogue_records, s4_records = [], [], []
+    items, dialogue_records, s4_records, multiturn_records = [], [], [], []
     if args.rejudge:
         if not claude_available():
             print("\n✗ 找不到 claude CLI")
@@ -841,6 +957,8 @@ def main():
         for lg in LANGS:
             print(f"\n=== Tier 1（{lg}）：19 深度題生成 + 結構指標（GPU）===")
             items += tier1(tok, model, metrics, lg)
+            print(f"\n=== Tier 1b（{lg}）：多輪確定性探針（結構不變式，不經評審）===")
+            multiturn_records += tier1_multiturn(tok, model, metrics, lg)
             if not args.gen_only:
                 print(f"\n=== Tier 2（{lg}）：Claude 逐題評審（math_ok / S2 / reveal / 品質）===")
                 tier2_judge([it for it in items if it.get("lang") == lg], metrics, lg)
@@ -877,6 +995,11 @@ def main():
     if s4_records:
         (SCORE_DIR / f"{stem}_s4.json").write_text(
             json.dumps(s4_records, ensure_ascii=False, indent=2), encoding="utf-8")
+    if multiturn_records:
+        # 存檔用途有二：人工檢視多輪行為，以及日後與本輪逐字比對——多輪探針的
+        # 學生台詞是寫死的，greedy 下同輸入必同輸出，逐字差異＝生成端真的變了。
+        (SCORE_DIR / f"{stem}_multiturn.json").write_text(
+            json.dumps(multiturn_records, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n計分卡：{SCORE_DIR / (stem + '.json')}")
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
 
