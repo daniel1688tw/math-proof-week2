@@ -97,6 +97,8 @@ week3/
 │   ├── test_auto_reference.py / eval_svt_e2e.py     # 備課盲測 / walkthrough+同學模式端對端
 │   ├── regression_suite.py           # ★ 推送前守門（預設 agy/Gemini 當評審+學生；退步即 exit 1）
 │   ├── auto_gate.py                  # 守門外圈自動迭代（退件→修 driver→重評）
+│   ├── measure_gate_noise.py         # ★ 量守門指標的純評審雜訊 vs ε（判退時先跑這支）
+│   ├── measure_stuck_detection.py / stuck_labels.json  # is_stuck 準確度量表 + 251 則標註
 │   ├── regression_baseline_antigravity.json  # ★ 現行基準（預設評審後端；只升不降）
 │   ├── regression_baseline.json / regression_scores/  # Claude 後端基準與各版本計分卡
 │   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/ / eval_out_xdomain/  # 現行報告
@@ -162,15 +164,50 @@ python dataset\regression_suite.py --gen-only  # 只生成存檔不評審（省�
 python dataset\regression_suite.py --rejudge   # 讀存檔重新評審（不重跑 GPU；含 S4）
 python dataset\regression_suite.py --update-baseline   # 確認進步後抬高基準
 python dataset\auto_gate.py --max-iters 3      # 外圈自動迭代：退件→修 driver→重評，直到全過或上限
+python dataset\measure_gate_noise.py           # ★ 判退時先跑：量各指標的純評審雜訊 vs ε
+python dataset\measure_stuck_detection.py      # is_stuck 準確度（251 則真實訊息標註，可重跑）
 ```
 退出碼：0=通過、1=退步、**2=評審不完整（限額打斷）**——生成已存檔，額度恢復後
 `--rejudge` 補評即可（auto_gate 會自動記進度接續，Claude Pro 額度中斷不會賠掉整輪）。
 任何指標低於基準（預設後端＝`dataset/regression_baseline_antigravity.json`）→ exit 1，**不可推送**。
-**硬性守門 = 確定性 + 單輪評審（n≈13）+ altmethod（含 ε）+ Tier 4 後盾**：
+**硬性守門 = 確定性 + 單輪評審（n≈13）+ altmethod（含 ε）**：
 確定性指標（洩漏/拒絕/單問句/升級/教學收尾）零容忍；judge_* 指標容忍 ε=0.05（小樣本逐項覆寫）。
-**Tier 3 多輪對話（`judge_dialogue_*`，n=3）已降 advisory**（`ADVISORY_METRICS`）：照算照印、
-不進 pass/fail——四輪實測全幅擺動、連現役 v9 都會被自己的基準判退（依據見 V11_VERDICT.md）。
+**advisory（照算照印、不進 pass/fail）＝ `judge_dialogue_*`、`judge_backstop`、
+`dialogue_ladder_used_*`**（見 `ADVISORY_METRICS`）。
 計分卡與對話記錄存 `dataset/regression_scores/`（進 git，留版本歷史）。
+
+⚠️ **守門本身的已知限制（2026-08-02 量測，`measure_gate_noise.py`）**——判讀結果前必讀：
+- **9 個硬性 judge 指標中有 8 個的「純評審雜訊」≥ 自己的 ε**，亦即沒有任何真實退步時
+  也可能判退。量法：取 14 輪同後端、Tier 1/2 回覆**逐字全同**的守門（生成端零變化），
+  差異即評審自身的不確定性。實測 `s2_catch_zh` 0.159、`score_zh` 0.135、`reveal_ok` 0.115…
+  只有 `math_ok_zh`（0.0385）低於 ε。**判退時先跑 `measure_gate_noise.py` 對照，
+  再決定是真退步還是抽到雜訊低點。**
+- ⚠️ **放寬 ε 不是解法**：`s2_catch_zh` 共 14 題，真實「多錯 2 題」= 0.143 比雜訊 0.159 還小，
+  任何蓋得住雜訊的 ε 都會同時放行真實退步。
+- **Tier 1/2 是單輪探針**（S1/S2/S3 只呼叫 `start()`），測不到多輪行為：連續 6 輪守門、
+  期間改了守衛鏈順序／`is_stuck`／`stuck_count` 語意，104 筆回覆**始終 104/104 逐字相同**。
+  多輪路徑目前只由 Tier 0（`test_driver_unit.py` + `test_phase_routing.py`）把關。
+- 承上，判退時的第一個動作應該是**逐字比對本輪與上輪的 `*_replies.json`**：全同 ⇒
+  生成端沒變 ⇒ 所有 judge_* 波動都是評審雜訊。
+
+### Tier 2 多次評審取共識（2026-08-02）
+`_judge_item_consensus()`：每則探針評審 `JUDGE_SAMPLES=3` 次，布林多數決、數值中位數。
+成本 38 → 114 次評審呼叫（約 +8 分鐘）。`JUDGE_SAMPLES=1` 還原舊行為。
+**動機是降低變異本身，而不是加大容忍**（見上一則的「放寬 ε 不是解法」）。
+⚠️ **效果尚未證實**：兩輪共識實測的平均兩兩差距 0.0411 → 0.0390，僅降 5%，
+n=2 完全落在雜訊內，且 `s2_catch_en`／`altmethod_zh` 反而變大。保留它的理由是
+「多數決降低布林指標變異屬二項分佈性質（理論無爭議）＋ 成本低 ＋ 實測零壞處」，
+**不是「已驗證有效」**。需再累積 3–5 輪共識資料才能定論，隨日後開發自然累積即可。
+教訓：初版比較用「單次 14 輪的極差」對「共識 2 輪的單一對差」，極差隨樣本數增大，
+必然偏向共識、得出「7 項明顯收斂」的假成果；**比較不同樣本數時必須用平均兩兩差距**。
+
+### `judge_backstop` 降 advisory 的依據（2026-08-02，人工授權）
+Tier 4 拿**寫死的草稿字串**直接呼叫 `find_gaps()`，完全不經過 `TutorDriver`，輸入固定；
+即使如此，同一組輸入連跑三次得 **0.3333 / 0.6667 / 0.0**——涵蓋整個值域。
+不確定性有兩層（Ollama 思考型生成缺漏清單、評審判定是否命中埋錯）× n=3，
+一案翻面 = 0.333，無 ε 可擋。與 `judge_dialogue_*` 同型，處置一致。
+後盾品質改由 `test_backstop.py`（人工檢視）與 `eval_backstop_e2e.py` 把關；
+要恢復硬性把關需先加大 n（多寫埋錯案例）。
 
 ### 新題目備課（先自己證對才教）
 ```powershell
@@ -577,10 +614,18 @@ M1 中英兩場 `guidance` 皆被評為 **1 分**（`math_ok=True`，純教學�
     **#11 driver 修復**根治（2026-07-24，Fork B：一律進 closed 簡答，只有斷言式質疑跳出）。
 12. ~~助教自己確認證明完成時 `done_closed` 沒 arm（只從學生宣告 arm）~~ → 已由
     **#12 `_TUTOR_DONE_RE`** 根治（2026-07-24，措辭限「整個證明完成」等級防 mid-proof 誤判）。
-13. **多輪引導品質目前沒有可靠的量化守門**：`judge_dialogue_*` 已降 advisory（n=3 雜訊
-    無 ε 可擋），現階段靠 Tier 4 後盾（數學正確性）＋人工質性審閱。方法層可選方向：
-    多輪聚合（中位數／多次 rejudge 平均）再對基準，或加大 n。**在此之前，任何採用/判退
-    決策都不可用對話類分數當依據**（v10 判退是靠「質性內容跨四輪一致」認定的）。
+13. **判分類守門的可靠度普遍不足（2026-08-02 量化後範圍比原本認定的大很多）**：
+    原本只知道 `judge_dialogue_*`（n=3）不可靠而降 advisory；`measure_gate_noise.py`
+    量測後發現 **9 個硬性 judge 指標中有 8 個的純評審雜訊 ≥ 自己的 ε**
+    （`s2_catch_zh` 0.159、`score_zh` 0.135、`reveal_ok` 0.115…，只有 `math_ok_zh` 達標），
+    亦即沒有真實退步時也可能判退。`judge_backstop` 已因此降 advisory（實測 0.0/0.33/0.67）。
+    ⚠️ **放寬 ε 是死路**：`s2_catch_zh` 真實「多錯 2 題」= 0.143 比雜訊 0.159 還小。
+    已做：Tier 2 多次評審取共識（效果未證實，見「Tier 2 多次評審取共識」節）。
+    可選方向：加大 n（每指標的題數）、多輪聚合取中位數、或改用更穩定的判準設計。
+    **在此之前，任何採用/判退決策都不可只用 judge 分數當依據**（v10 判退是靠
+    「質性內容跨四輪一致」認定的），且判退時應先跑 `measure_gate_noise.py` 對照。
+    另有結構性盲區：Tier 1/2 為單輪探針，測不到多輪行為（連 6 輪回覆 104/104 逐字相同），
+    多輪路徑僅由 Tier 0 的 `test_driver_unit.py` + `test_phase_routing.py` 把關。
 14. **商品化介面的 Low/Info 項未清**：F3（`check_ollama` 未關連線）、N2（錯誤 yield 樣板
     重複、`opener_for` 重算）等；且 UI 互動層四情境仍需真模型＋瀏覽器手動驗收
     （自動測試只涵蓋純邏輯）。詳見 `docs/code-review-product-ui.md`。

@@ -1,0 +1,554 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先想：要證 $e^x>1+x$，等價於證什麼樣的量為正？"
+      ],
+      [
+        "學生",
+        "呃... 是要把右邊移項過去，證明 $e^x - x - 1 > 0$ 嗎？但我有點想不通這跟均值定理有什麼關係..."
+      ],
+      [
+        "助教",
+        "換個角度：若把 $e^x$ 看成某個函數在 $[0,x]$ 上的平均值，均值定理會給出什麼等式？"
+      ],
+      [
+        "學生",
+        "把 $e^x$ 看成平均值？我以為如果設 $f(t) = e^t$，在 $[0,x]$ 上的平均變化率應該是 $\\frac{e^x - 1}{x}$ 才對耶... 為什麼會說 $e^x$ 是平均值啊？"
+      ],
+      [
+        "助教",
+        "「平均值」這個詞我用得不嚴謹，換個說法：$f(t)=e^t$ 在 $[0,x]$ 上的平均變化率是多少？"
+      ],
+      [
+        "學生",
+        "那不就是我剛剛說的 $\\frac{e^x - 1}{x}$ 嗎？如果套均值定理，這個式子會等於 $f'(c) = e^c$，但我還是看不出來這要怎麼導出 $e^x > 1 + x$ 耶..."
+      ],
+      [
+        "助教",
+        "再看一眼：$c$ 的範圍是什麼，$e^c$ 因此大於什麼常數？"
+      ],
+      [
+        "學生",
+        "對耶！因為 $c$ 在 $0$ 和 $x$ 之間，所以 $c > 0$，這樣 $e^c$ 就一定會大於 $e^0 = 1$ 對吧？\n那把 $\\frac{e^x - 1}{x} > 1$ 兩邊同乘以 $x$，整理一下不就剛好是 $e^x > 1 + x$ 了！"
+      ],
+      [
+        "助教",
+        "完全正確。核心是「均值定理給出斜率 $e^c$ 大於 $1$，乘開就得到要證的不等式」。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ],
+      [
+        "學生",
+        "好喔！設 $f(t) = e^t$，因為它在 $[0, x]$ 連續且在 $(0, x)$ 可微，根據均值定理會存在 $c \\in (0, x)$ 使得 $\\frac{e^x - 1}{x} = e^c$。\n因為 $c > 0$ 所以 $e^c > e^0 = 1$，再加上 $x > 0$，兩邊同乘 $x$ 移項後就得到 $e^x > 1 + x$。\n這樣寫算完整嗎？有沒有漏掉什麼條件啊？"
+      ],
+      [
+        "助教",
+        "非常完整。你清楚地驗證了均值定理的前提（連續+可微）、指出了 $c>0$ 保證 $e^c>1$、並在最後一步明確說明了乘 $x$ 的理由。這份證明無懈可擊。"
+      ],
+      [
+        "學生",
+        "太棒了，聽到你說無懈可擊我就安心了！一開始看到題目完全不知道均值定理要塞在哪裡，沒想到列出平均變化率之後竟然這麼直觀，謝謝助教！"
+      ],
+      [
+        "助教",
+        "不客氣，你自己把均值定理的應用線索都自己接上了，這比任何一句提示都更有價值。繼續加油，你的分析力越來越厲害了！"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 3,
+      "issue": "助教錯誤地將 $e^x$ 稱為平均值（實際平均變化率為 $\\frac{e^x-1}{x}$），導致學生產生困惑。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先建立一個方便分析的函數。若把要比較的兩邊相減，會得到什麼樣的量？"
+      ],
+      [
+        "學生",
+        "就設 $f(x) = \\cos x - 1 + \\frac{x^2}{2}$ 吧！這樣只要證明 $f(x) \\ge 0$ 就行了，感覺微分兩次好像就能看出來？"
+      ],
+      [
+        "助教",
+        "很好，那我們先算算 $f$ 在 $0$ 的值和導數。$f(0)$ 等於多少？"
+      ],
+      [
+        "學生",
+        "$f(0)$ 就是 0 啊！我順便算了一下，微兩次 $f''(x) = 1 - \\cos x$ 恆大於等於 0，所以 $f'(x)$ 一直遞增，$f(x)$ 不就自然大於等於 0 了嗎？"
+      ],
+      [
+        "助教",
+        "很接近了，但「$f''\\ge0$ 且 $f'(0)=0$」還需要嚴謹地連結成單調性，才能保證 $f$ 在 $0$ 取最小。你能把這一步補上嗎？"
+      ],
+      [
+        "學生",
+        "喔對！因為 $f''(x) \\ge 0$ 代表 $f'(x)$ 遞增，配合 $f'(0) = 0$，就能得出 $x \\ge 0$ 時 $f'(x) \\ge 0$、$x \\le 0$ 時 $f'(x) \\le 0$。這樣 $f(x)$ 在 $x \\ge 0$ 遞增、在 $x \\le 0$ 遞減，所以 $f(0) = 0$ 就是最小值了！"
+      ],
+      [
+        "助教",
+        "完全正確。核心是「二階凸性 + 零導數在中點」，把 $f$ 的單調性嚴謹化後，不等式就成立了。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ],
+      [
+        "學生",
+        "沒問題！設 $f(x) = \\cos x - 1 + \\frac{x^2}{2}$，顯然 $f(0) = 0$。因為 $f''(x) = 1 - \\cos x \\ge 0$ 且 $f'(0) = 0$，可知 $x \\ge 0$ 時 $f'(x) \\ge 0$、$x \\le 0$ 時 $f'(x) \\le 0$，因此 $f(x)$ 在 $x=0$ 取得最小值 $f(0) = 0$。這樣對所有實數 $x$ 都有 $f(x) \\ge 0$，移項就證完了！你看這樣寫可以嗎？"
+      ],
+      [
+        "助教",
+        "完全正確，邏輯完整。你把「二階凸性保證單調性」這一步補上了，這才是嚴謹的證明。很好。"
+      ],
+      [
+        "學生",
+        "太好了！用微分看單調性來證這種三角不等式還蠻乾淨俐落的。那我們接下來是要繼續推廣到更高的次方，像是證明 $\\cos x \\le 1 - \\frac{x^2}{2} + \\frac{x^4}{24}$ 嗎？"
+      ],
+      [
+        "助教",
+        "正是，那我們可以沿著同樣的路線，把這個函數再微分兩次，看看能拿到什麼。你準備好後面的了嗎？"
+      ],
+      [
+        "學生",
+        "沒問題！如果設 $g(x) = 1 - \\frac{x^2}{2} + \\frac{x^4}{24} - \\cos x$，微兩次之後 $g''(x)$ 剛好就是剛剛證出來的 $f(x)$ 耶！因為已經知道 $f(x) \\ge 0$，直接套用剛才的單調性邏輯，$g(x) \\ge 0$ 不就一口氣證完了？"
+      ],
+      [
+        "助教",
+        "非常漂亮，你已經掌握了「逐次逼近」的訣竅。這兩個不等式之間的關係，你能不能用一句話說清楚？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "推廣至高次不等式時，未要求學生確認 $g(0)=0$ 與 $g'(0)=0$ 的初始條件。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "線性獨立要證「唯一線性組合為零就是全零係數」。從 $c_1v_1+c_2v_2=0$ 出發，你能想到什麼操作來簡化這個等式嗎？"
+      ],
+      [
+        "學生",
+        "兩邊同左乘 $A$ 嗎？這樣會變成 $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$。不過特徵向量本來就不能是零向量，兩個非零向量只要方向不一樣，不是本來就一定線性獨立嗎？"
+      ],
+      [
+        "助教",
+        "方向不同只是幾何直覺，還不能當成證明。注意到新方程與原方程的差別，你會怎麼做？"
+      ],
+      [
+        "學生",
+        "把第一式乘以 $\\lambda_1$ 再拿去減第二式嗎？這樣 $v_1$ 就消掉了，會剩下 $c_2(\\lambda_1 - \\lambda_2)v_2 = 0$。因為已知 $\\lambda_1 \\neq \\lambda_2$ 而且特徵向量不是零向量，所以 $c_2$ 一定要是 0 對吧？"
+      ],
+      [
+        "助教",
+        "完全正確。最後再把 $c_2=0$ 代回去，你會得到什麼，從而完成整個證明？"
+      ],
+      [
+        "學生",
+        "把 $c_2 = 0$ 代回第一式會得到 $c_1 v_1 = 0$，因為特徵向量 $v_1 \\neq 0$，所以 $c_1$ 也只能是 0。這樣兩個係數 $c_1$ 跟 $c_2$ 都一定是 0，就符合你一開始說的「唯一線性組合為零就是全零係數」，所以它們真的線性獨立了！"
+      ],
+      [
+        "助教",
+        "完全正確，而且你自己補上了「方向不同不是證明、必須靠相異特徵值」這層關鍵。你的證明非常嚴謹。 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
+      ],
+      [
+        "學生",
+        "好啊！假設 $c_1 v_1 + c_2 v_2 = 0$，兩邊同左乘 $A$ 會得到 $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$。將第一式乘以 $\\lambda_1$ 減去第二式可得 $c_2(\\lambda_1 - \\lambda_2)v_2 = 0$，因為 $\\lambda_1 \\neq \\lambda_2$ 且 $v_2 \\neq 0$ 推得 $c_2 = 0$，代回原式得出 $c_1 = 0$，故 $\\{v_1, v_2\\}$ 線性獨立。"
+      ],
+      [
+        "助教",
+        "完全正確，而且你自己補上了「方向不同不是證明、必須靠相異特徵值」這層關鍵。你的證明非常嚴謹。"
+      ],
+      [
+        "學生",
+        "耶！太好了！不過助教你剛剛是不是不小心重複講了一模一樣的話？這樣寫在考試上應該可以直接拿滿分了吧？"
+      ],
+      [
+        "助教",
+        "哈哈，那正是我最怕的「重複」。真正的證明是你自己把它寫出來的，而不是我背給你的。下次遇到類似題，你會不會自己想出「左乘 $A$、再減」這個技巧，而不是照著我說的複製一遍？"
+      ],
+      [
+        "學生",
+        "老實說，如果沒人提示，我可能真的想不到要「左乘 $A$」這一招欸！不過我現在懂為什麼要這樣做了，因為這樣才能把矩陣 $A$ 換成特徵值 $\\lambda$ 來消掉變數。那如果之後遇到三個相異特徵值的題目，也是用這種方法一直左乘 $A$ 嗎？"
+      ],
+      [
+        "助教",
+        "對，這是同一套工具。你已經掌握它的靈魂了，以後自己就能把「左乘 $A$」這個技巧用在更多維度的問題上。繼續加油，你會越來越熟練。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "助教出現重複發言的系統錯誤，且被學生指出後強行硬拗解釋。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M1",
+    "persona": "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案",
+    "history": [
+      [
+        "助教",
+        "先看逐點收斂：固定 $x$ 後 $f_n(x)$ 的極限是什麼?"
+      ],
+      [
+        "學生",
+        "不知道，我看到極限就毫無頭緒。"
+      ],
+      [
+        "助教",
+        "換個角度：$f_n(x)$ 的分子與分母各長得有多快?"
+      ],
+      [
+        "學生",
+        "不知道，我完全看不出來誰長得比較快。"
+      ],
+      [
+        "助教",
+        "這裡需要一個工具：逐點收斂與一致收斂的判別標準是什麼?"
+      ],
+      [
+        "學生",
+        "不知道，我對什麼判別標準完全毫無頭緒。"
+      ],
+      [
+        "助教",
+        "這題的關鍵就在「一致收斂」的定義本身。要否認它，你只需要找到一個依賴 $n$ 的點，讓 $f_n$ 在那裡永遠不趨零。你能想到這個點該怎麼選嗎?"
+      ],
+      [
+        "學生",
+        "不知道，我完全看不懂該怎麼選這個點。"
+      ],
+      [
+        "助教",
+        "換個方式：若 $f_n(x)$ 在某點 $x_n$ 的值永遠是 $\\frac12$，那 $\\sup|f_n|$ 至少是多少?"
+      ],
+      [
+        "學生",
+        "不知道，我完全看不懂 sup 到底是什麼意思。"
+      ],
+      [
+        "助教",
+        "也許你會問：$f_n(x)$ 真的在某處不趨零嗎? 我們試著算一下 $x_n=\\frac1n$ 時 $f_n(x_n)$ 是多少。"
+      ],
+      [
+        "學生",
+        "不知道，我完全看不懂該怎麼帶進去算。"
+      ],
+      [
+        "助教",
+        "我們一步步來：把 $x_n=\\frac1n$ 代進 $f_n(x)$，算出它的值。 這一步的推理你能自己複述一遍嗎？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 2,
+      "issue": "未完成逐點極限的引導便直接跳躍至非一致收斂，且在學生持續表示聽不懂時未做梯級拆解，反而直接給出關鍵點 x_n=1/n。"
+    },
+    "escalation": {
+      "ladder_idx": 2,
+      "walk_active": true,
+      "max_level": 2
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT applies to a function continuous on $[a,b]$ and differentiable on $(a,b)$. What function and interval should you choose here?"
+      ],
+      [
+        "學生",
+        "Um, I guess the function could just be $f(t) = e^t$? But I'm not really sure what interval to use... should it be from $0$ to $x$?"
+      ],
+      [
+        "助教",
+        "Good — that's exactly right. With $f(t)=e^t$ on $[0,x]$, the MVT gives $f'(\\xi)(x-0)=f(x)-f(0)$. What does that equation become?"
+      ],
+      [
+        "學生",
+        "Wait, so since $f(0) = e^0 = 1$ and the derivative of $e^t$ is just $e^t$, $f'(\\xi)$ would be $e^\\xi$? So plugging those in... does it become $e^\\xi \\cdot x = e^x - 1$?"
+      ],
+      [
+        "助教",
+        "Completely correct. Now, since $\\xi$ lies between $0$ and $x$, what can you say about the size of $e^\\xi$ relative to $1$?"
+      ],
+      [
+        "學生",
+        "Oh, since $\\xi$ is greater than $0$, $e^\\xi$ has to be larger than $e^0$, which is $1$. Wait, so if $e^\\xi > 1$, then $e^x - 1 = e^\\xi \\cdot x$ must be greater than $1 \\cdot x$, which gives $e^x - 1 > x$! Ah, so adding $1$ to both sides gives $e^x > 1 + x$!"
+      ],
+      [
+        "助教",
+        "Completely correct. You walked through every step yourself — the MVT application and the estimate of $e^\\xi$ — and even wrote out the final inequality. Well done. Could you now write out the complete proof yourself? I'll review it for you."
+      ],
+      [
+        "學生",
+        "Sure, let me try to put it all together! Let $f(t) = e^t$ on $[0, x]$, which is continuous on $[0, x]$ and differentiable on $(0, x)$, so by the MVT there exists $\\xi \\in (0, x)$ such that $e^x - 1 = e^\\xi \\cdot x$. Since $\\xi > 0$, we have $e^\\xi > 1$, which implies $e^x - 1 > x$, and thus $e^x > 1 + x$."
+      ],
+      [
+        "助教",
+        "Completely correct. Every hypothesis checked, every step justified — this is airtight. You've mastered the MVT application for this inequality."
+      ],
+      [
+        "學生",
+        "Awesome, thank you so much! Breaking it down step by step really helped me see how everything fits together, especially using $\\xi > 0$ to get $e^\\xi > 1$. I actually feel like I understand how to set up these MVT proofs now!"
+      ],
+      [
+        "助教",
+        "That's exactly what it means to truly understand. Keep asking \"what is the intermediate quantity?\" — that's the key to mastering the MVT. You're doing very well."
+      ],
+      [
+        "學生",
+        "That tip about looking for the intermediate quantity makes a lot of sense! Thanks again for walking me through this step by step—I feel way more confident about using MVT now."
+      ],
+      [
+        "助教",
+        "You're very welcome. Enjoy your mathematical journey — it's full of beautiful tools waiting to be discovered."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose value at zero is zero and whose derivative vanishes there — then prove it's nonnegative. Can you define such a function?"
+      ],
+      [
+        "學生",
+        "Oh, so $f(x) = \\cos x - 1 + \\frac{x^2}{2}$? Its derivative is $f'(x) = x - \\sin x$, which is positive for $x > 0$, so $f(x)$ must be increasing from zero!"
+      ],
+      [
+        "助教",
+        "Good — but you haven't yet ruled out negative values for $x<0$. What does the second derivative of $f$ tell you about its monotonicity?"
+      ],
+      [
+        "學生",
+        "Oh right! $f''(x) = 1 - \\cos x$, which is always non-negative since $\\cos x \\le 1$. So $f'$ is increasing everywhere, meaning $f'(x) < 0$ for $x < 0$ and $f$ decreases down to $f(0) = 0$—so $f(x) \\ge 0$ for all real $x$!"
+      ],
+      [
+        "助教",
+        "Completely correct. The key was building the function $f$ with $f(0)=f'(0)=0$, then using $f''\\ge0$ to establish the two-sided monotonicity of $f'$. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, next step? Didn't we already finish the proof, since $f(x) \\ge 0$ directly gives $\\cos x \\ge 1 - \\frac{x^2}{2}$ for all real $x$? Or are we supposed to use this technique to prove the next Taylor bound, like $\\sin x \\ge x - \\frac{x^3}{6}$?"
+      ],
+      [
+        "助教",
+        "Exactly — you've just finished proving the quadratic bound yourself. If you want to prove the cubic bound, would you build a similar function $g(x)=\\sin x - x + \\frac{x^3}{6}$, and what would you need to show about its derivatives?"
+      ],
+      [
+        "學生",
+        "Wait, if $g(x) = \\sin x - x + \\frac{x^3}{6}$, its derivative $g'(x)$ is just $f(x)$, which we already proved is non-negative everywhere! So $g$ is increasing everywhere, which means $g(x) \\ge 0$ only for $x \\ge 0$—for negative $x$, $g(x) \\le 0$, so the bound flips for $x < 0$, right?"
+      ],
+      [
+        "助教",
+        "Right — you've spotted the subtlety: the quadratic bound holds for all $x$, but the cubic one doesn't because the oddness breaks symmetry. To fix it, how would you modify the function?"
+      ],
+      [
+        "學生",
+        "Wait, wouldn't using $g(-x)$ fix it? Since both $\\sin x$ and $x - \\frac{x^3}{6}$ are odd functions, $g(-x) = -g(x)$, so for $x < 0$ we automatically get $\\sin x \\le x - \\frac{x^3}{6}$! Or do you mean we should throw absolute values around $x$?"
+      ],
+      [
+        "助教",
+        "Exactly — you've grasped the core: even-order terms can be kept positive by the quadratic method, while odd-order ones must be handled with care due to symmetry. Very sharp analysis. Which condition do you think is worth using next?"
+      ],
+      [
+        "學生",
+        "Wait, what do you mean by 'which condition'? Are you asking how to move on to the degree-4 bound $\\cos x \\le 1 - \\frac{x^2}{2} + \\frac{x^4}{24}$, or are we trying to generalize this whole pattern using induction?"
+      ],
+      [
+        "助教",
+        "Both are worth exploring — but first, can you write out the complete proof of the quadratic bound yourself, so I can check it before we go further?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "在學生已完成原題證明後誤導其尋找「下一步」，且提問語意不清（如「使用哪一個條件」），最後又轉折要求重寫已證完的題目。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start from the definition of linear dependence: if $c_1v_1+c_2v_2=0$, what do you want to prove?"
+      ],
+      [
+        "學生",
+        "We want to show that $c_1 = 0$ and $c_2 = 0$. But since $v_1$ and $v_2$ are non-zero vectors by definition of eigenvectors, doesn't that already mean they're linearly independent?"
+      ],
+      [
+        "助教",
+        "That's a common trap. Two nonzero vectors needn't be linearly independent — e.g. $v_2=2v_1$. What extra condition must you use to force independence?"
+      ],
+      [
+        "學生",
+        "Oh, right, good point about $v_2 = 2v_1$. So we have to use the fact that their eigenvalues $\\lambda_1$ and $\\lambda_2$ are distinct, right? Should I try applying the matrix $A$ to both sides of $c_1 v_1 + c_2 v_2 = 0$?"
+      ],
+      [
+        "助教",
+        "Exactly. After left-multiplying by $A$, what equation do you get?"
+      ],
+      [
+        "學生",
+        "We get $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$. Now we have this new equation alongside $c_1 v_1 + c_2 v_2 = 0$, but how do we actually combine them to show $c_1$ and $c_2$ must be zero?"
+      ],
+      [
+        "助教",
+        "Combine them by subtracting a multiple of the first from the second — which term will you eliminate?"
+      ],
+      [
+        "學生",
+        "If I multiply the first equation by $\\lambda_1$ and subtract it from the second, the $v_1$ term cancels out. That leaves us with $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$, right?"
+      ],
+      [
+        "助教",
+        "Completely correct. Since $\\lambda_2\\ne\\lambda_1$ and $v_2\\ne0$, what does that give you for $c_2$?"
+      ],
+      [
+        "學生",
+        "That means $c_2$ has to be 0, right? Since neither $\\lambda_2 - \\lambda_1$ nor $v_2$ is zero, $c_2$ is forced to be 0. And if $c_2 = 0$, plugging it back into the original equation gives $c_1 = 0$ too, which finishes the proof!"
+      ],
+      [
+        "助教",
+        "Completely correct. The key was combining the two equations to eliminate $v_1$ — and the distinct eigenvalues provided the non-vanishing factor. You've got it. Could you now write out the complete proof yourself? I'll review it for you."
+      ],
+      [
+        "學生",
+        "Sure! Suppose $c_1 v_1 + c_2 v_2 = 0$, so left-multiplying by $A$ gives $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$. Subtracting $\\lambda_1$ times the first equation yields $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$. Since $\\lambda_1 \\neq \\lambda_2$ and $v_2 \\neq 0$, we get $c_2 = 0$, which then forces $c_1 = 0$, proving $\\{v_1, v_2\\}$ is linearly independent."
+      ],
+      [
+        "助教",
+        "Completely correct. The key was combining the two equations to eliminate $v_1$ — and the distinct eigenvalues provided the non-vanishing factor. You've got it."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 4,
+      "issue": "最後一輪助教重複了上一輪的回覆內容，未對學生寫出的完整證明進行具體審閱。"
+    },
+    "escalation": {
+      "ladder_idx": 0,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M1",
+    "persona": "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案",
+    "history": [
+      [
+        "助教",
+        "A first step: fix $x$ and take the limit of $f_n(x)$ as $n\\to\\infty$. What happens at $x=0$?"
+      ],
+      [
+        "學生",
+        "I don't know. I'm totally lost."
+      ],
+      [
+        "助教",
+        "Try a different angle: can you find some $x$ depending on $n$ such that $f_n(x)$ stays away from $0$?"
+      ],
+      [
+        "學生",
+        "I have no idea how to do that. I'm totally lost."
+      ],
+      [
+        "助教",
+        "Here's a direct hint: the definition of uniform convergence requires the SUPREMUM of $|f_n|$ to tend to $0$. Can you find a point where $f_n$ doesn't tend to $0$?"
+      ],
+      [
+        "學生",
+        "I'm completely lost. I don't even know how to find the supremum."
+      ],
+      [
+        "助教",
+        "The definition itself is the tool. Uniform convergence demands $\\sup|f_n|\\to0$ — can you find a point where $f_n$ fails to vanish?"
+      ],
+      [
+        "學生",
+        "I'm completely lost. I still have no idea."
+      ],
+      [
+        "助教",
+        "Then you need to learn the definition. Uniform convergence requires $\\sup|f_n|\\to0$ — can you find a point where $f_n$ doesn't tend to $0$?"
+      ],
+      [
+        "學生",
+        "I still have no idea. I'm completely stuck."
+      ],
+      [
+        "助教",
+        "The definition is the key. Uniform convergence requires $\\sup|f_n|\\to0$ — can you find a point where $f_n$ doesn't tend to $0$?"
+      ],
+      [
+        "學生",
+        "You've repeated that four times now. I'm still completely lost."
+      ],
+      [
+        "助教",
+        "The definition is the tool. Uniform convergence requires $\\sup|f_n|\\to0$ — can you find a point where $f_n$ doesn't tend to $0$?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 1,
+      "issue": "助教無視學生反饋並無限重複無效提示，且錯誤地要求尋找不存在的「不趨近於 0 的點」（逐點收斂下每點皆趨近於 0）。"
+    },
+    "escalation": {
+      "ladder_idx": 2,
+      "walk_active": true,
+      "max_level": 2
+    }
+  }
+]
