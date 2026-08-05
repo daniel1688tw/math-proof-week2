@@ -123,6 +123,23 @@ def parse_steps(content: str | None) -> list | None:
     return None
 
 
+def parse_ladder(content: str | None) -> list | None:
+    """把模型輸出解析成恰 2 條非空提示；結構不合回 None。
+
+    梯長固定 2（手寫 hint_ladders.json 的 17 題裡 15 題為 2 條，取眾數）。
+    照 parse_steps 的作法：括號平衡取出候選 JSON 陣列，逐段寬鬆解析
+    （LaTeX 的 \\{ \\dots 是非法 JSON escape，需反斜線加倍重試）。
+    """
+    if not content:
+        return None
+    for span in _balanced_spans(content, "[", "]"):
+        arr = _loads_lenient(span)
+        if (isinstance(arr, list) and len(arr) == 2
+                and all(isinstance(s, str) and s.strip() for s in arr)):
+            return [s.strip() for s in arr]
+    return None
+
+
 def segment_proof(statement: str, proof: str) -> list | None:
     """把參考解切成教學步驟（TutorDriver 逐步教學臨場呼叫用）；失敗回 None。"""
     return parse_steps(_chat(

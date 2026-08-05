@@ -1250,6 +1250,25 @@ check("有梯：卡 4 → 提示梯用盡才進入逐步教學",
 check("空梯的實質退化：比有梯早一輪掉進逐步教學",
       _nl.captured[2][1] == "walkthrough" and _yl.captured[2][1] != "walkthrough")
 
+print("[27] LADDER：提示梯自動生成的解析與驗收")
+from auto_reference import parse_ladder  # noqa: E402
+
+check("parse_ladder：正常 2 條 → 通過",
+      parse_ladder('["先想想均值定理能給你什麼。", "再看導數有界推出什麼性質。"]')
+      == ["先想想均值定理能給你什麼。", "再看導數有界推出什麼性質。"])
+check("parse_ladder：3 條 → None（梯長固定 2）",
+      parse_ladder('["提示一夠長的內容。", "提示二夠長的內容。", "提示三夠長的內容。"]') is None)
+check("parse_ladder：1 條 → None", parse_ladder('["只有一條提示的內容。"]') is None)
+check("parse_ladder：非字串元素 → None", parse_ladder('[{"a": 1}, {"b": 2}]') is None)
+check("parse_ladder：空白字串元素 → None", parse_ladder('["有內容的提示。", "   "]') is None)
+check("parse_ladder：垃圾輸出 → None", parse_ladder("我覺得可以先想想均值定理。") is None)
+check("parse_ladder：思考鏈包夾仍可取出",
+      parse_ladder('思考中…最後給出：["提示甲的內容夠長。", "提示乙的內容也夠長。"] 完畢')
+      == ["提示甲的內容夠長。", "提示乙的內容也夠長。"])
+check("parse_ladder：LaTeX escape 降級解析（\\{ 是非法 JSON escape）",
+      parse_ladder(r'["用 \{x_n\} 的單調性想想看吧。", "再用有界性收束到結論。"]') is not None)
+check("parse_ladder：None 輸入 → None", parse_ladder(None) is None)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
