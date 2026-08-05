@@ -1190,6 +1190,66 @@ cap._tutor_turn()
 check(f"單輪生成次數不得超過 1+上限（{1 + _MAX_REGEN_PER_TURN}，實得 {cap.n}）",
       cap.n <= 1 + _MAX_REGEN_PER_TURN)
 
+print("[26] 空梯路徑：使用者自帶題目沒有 hint_ladder 時的升級軌跡")
+
+
+class _CapturingStub(_StubDriver):
+    """在「生成當下」擷取 system。
+
+    ⚠️ 不可在 step() 回傳後才讀 _system()：ladder_idx 在該輪結尾才遞增
+    （tutor_driver.py 的 level==2 分支），事後讀會看到遞增後的狀態，
+    誤判「卡 2 注入的是提示二」。
+    """
+    captured: list
+
+    def _generate(self, level):
+        self.captured.append((level, self.state.get("phase"), self._system(level)))
+        return super()._generate(level)
+
+
+_LAD_PROB = {
+    "id": "L1", "statement": "測試題：證明某序列收斂。",
+    "reference_proof": "步驟甲。\n\n步驟乙。",
+    "teach_steps": [{"explain": "教步驟甲", "check": "甲懂了嗎？"},
+                    {"explain": "教步驟乙", "check": "乙懂了嗎？"}],
+}
+_STUCK_MSGS = ["我不知道，想不出來。", "還是不會。", "完全沒有頭緒。",
+               "還是想不到，可以再提示一下嗎？"]
+
+
+def _run_stuck(ladder):
+    """連卡四輪，回傳跑完的 driver（captured 逐輪記錄 (等級, phase, system)）。"""
+    prob = dict(_LAD_PROB)
+    if ladder is not None:
+        prob["hint_ladder"] = ladder
+    d = _CapturingStub(tok=None, model=_StubModel(), problem=prob)
+    d.generated_levels = []
+    d.captured = []
+    d.messages = [{"role": "user", "content": "題目…開始"}]
+    for m in _STUCK_MSGS:
+        d.step(m)
+    return d
+
+
+_nl = _run_stuck(None)                      # 無梯＝使用者自帶題目的現況
+check("無梯：卡 1 → 等級 1", _nl.captured[0][0] == 1)
+check("無梯：卡 2 → 等級 2 且注入的是通用保底句（非題目專屬提示）",
+      _nl.captured[1][0] == 2 and "關鍵定理或想法名稱" in _nl.captured[1][2])
+check("無梯：ladder_idx 仍推進到 1（該輪確實把提示送出去了）",
+      _nl.state["ladder_idx"] == 1)
+check("無梯：卡 3 → 進入逐步教學（max(梯長,1) 讓空梯不死鎖）",
+      _nl.captured[2][1] == "walkthrough" and _nl.state["walk_active"])
+
+_yl = _run_stuck(["提示一：關鍵是均值定理。", "提示二：導數有界給出 Lipschitz。"])
+check("有梯：卡 2 → 注入 ladder[0]",
+      _yl.captured[1][0] == 2 and "提示一" in _yl.captured[1][2])
+check("有梯：卡 3 → 注入 ladder[1]",
+      _yl.captured[2][0] == 2 and "提示二" in _yl.captured[2][2])
+check("有梯：卡 4 → 提示梯用盡才進入逐步教學",
+      _yl.captured[3][1] == "walkthrough")
+check("空梯的實質退化：比有梯早一輪掉進逐步教學",
+      _nl.captured[2][1] == "walkthrough" and _yl.captured[2][1] != "walkthrough")
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
