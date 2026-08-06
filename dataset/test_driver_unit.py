@@ -1270,6 +1270,43 @@ check("parse_ladder：LaTeX escape 降級解析（\\{ 是非法 JSON escape）",
       == [r"用 \{x_n\} 的單調性想想看吧。", "再用有界性收束到結論。"])
 check("parse_ladder：None 輸入 → None", parse_ladder(None) is None)
 
+from auto_reference import validate_ladder  # noqa: E402
+
+# 驗收用的固定素材：參考解刻意寫成「無算式但有可洩漏的長句」，
+# 才能把「洩漏」與「帶算式」兩道閘分開測（含 = 的句子會先被算式閘攔下）。
+_VS = "設 $f$ 在 $[a,b]$ 上可微且 $|f'(x)| \\le M$，證明 $f$ 一致連續。"
+_VP = ("由均值定理，存在介於兩點之間的 $c$ 使得函數差等於導數乘上距離。"
+       "再由導數有界，可推出 Lipschitz 條件，於是取與位置無關的 δ 即完成證明。$\\blacksquare$")
+_OK = ["這一步的關鍵是均值定理，它連起函數差與導數。",
+       "導數有界會給出與位置無關的 δ 選取。"]
+
+check("validate_ladder：合格的兩條 → 通過", validate_ladder(_OK, _VS, _VP))
+check("validate_ladder：3 條 → 退",
+      not validate_ladder(_OK + ["第三條提示的內容也夠長。"], _VS, _VP))
+check("validate_ladder：非 list → 退", not validate_ladder("不是清單", _VS, _VP))
+check("validate_ladder：過短（<12 字）→ 退",
+      not validate_ladder(["太短了", _OK[1]], _VS, _VP))
+check("validate_ladder：過長（>60 字）→ 退",
+      not validate_ladder([_OK[0] + "而且我還要再補上非常非常非常非常非常非常多餘的冗長說明文字，硬是要拉得更長更長。",
+                           _OK[1]], _VS, _VP))
+check("validate_ladder：帶題目以外的新算式 → 退",
+      not validate_ladder(["關鍵是均值定理，會得到 f(x)-f(y)=f'(c)(x-y)。", _OK[1]],
+                          _VS, _VP))
+check("validate_ladder：洩漏參考解長片段（15-gram）→ 退",
+      not validate_ladder(["再由導數有界，可推出 Lipschitz 條件，於是取與位置無關的 δ。",
+                           _OK[1]], _VS, _VP))
+check("validate_ladder：兩條雷同 → 退",
+      not validate_ladder([_OK[0], _OK[0] + "。"], _VS, _VP))
+
+# 回歸鎖：手寫梯是人工驗過的黃金標準，被自己的驗收擋掉＝門檻訂錯。
+_gold = [(pid, p) for pid, p in probs.items()
+         if len(p.get("hint_ladder") or []) == 2 and p.get("reference_proof")]
+_gold_fail = [pid for pid, p in _gold
+              if not validate_ladder(p["hint_ladder"], p.get("statement", ""),
+                                     p["reference_proof"])]
+check(f"回歸鎖：{len(_gold)} 題手寫 2 條梯全部通過 validate_ladder（失敗：{_gold_fail}）",
+      len(_gold) >= 14 and not _gold_fail)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")

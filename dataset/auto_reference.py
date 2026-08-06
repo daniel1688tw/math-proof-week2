@@ -15,6 +15,7 @@ CLI：
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -138,6 +139,32 @@ def parse_ladder(content: str | None) -> list | None:
                 and all(isinstance(s, str) and s.strip() for s in arr)):
             return [s.strip() for s in arr]
     return None
+
+
+def validate_ladder(hints: list, statement: str, proof: str) -> bool:
+    """提示梯的五道確定性驗收：條數／長度／不帶新算式／不洩漏參考解／兩條不雷同。
+
+    門檻皆以 hint_ladders.json 的 33 條手寫提示（人工驗過的黃金標準）校準，實測零誤判。
+    任一條不過即整份丟棄——寧可退回 driver 既有的通用保底句，
+    也不冒「提示本身洩漏答案或給算式」的風險（生成的梯不像參考解有 VERIFIER 獨立審）。
+
+    長度上限刻意比 prompt 要求的 15–45 字寬：prompt 訂目標、驗收訂紅線，
+    只差一兩字不該整份丟棄。
+    """
+    # lazy import：tutor_driver._ensure_teach_steps() 會反向 import 本模組，
+    # 模組層互 import 會形成循環。
+    from tutor_driver import gives_new_equation, leaks_reference
+
+    if not isinstance(hints, list) or len(hints) != 2:
+        return False
+    for h in hints:
+        if not isinstance(h, str) or not (12 <= len(h.strip()) <= 60):
+            return False
+        if gives_new_equation(h, statement):      # 保護等級 2 禁算式白名單不被污染
+            return False
+        if leaks_reference(h, proof, exclude=statement):
+            return False
+    return difflib.SequenceMatcher(None, hints[0], hints[1]).ratio() < 0.85
 
 
 def segment_proof(statement: str, proof: str) -> list | None:
