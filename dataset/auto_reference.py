@@ -53,6 +53,18 @@ SEGMENTER_SYSTEM = """你是數學教學設計者。把給定的參考證明切�
 只輸出 JSON 陣列：[{"explain": "此步驟要講解的內容（可含式子）", "check": "確認理解的小問題"}, …]。
 不要輸出 JSON 以外的文字。"""
 
+LADDER_SYSTEM = """你是數學教學設計者。下面給你一道證明題與它的參考證明，
+請設計「分級提示」，供助教在學生連續卡住時逐條使用。
+
+要求：
+1. 恰好兩條，依序對應這份證明的兩個關鍵轉折：第一條給前半的關鍵，第二條給後半的關鍵。
+2. 每條都要明確點出一個定理、構造或性質的「名稱與作用」——學生看到名稱後要能自己接手推導。
+3. 絕對不可出現任何算式、等式或不等式。只講名稱與想法，計算全部留給學生。
+4. 每條 15 到 45 字，繁體中文。
+5. 不可直接抄參考證明裡的句子，要用自己的話重新講。
+
+只輸出 JSON 陣列：["第一條提示", "第二條提示"]。不要輸出 JSON 以外的文字。"""
+
 
 def _chat(system: str, user: str, temperature: float, timeout: int = 600) -> str | None:
     payload = json.dumps({
@@ -174,6 +186,21 @@ def segment_proof(statement: str, proof: str) -> list | None:
         temperature=0.2, timeout=300))
 
 
+def build_ladder(statement: str, proof: str) -> list | None:
+    """為已驗證的參考解生成分級提示梯（TutorDriver 等級 2 用）；失敗回 None。
+
+    失敗即現況：呼叫端不寫 hint_ladder 欄位，_ladder() 回 []，
+    driver 走既有的通用保底句路徑。不做確定性保底切分——
+    從參考解機械切出來的片段當提示有洩漏風險，寧可退回通用句。
+    """
+    hints = parse_ladder(_chat(
+        LADDER_SYSTEM, f"題目：{statement}\n\n參考證明：\n{proof}",
+        temperature=0.2, timeout=300))
+    if hints and validate_ladder(hints, statement, proof):
+        return hints
+    return None
+
+
 def fallback_steps(proof: str) -> list:
     """SEGMENTER 失敗時的確定性保底：以空行段落切分＋通用確認問句。"""
     paras = [p.strip() for p in re.split(r"\n\s*\n", proof) if p.strip()]
@@ -234,8 +261,18 @@ def build_reference(statement: str, k: int = K_CANDIDATES,
                 print("  [SEGMENTER] 切分教學步驟…")
             _emit("SEGMENTER", "")
             steps = segment_proof(statement, proof) or fallback_steps(proof)
-            return {"status": "verified", "reference_proof": proof,
-                    "teach_steps": steps, "log": log}
+            if verbose:
+                print("  [LADDER] 生成分級提示…")
+            _emit("LADDER", "")
+            hints = build_ladder(statement, proof)
+            if verbose:
+                print("  [LADDER] " + ("產出 2 條提示" if hints
+                                        else "未通過驗收，改用通用提示"))
+            out = {"status": "verified", "reference_proof": proof,
+                   "teach_steps": steps, "log": log}
+            if hints:                       # 驗收不過就不寫這個鍵（等同今日行為）
+                out["hint_ladder"] = hints
+            return out
     return {"status": "unverified", "log": log}
 
 
@@ -268,7 +305,11 @@ def main():
     if result["status"] == "verified":
         out["reference_proof"] = result["reference_proof"]
         out["teach_steps"] = result["teach_steps"]
-        print(f"  參考解 {len(result['reference_proof'])} 字、教學步驟 {len(result['teach_steps'])} 步")
+        if result.get("hint_ladder"):
+            out["hint_ladder"] = result["hint_ladder"]
+        print(f"  參考解 {len(result['reference_proof'])} 字、"
+              f"教學步驟 {len(result['teach_steps'])} 步、"
+              f"分級提示 {len(result.get('hint_ladder') or [])} 條")
     if args.out:
         Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=2),
                                   encoding="utf-8")

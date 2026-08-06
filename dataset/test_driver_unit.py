@@ -1307,6 +1307,56 @@ _gold_fail = [pid for pid, p in _gold
 check(f"回歸鎖：{len(_gold)} 題手寫 2 條梯全部通過 validate_ladder（失敗：{_gold_fail}）",
       len(_gold) >= 14 and not _gold_fail)
 
+import auto_reference as _ar  # noqa: E402
+
+_LADDER_JSON = ('["這一步的關鍵是均值定理，它連起函數差與導數。", '
+                '"導數有界會給出與位置無關的 δ 選取。"]')
+_orig_chat = _ar._chat
+try:
+    _ar._chat = lambda *a, **k: _LADDER_JSON
+    check("build_ladder：模型輸出合格 → 回傳兩條", _ar.build_ladder(_VS, _VP) == _OK)
+
+    _ar._chat = lambda *a, **k: '["太短", "也太短"]'
+    check("build_ladder：驗收不過 → None（退回通用保底句）",
+          _ar.build_ladder(_VS, _VP) is None)
+
+    _ar._chat = lambda *a, **k: "我想想…均值定理應該可以。"
+    check("build_ladder：輸出無法解析 → None", _ar.build_ladder(_VS, _VP) is None)
+
+    _ar._chat = lambda *a, **k: None
+    check("build_ladder：Ollama 離線 → None", _ar.build_ladder(_VS, _VP) is None)
+
+    # 管線整合：LADDER 通過時 build_reference 的結果要帶 hint_ladder
+    def _fake_chat(system, user, temperature, timeout=600):
+        if system is _ar.PROVER_SYSTEM:
+            return "由均值定理可得結論。$\\blacksquare$"
+        if system is _ar.VERIFIER_SYSTEM:
+            return '{"verdict": "pass", "issues": []}'
+        if system is _ar.SEGMENTER_SYSTEM:
+            return ('[{"explain": "先建立不等式", "check": "左邊是什麼？"}, '
+                    '{"explain": "再取極限", "check": "極限是多少？"}]')
+        if system is _ar.LADDER_SYSTEM:
+            return _LADDER_JSON
+        return None
+
+    _ar._chat = _fake_chat
+    _res = _ar.build_reference("測試題敘述", k=1, verbose=False)
+    check("build_reference：verified 且 LADDER 通過 → 結果帶 hint_ladder",
+          _res["status"] == "verified" and _res.get("hint_ladder") == _OK)
+    check("build_reference：teach_steps 不受影響", len(_res["teach_steps"]) == 2)
+
+    def _fake_chat_bad_ladder(system, user, temperature, timeout=600):
+        if system is _ar.LADDER_SYSTEM:
+            return '["太短", "也太短"]'
+        return _fake_chat(system, user, temperature, timeout)
+
+    _ar._chat = _fake_chat_bad_ladder
+    _res2 = _ar.build_reference("測試題敘述", k=1, verbose=False)
+    check("build_reference：LADDER 驗收不過 → 結果不含 hint_ladder 鍵（非 None）",
+          _res2["status"] == "verified" and "hint_ladder" not in _res2)
+finally:
+    _ar._chat = _orig_chat
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
