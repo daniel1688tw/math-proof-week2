@@ -143,7 +143,8 @@ conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_q
 
 ### 測試與評估
 ```powershell
-python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（186 條斷言 / 22 組）
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（248 條斷言 / 27 組）
+#   ⚠️ 斷言計數用 grep -cE "^  (✓|✗) "；用 grep -c "✓\|✗" 會多算結尾的總結行
 python dataset\test_phase_routing.py                                      # 真實對話回放驗階段路由（無 GPU，243 場存檔）
 python dataset\test_app.py                                                # 介面純邏輯，無 GPU、不連 Ollama
 conda run -n lora_project --live-stream python dataset\test_driver_integration.py   # 分級提示（GPU）
@@ -585,6 +586,71 @@ M1 中英兩場 `guidance` 皆被評為 **1 分**（`math_ok=True`，純教學�
 （`I know exactly…` / `I'm sure…`）。註：此缺口在既有 243 場存檔中**從未發生**
 （修復前後命中數同為 22），是新 persona 探測才逼出來的。
 
+## 備課管線自動生成提示梯：LADDER 階段（2026-08-06，`docs/superpowers/specs/2026-08-05-hint-ladder-generation-design.md`）
+
+**缺口**：`auto_reference.py` 的四階段（PROVER → VERIFIER → REPAIR → SEGMENTER）
+**只產 `reference_proof` 與 `teach_steps`，不產 `hint_ladder`**——全 repo 的 `.py` 檔中
+`hint_ladder` 只有「從 JSON 讀出」與「讀出後賦值」兩種用法，沒有一處生成它。
+`hint_ladders.json`（17 題）是手寫的，只涵蓋內建題。因此 **`app.py` 的使用者自帶題目
+一律走空梯路徑**。
+
+**量測到的退化**（`_StubDriver` 模擬連卡 5 輪，Task 1 已固化為 Tier 0 測試）：
+
+| 連續卡住 | 有梯（2 條，內建題） | 無梯（自帶題） |
+|---|---|---|
+| 1 | 等級 1 | 等級 1 |
+| 2 | 等級 2，注入 `ladder[0]` | 等級 2，注入**通用保底句** |
+| 3 | 等級 2，注入 `ladder[1]` | **進 walkthrough** |
+| 4 | **進 walkthrough** | — |
+
+空梯不死鎖（`ladder_len = max(len(ladder), 1)`），但**等級 2 的透漏內容退化成一句通用
+meta 指示**（提示深度改由 4B 模型當場即興拿捏，正是設計鐵律要避免的），且**提早一輪
+掉進 walkthrough**——該被第二條提示救起來的學生直接被講答案。
+
+**修法**：加第五階段 LADDER（`LADDER_SYSTEM` + `parse_ladder` + `validate_ladder`
++ `build_ladder`），prompt 規格由 33 條手寫提示反推（恰兩條、依序對應證明的兩個關鍵
+轉折、每條點名一個定理／構造／性質的名稱與作用、不得出現任何算式）。
+**`tutor_driver.py` 零改動**——`_ladder()` 早就會讀 `hint_ladder`，只是沒人給它。
+
+**五道確定性驗收**（`validate_ladder`，全部對 33 條手寫提示校準，實測零誤判）：
+恰 2 條非空字串／每條 12–60 字／`gives_new_equation(h, statement)` 為 False／
+`leaks_reference(h, proof, exclude=statement)` 為 False／兩條 difflib 相似度 < 0.85。
+**任一不過即整份丟棄回 `None`，不寫 `hint_ladder` 鍵**（不是寫 `None`）→ 行為等於今日。
+所有失敗路徑（Ollama 離線、無法解析、驗收不過）收斂到同一結果，**最壞情況零退步**。
+> 「不得帶新算式」那道特別重要：等級 2 的禁算式白名單 `_allowed_equation_src()`
+> **包含當前提示文字**，提示若帶算式會讓該守衛對那些算式失效。
+> （曾考慮把 hint 移出白名單當更根本的防線，但 ADV1 的手寫提示**刻意**帶算式並依賴
+> 白名單放行，移除會打壞既有題目——故改為「讓生成的梯保證無算式」。）
+
+**端對端實測**（2 題，Ollama 思考型）：兩題皆 verified 且產出 2 條通過驗收的提示。
+E2E1「數列收斂則有界」＝「收斂定義＋三角不等式取尾端的界」→「前綴有限集取最大值」；
+E2E2「連續函數在閉區間有最大值」＝「波爾查諾-魏爾斯特拉斯定理推有界」→「序列準則使
+上確界被達到」。**兩條確實依序對應該題真正的兩個關鍵轉折**，長度 22–39 字（手寫梯為 16–46）。
+
+單元測試 **215 → 248 條**（Task 1 補空梯路徑覆蓋 8 條 + LADDER 生成端 25 條）。
+
+### 這一輪的三個教訓（比功能本身更值得記）
+
+1. **`test_driver_unit.py` 的斷言計數要用 `grep -cE "^  (✓|✗) "`。** 用
+   `grep -c "✓\|✗"` 會把結尾的「全部單元測試通過 ✓」也算進去——實作計畫初版所有
+   絕對數字因此都多了 1（CLAUDE.md 舊記的「186 條 / 22 組」亦屬此類，實為 185）。
+2. **測試素材必須實測它是否真的觸得到它宣稱要測的那道閘。** 計畫裡一條標榜
+   「過長 >60 字 → 退」的 fixture 實測只有 **48 字**，落在門檻內、根本不會被長度閘攔下。
+   修正後實測 62 字，並確認另兩道閘（算式、洩漏）對它皆回 False，才證明是長度閘在作用。
+   這與 `test_phase_routing.py` 的 V4 教訓同型：**看起來全綠不等於測到東西**。
+3. **長時間任務不要丟進 subagent 自己 session 的背景。** 端對端第一次「執行」時
+   subagent 把它背景化後即結束 session，進程隨之死亡——GPU 0 MiB、產出檔不存在才發現。
+
+### 已知限制
+
+- **驗收只保證安全性，不保證品質。** 五道閘擋的是「洩漏／給算式／退化重複／格式錯」，
+  擋不掉「提示講得爛但無害」。品質只能靠人工抽查。
+- **守門照不到這條路徑。** Tier 1/2 是單輪探針、Tier 3 對話，全部走內建題（有手寫梯），
+  這次改動在守門指標上是隱形的。驗證只能靠 Tier 0 斷言 ＋ 人工檢視。
+- **生成的梯未經人工審閱即用於教學**（不像 `reference_proof` 有 VERIFIER 獨立審）。
+  緩解：提示保證不含算式、不洩漏參考解，且等級 2 的既有守衛在生成回覆時仍全數生效。
+- 證明者與提示生成者是同一個 4B 思考模型（獨立取樣非獨立模型），新領域建議先抽查。
+
 ## 專案文件空間（Notion，2026-07-28）
 
 專案架構與決策紀錄已整理進 Notion，入口頁「蘇格拉底式高等數學證明引導助教」
@@ -681,3 +747,7 @@ M1 中英兩場 `guidance` 皆被評為 **1 分**（`math_ok=True`，純教學�
       跳轉至不一致收斂」（助教在子目標間跳躍，沒把一個走完）。另有延遲成本未解：
       walkthrough 每輪最多 4 次重生成，守門該段由 12 分鐘漲到 45 分鐘，
       **學生每輪等待同步變成 3–4 倍**，下輪應加每輪重生成次數上限。
+18. ~~備課管線不生成 `hint_ladder`，使用者自帶題目的等級 2 退化成通用指示、
+    提早一輪掉進 walkthrough~~ → 已由 **LADDER 階段**根治（2026-08-06，見上方專節）。
+    殘留：生成的梯只有確定性驗收（保證安全性，不保證品質），且守門照不到這條路徑；
+    品質需人工抽查。備課因此每題多一次 Ollama 呼叫（最長 300 秒）。
