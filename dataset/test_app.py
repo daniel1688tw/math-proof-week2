@@ -24,12 +24,17 @@ def check(name, cond):
 
 
 def _fake_chat_pass(system, user, temperature, timeout=600):
-    if "標準參考解" in system:            # PROVER_SYSTEM
+    # 用身分比對分派（不用子字串比對）：LADDER_SYSTEM 開頭也是「你是數學教學設計者。」，
+    # 子字串比對會讓 LADDER 的呼叫誤配到 SEGMENTER 的回傳（見 Finding 5）。
+    if system is auto_reference.PROVER_SYSTEM:
         return "證明：由假設可得結論。$\\blacksquare$"
-    if "驗證員" in system:                # VERIFIER_SYSTEM
+    if system is auto_reference.VERIFIER_SYSTEM:
         return '{"verdict": "pass", "issues": []}'
-    if "教學設計者" in system:            # SEGMENTER_SYSTEM
+    if system is auto_reference.SEGMENTER_SYSTEM:
         return '[{"explain": "步驟一：套用定義", "check": "定義是什麼？"}]'
+    if system is auto_reference.LADDER_SYSTEM:
+        return ('["這一步的關鍵是均值定理，它連起函數差與導數。", '
+                '"導數有界會給出與位置無關的 δ 選取。"]')
     return None
 
 
@@ -48,6 +53,7 @@ try:
     check("PROVER 階段有觸發", "PROVER" in stages)
     check("VERIFIER 階段有觸發", "VERIFIER" in stages)
     check("SEGMENTER 階段有觸發", "SEGMENTER" in stages)
+    check("LADDER 階段有觸發", "LADDER" in stages)
 
     result2 = auto_reference.build_reference("證明 1+1=2", k=1, verbose=False)
     check("不傳 progress_cb 仍向後相容", result2["status"] == "verified")
@@ -76,7 +82,7 @@ _verified_lad = {"status": "verified", "reference_proof": "P $\\blacksquare$",
                  "log": []}
 prob_l = app.assemble_problem("證明 Z", _verified_lad)
 check("verified：hint_ladder 有傳遞給 driver", len(prob_l["hint_ladder"]) == 2)
-check("verified：LADDER 未通過驗收時不帶 hint_ladder 鍵",
+check("verified 但無梯 → 不帶 hint_ladder 鍵",
       "hint_ladder" not in prob_v)
 
 _unverified = {"status": "unverified", "log": []}

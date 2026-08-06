@@ -1292,6 +1292,10 @@ check("validate_ladder：過長（>60 字）→ 退",
 check("validate_ladder：帶題目以外的新算式 → 退",
       not validate_ladder(["關鍵是均值定理，會得到 f(x)-f(y)=f'(c)(x-y)。", _OK[1]],
                           _VS, _VP))
+check("validate_ladder：等號兩側有空白的 LaTeX 寫法（舊版 gives_new_equation 會漏接）→ 退",
+      not validate_ladder(
+          ["關鍵在於取 $\\delta = \\varepsilon / M$ 這個構造，想想為什麼可行。", _OK[1]],
+          _VS, _VP))
 check("validate_ladder：洩漏參考解長片段（15-gram）→ 退",
       not validate_ladder(["再由導數有界，可推出 Lipschitz 條件，於是取與位置無關的 δ。",
                            _OK[1]], _VS, _VP))
@@ -1306,6 +1310,23 @@ _gold_fail = [pid for pid, p in _gold
                                      p["reference_proof"])]
 check(f"回歸鎖：{len(_gold)} 題手寫 2 條梯全部通過 validate_ladder（失敗：{_gold_fail}）",
       len(_gold) >= 14 and not _gold_fail)
+
+# 逐條回歸鎖：上面的 _gold 用 len(...)==2 篩題，把 M4 的 3 條梯整題排除
+# （load_problems_with_ladders() 有 hint_ladder + reference_proof 的共 16 題 / 33 條，
+# 扣掉 M4 只鎖住 15 題 / 30 條）。這裡把「逐條閘」（長度／算式／洩漏）與「條數閘」
+# （validate_ladder 硬性要求恰 2 條）拆開驗，讓 M4 的 3 條梯也進回歸鎖覆蓋。
+from auto_reference import _LADDER_FORMULA_RE  # noqa: E402
+_all_hints = [(pid, h, p) for pid, p in probs.items()
+              if p.get("hint_ladder") and p.get("reference_proof")
+              for h in p["hint_ladder"]]
+_all_hint_fail = [pid for pid, h, p in _all_hints
+                  if not (12 <= len(h.strip()) <= 60
+                          and not _LADDER_FORMULA_RE.search(h)
+                          and not leaks_reference(h, p["reference_proof"],
+                                                  exclude=p.get("statement", "")))]
+check(f"逐條回歸鎖：{len(_all_hints)} 條手寫提示（含 M4 的 3 條梯）"
+      f"全數通過長度／算式／洩漏三道閘（失敗：{_all_hint_fail}）",
+      len(_all_hints) >= 33 and not _all_hint_fail)
 
 import auto_reference as _ar  # noqa: E402
 

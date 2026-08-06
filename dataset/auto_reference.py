@@ -4,6 +4,7 @@
 原則：助教必須「先自己證對」才有資格教（否則誤導學生）。
   PROVER（thinking，temp 0.7）× K 份候選 → VERIFIER（temp 0.2，獨立審閱）逐份判定
   → 有 pass（issues 可修補則 REPAIR 一輪再驗）→ verified 參考解 + 教學步驟
+    + 分級提示（LADDER 階段，TutorDriver 等級 2 用；驗收不過就不寫該欄位）
   → 全部 fail → unverified（TutorDriver 據此進入同學模式，誠實降級）。
 
 教訓沿用 review_backstop：num_predict=8192（思考鏈空間）、JSON 解析括號平衡＋反斜線加倍。
@@ -153,26 +154,44 @@ def parse_ladder(content: str | None) -> list | None:
     return None
 
 
-def validate_ladder(hints: list, statement: str, proof: str) -> bool:
-    """提示梯的五道確定性驗收：條數／長度／不帶新算式／不洩漏參考解／兩條不雷同。
+# 提示梯專用的禁算式閘：只要出現 $ 或任一關係符即退。
+# 不沿用 tutor_driver.gives_new_equation()——後者以空白切詞比對「題目以外的新算式」，
+# 遇到 LaTeX 標準寫法（等號兩側有空白，如 `$\delta = \varepsilon / M$`）會切出長度僅 1
+# 的 token「=」，正規化後 < 3 字被跳過 → 整條提示放行（實測繞過案例，見 Finding 1）。
+# LADDER 的規格本來就是「完全不含算式」（prompt 規則 3），不是「不含題目以外的算式」，
+# 嚴格閘語意更貼合、也不受空白切詞的邊界影響。
+_LADDER_FORMULA_RE = re.compile(
+    r"\$|=|≤|≥|<|>|≠|\\le\b|\\ge\b|\\lt\b|\\gt\b|\\neq\b"
+)
 
-    門檻皆以 hint_ladders.json 的 33 條手寫提示（人工驗過的黃金標準）校準，實測零誤判。
+
+def validate_ladder(hints: list, statement: str, proof: str) -> bool:
+    """提示梯的五道確定性驗收：條數／長度／不帶算式／不洩漏參考解／兩條不雷同。
+
+    門檻以 `load_problems_with_ladders()` 載得到、且有 `reference_proof` 的 16 題
+    共 33 條手寫提示（人工驗過的黃金標準）校準，實測零誤判
+    （`hint_ladders.json` 全部 17 題共 36 條；ADV1 在未載入的 `adv_test_problem.json`）。
     任一條不過即整份丟棄——寧可退回 driver 既有的通用保底句，
     也不冒「提示本身洩漏答案或給算式」的風險（生成的梯不像參考解有 VERIFIER 獨立審）。
 
     長度上限刻意比 prompt 要求的 15–45 字寬：prompt 訂目標、驗收訂紅線，
     只差一兩字不該整份丟棄。
+
+    ⚠️ 洩漏閘是空跑的邊界：`leaks_reference` 在正規化後長度 < 15 時直接回 False
+    （n-gram 下限），而提示長度下限只有 12 字，正規化（去空白／`$`／LaTeX 裝飾）後
+    可能落在 15 字以下——手寫梯裡就有實例。實務上 12–14 字洩不了什麼，
+    但這道閘對這類極短提示不生效，不是「五道閘一律生效」。
     """
     # lazy import：tutor_driver._ensure_teach_steps() 會反向 import 本模組，
     # 模組層互 import 會形成循環。
-    from tutor_driver import gives_new_equation, leaks_reference
+    from tutor_driver import leaks_reference
 
     if not isinstance(hints, list) or len(hints) != 2:
         return False
     for h in hints:
         if not isinstance(h, str) or not (12 <= len(h.strip()) <= 60):
             return False
-        if gives_new_equation(h, statement):      # 保護等級 2 禁算式白名單不被污染
+        if _LADDER_FORMULA_RE.search(h):           # 保護等級 2 禁算式白名單不被污染
             return False
         if leaks_reference(h, proof, exclude=statement):
             return False
@@ -192,13 +211,19 @@ def build_ladder(statement: str, proof: str) -> list | None:
     失敗即現況：呼叫端不寫 hint_ladder 欄位，_ladder() 回 []，
     driver 走既有的通用保底句路徑。不做確定性保底切分——
     從參考解機械切出來的片段當提示有洩漏風險，寧可退回通用句。
+
+    連例外也收斂到 None：呼叫端拿到的是已經跑完 PROVER→VERIFIER→SEGMENTER
+    的已驗證參考解，不該因為提示梯這個附加階段丟例外而把整份結果賠掉。
     """
-    hints = parse_ladder(_chat(
-        LADDER_SYSTEM, f"題目：{statement}\n\n參考證明：\n{proof}",
-        temperature=0.2, timeout=300))
-    if hints and validate_ladder(hints, statement, proof):
-        return hints
-    return None
+    try:
+        hints = parse_ladder(_chat(
+            LADDER_SYSTEM, f"題目：{statement}\n\n參考證明：\n{proof}",
+            temperature=0.2, timeout=300))
+        if hints and validate_ladder(hints, statement, proof):
+            return hints
+        return None
+    except Exception:
+        return None
 
 
 def fallback_steps(proof: str) -> list:
@@ -217,7 +242,7 @@ def build_reference(statement: str, k: int = K_CANDIDATES,
     """回傳 {status, reference_proof?, teach_steps?, log}。
 
     progress_cb(stage, detail)：選填回呼，於每個階段觸發（stage ∈ PROVER/VERIFIER/
-    REPAIR/SEGMENTER）。不傳則行為與原本完全一致（向後相容）。
+    REPAIR/SEGMENTER/LADDER）。不傳則行為與原本完全一致（向後相容）。
     """
     def _emit(stage: str, detail: str = ""):
         if progress_cb:
