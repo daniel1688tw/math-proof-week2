@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教你好，我嘗試構造一個新函數 $g(t) = e^t - t - 1$，並打算在 $[0, x]$ 上對 $g(t)$ 套用均值定理。因為 $g(0) = 0$，只要利用 $c \\in (0, x)$ 時 $g'(c) = e^c - 1 > 0$ 的性質，應該就能推導出 $g(x) > 0$。可以請助教幫我依據這個思路把詳細步驟寫完嗎？",
+    "reply": "你的構造很自然，但均值定理需要「兩端點函數值之差」。若對 $g(t)$ 用均值定理，要先算哪兩個端點的差？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教你好！我嘗試了一個不同的思路：因為 $\\cos x$ 與 $1-\\dfrac{x^2}{2}$ 都是偶函數，所以只需要證明 $x \\ge 0$ 的情況。我打算利用定積分，從已知 $t \\ge 0$ 時 $\\sin t \\le t$ 出發，對不等式兩邊在 $[0, x]$ 上進行積分。請問能請您依據我這個積分的方向，繼續幫我完成後續的推導嗎？",
+    "reply": "你的想法非常漂亮，而且「偶函數只需證非負半軸」正是本題最簡潔的路線。既然你打算用積分，那我們先來看看要對哪個不等式積分會得到目標？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教你好，我嘗試用「反證法」來證明這題：假設 $\\{v_1, v_2\\}$ 線性相關，因為特徵向量 $v_1 \\neq 0$，所以 $v_2$ 可以表示為 $v_1$ 的純量倍，即設 $v_2 = k v_1$（其中 $k \\neq 0$）。我打算對這個等式兩邊同時左乘矩陣 $A$，並分別套用 $Av_1$ 與 $Av_2$ 的特徵值定義，最後推導出 $\\lambda_1 = \\lambda_2$ 的矛盾。請問這樣的思路方向正確嗎？可以請助教幫我按這個方向繼續把證明完成嗎？",
+    "reply": "方向完全正確，反證法是有效的路線。接下來，你打算怎麼進行「左乘 $A$」這個步驟？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教你好，我試著用反證法配合 $\\varepsilon$-$\\delta$ 的連續性定義來證明。我的想法是先假設存在實數 $a$ 使得 $f(a) \\neq 0$，並取 $\\varepsilon = \\frac{|f(a)|}{2} > 0$，利用連續性得出 $a$ 周圍存在一個開區間 $(a-\\delta, a+\\delta)$，裡面所有點的函數值都不為 0。接著利用有理數在 $\\mathbb{R}$ 中稠密的性質，這個開區間內必定含有理數 $q$（但已知 $f(q)=0$），從而導出矛盾。可以請助教幫我依這個方向繼續完成詳細的證明嗎？",
+    "reply": "你的反證路線完全可行，而且「稠密提供有理數 $q$」這一步正是關鍵。接下來要嚴謹地把「稠密」轉成「存在有理數 $q$」，你能說出稠密性的定義是什麼嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教肯定並順著學生的反證法思路進行適當引導，數學陳述無誤。"
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "助教你好，我的想法跟參考解答不太一樣：我打算把這 $n+1$ 個整數 $x_k$ 透過複數指數映射到單位圓上的 $n$ 次單位根 $e^{2\\pi i x_k / n}$。因為複數平面上的 $n$ 次單位根只有 $n$ 個不同數值，由鴿籠原理可知，必有兩個整數 $a, b$ 滿足 $e^{2\\pi i a / n} = e^{2\\pi i b / n}$。請問如果從這個單位根相等的式子出發，接下來要怎麼推導出 $n \\mid (a-b)$ 呢？",
+    "reply": "你的想法很美，把數論轉成複數幾何。既然兩角相等的複數相等，你能從 $e^{2\\pi i a/n}=e^{2\\pi i b/n}$ 推出 $a$ 與 $b$ 在模 $n$ 下的關係嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "助教你好！我想嘗試把特徵值設為 $\\lambda = a + bi$，特徵向量拆成實部與虛部 $v = x + iy$（其中 $x, y \\in \\mathbb{R}^n$）。接著將 $A(x + iy) = (a + bi)(x + iy)$ 展開，比較實部與虛部得到兩個實數矩陣方程，再分別左乘 $y^T$ 與 $x^T$ 並利用 $A = A^T$ 來導出 $b = 0$。請問我這樣的思路方向正確嗎？可以請助教依據我的方向帶我繼續做下去嗎？",
+    "reply": "你的想法非常清晰，而且「用實部虛部」正是處理複共軛特徵值的標準路線。展開後你會得到什麼樣的兩個實矩陣方程？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "Instead of applying the Mean Value Theorem directly to $f(t) = e^t$, I was thinking of defining an auxiliary function $g(t) = e^t - t - 1$ on $[0, x]$. Since $g(0) = 0$, applying the Mean Value Theorem to $g(t)$ should give $g(x) = g'(c)x$ for some $c \\in (0, x)$. Could you help me check if this direction works and guide me through completing the proof from here?",
+    "reply": "The auxiliary function route is completely valid — you've chosen a very clean path. After expanding $g(x)=g'(c)x$, what do you get, and how does it compare with the target inequality $e^x>1+x$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "Instead of defining a single function and finding its global minimum, I'd like to prove this by integrating the basic inequality $\\cos t \\le 1$ twice. For $x \\ge 0$, my plan is to integrate $1 - \\cos t \\ge 0$ twice from $0$ to $x$ to show that $x \\ge \\sin x$ first and subsequently $\\frac{x^2}{2} \\ge 1 - \\cos x$. Finally, we can use the even symmetry of both sides to extend the inequality to all real $x$. Could you help me walk through this integration approach step by step?",
+    "reply": "Your integration route is very clean — let's follow it. First, integrating $1-\\cos t\\ge0$ once from $0$ to $x$ gives what?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "Hi! Instead of setting up a linear combination $c_1 v_1 + c_2 v_2 = 0$, I want to try a proof by contradiction. Since eigenvectors are non-zero by definition, assuming $v_1$ and $v_2$ are linearly dependent means $v_2 = k v_1$ for some scalar $k \\neq 0$. My plan is to apply $A$ to both sides of $v_2 = k v_1$ to compare $A v_2$ and $k A v_1$. Could you please help me continue from here to complete the proof?",
+    "reply": "That's a very clean route — contradiction is perfectly valid. Applying $A$ to both sides gives $A v_2 = k A v_1$. Using the eigenvalue property $A v_i = \\lambda_i v_i$, what do the two sides become?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "Hi! Instead of using sequence continuity, I want to try a proof by contradiction using the $\\epsilon$-$\\delta$ definition. Suppose $f(a) \\neq 0$ for some real number $a$; by choosing $\\epsilon = |f(a)| > 0$, continuity guarantees an open interval $(a-\\delta, a+\\delta)$ where $f(x)$ cannot be zero. However, since rationals are dense in $\\mathbb{R}$, there must be a rational $q$ in that interval where $f(q) = 0$, which creates a contradiction. Could you help me formalize this argument step by step?",
+    "reply": "The skeleton is already complete — you've just written the whole proof yourself. Can you say what the contradiction is exactly?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I want to try proving this using complex numbers and roots of unity rather than remainder classes directly. If we map each integer $a_k$ to the complex value $e^{2\\pi i a_k / n}$, all mapped points lie on the $n$ distinct $n$-th roots of unity. Since there are $n+1$ integers, by the pigeonhole principle, two distinct integers $a_i$ and $a_j$ must map to the exact same root of unity. Could you help me formalize the next steps to conclude that $n \\mid (a_i - a_j)$?",
+    "reply": "The mapping $a\\mapsto e^{2\\pi i a/n}$ sends different integers to the same root of unity precisely when the arguments differ by a multiple of $2\\pi$. What does that say about $a_i-a_j$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "Hi! Instead of using the conjugate transpose, I want to try splitting the eigenvalue and eigenvector into their real and imaginary components, writing $\\lambda = a + ib$ and $v = x + iy$ with $x, y \\in \\mathbb{R}^n$. By expanding $A(x+iy) = (a+ib)(x+iy)$ and separating real and imaginary parts, I get two real system equations: $Ax = ax - by$ and $Ay = bx + ay$. My plan is to left-multiply these by $y^T$ and $x^T$ respectively and use the symmetry $y^T Ax = x^T Ay$ to deduce that $b(x^T x + y^T y) = 0$, which forces $b = 0$. Could you help me walk through this direction to complete the proof?",
+    "reply": "Very clean — you've split the complex case into real ones yourself. After multiplying the two real equations by $y^T$ and $x^T$ respectively, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]
