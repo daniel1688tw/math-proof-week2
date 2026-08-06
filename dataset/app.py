@@ -50,6 +50,8 @@ def assemble_problem(statement: str, result: dict, pid: str = "USER") -> dict:
     if result["status"] == "verified":
         prob["reference_proof"] = result["reference_proof"]
         prob["teach_steps"] = result["teach_steps"]
+        if result.get("hint_ladder"):      # LADDER 驗收不過時不存在，driver 走通用保底句
+            prob["hint_ladder"] = result["hint_ladder"]
     return prob
 
 

@@ -69,6 +69,16 @@ check("verified：grounding=auto_verified", prob_v["grounding"] == "auto_verifie
 check("verified：帶 reference_proof", prob_v["reference_proof"] == "P $\\blacksquare$")
 check("verified：帶 teach_steps", bool(prob_v["teach_steps"]))
 
+_verified_lad = {"status": "verified", "reference_proof": "P $\\blacksquare$",
+                 "teach_steps": [{"explain": "a", "check": "b"}],
+                 "hint_ladder": ["這一步的關鍵是均值定理，它連起函數差與導數。",
+                                 "導數有界會給出與位置無關的 δ 選取。"],
+                 "log": []}
+prob_l = app.assemble_problem("證明 Z", _verified_lad)
+check("verified：hint_ladder 有傳遞給 driver", len(prob_l["hint_ladder"]) == 2)
+check("verified：LADDER 未通過驗收時不帶 hint_ladder 鍵",
+      "hint_ladder" not in prob_v)
+
 _unverified = {"status": "unverified", "log": []}
 prob_u = app.assemble_problem("證明 Y", _unverified)
 check("unverified：grounding=unverified", prob_u["grounding"] == "unverified")
