@@ -1266,7 +1266,8 @@ check("parse_ladder：思考鏈包夾仍可取出",
       parse_ladder('思考中…最後給出：["提示甲的內容夠長。", "提示乙的內容也夠長。"] 完畢')
       == ["提示甲的內容夠長。", "提示乙的內容也夠長。"])
 check("parse_ladder：LaTeX escape 降級解析（\\{ 是非法 JSON escape）",
-      parse_ladder(r'["用 \{x_n\} 的單調性想想看吧。", "再用有界性收束到結論。"]') is not None)
+      parse_ladder(r'["用 \{x_n\} 的單調性想想看吧。", "再用有界性收束到結論。"]')
+      == [r"用 \{x_n\} 的單調性想想看吧。", "再用有界性收束到結論。"])
 check("parse_ladder：None 輸入 → None", parse_ladder(None) is None)
 
 print()
