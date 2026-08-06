@@ -13,7 +13,9 @@
 - 語言：所有程式碼註解、docstring、測試名稱、commit message **一律繁體中文**（week3/CLAUDE.md 語言慣例）。
 - 執行環境：`PYTHONNOUSERSITE=1`、`PYTHONUTF8=1`，Python 為 `D:\Danie\anaconda3\envs\lora_project\python.exe`。
 - 測試慣例：**不使用 pytest**。新增斷言用既有的 `check(name, cond)`，區段以 `print("[N] 標題")` 開頭，插在檔尾 `print()` + `if FAIL:` 區塊**之前**。
-- 現行基準：`test_driver_unit.py` = **216 條斷言 / 25 組**，全數通過。任何改動後這 216 條都必須維持通過。
+- 現行基準：`test_driver_unit.py` = **215 條斷言 / 25 組**，全數通過。任何改動後這 215 條都必須維持通過。
+  （⚠️ 計數方式：`grep -cE "^  (✓|✗) "`。不要用 `grep -c "✓\|✗"`——那會把結尾的
+  「全部單元測試通過 ✓」也算進去，本計畫初版所有絕對數字因此都多了 1，已於 Task 3 修正。）
 - 梯長固定 **2 條**：`validate_ladder` 只接受 2 條。手寫梯中有 2 題是 3 條（`hint_ladders.json` 的 17 題裡 15 題為 2 條），那 2 題是人工驗過的既有資產，**不受此驗收管轄、不修改**。
 - 只生**繁體中文**梯（`hint_ladder`），不生 `hint_ladder_en`。英文 session 由 `_ladder()` 既有的回退機制處理。
 - **不得留下任何對 `tutor_driver.py` 的修改**。唯一例外是 Task 1 Step 3 的靈敏度驗證——那是刻意改壞一行、確認測試會響、然後 `git checkout` 還原，Step 4 會驗證檔案已乾淨。若實作過程發現非**永久**改不可，停下來回報——那代表設計有誤。
@@ -121,7 +123,7 @@ cd "d:/UserData/claude_project/霓的資料/引導式數學專案/week3/dataset"
 PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe" test_driver_unit.py
 ```
 
-預期：**全部通過**（224 條）。這一組是**行為快照**，測的是既有邏輯，本來就該過。
+預期：**全部通過**（223 條）。這一組是**行為快照**，測的是既有邏輯，本來就該過。
 
 ⚠️ 若有任何一條失敗，**不要改測試去迎合**——那代表你對現況的理解或 `_CapturingStub` 的擷取時機有誤。先把 `_nl.captured` / `_yl.captured` 印出來對照，確認擷取到的是生成當下的狀態。
 
@@ -246,7 +248,7 @@ cd "d:/UserData/claude_project/霓的資料/引導式數學專案/week3/dataset"
 PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe" test_driver_unit.py
 ```
 
-預期：全數通過（233 條）。
+預期：全數通過（232 條）。
 
 - [ ] **Step 5: Commit**
 
@@ -297,7 +299,7 @@ check("validate_ladder：非 list → 退", not validate_ladder("不是清單", 
 check("validate_ladder：過短（<12 字）→ 退",
       not validate_ladder(["太短了", _OK[1]], _VS, _VP))
 check("validate_ladder：過長（>60 字）→ 退",
-      not validate_ladder([_OK[0] + "而且我還要再補上非常非常非常非常多餘的冗長說明文字。",
+      not validate_ladder([_OK[0] + "而且我還要再補上非常非常非常非常非常非常多餘的冗長說明文字，硬是要拉得更長更長。",
                            _OK[1]], _VS, _VP))
 check("validate_ladder：帶題目以外的新算式 → 退",
       not validate_ladder(["關鍵是均值定理，會得到 f(x)-f(y)=f'(c)(x-y)。", _OK[1]],
@@ -375,7 +377,7 @@ cd "d:/UserData/claude_project/霓的資料/引導式數學專案/week3/dataset"
 PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe" test_driver_unit.py
 ```
 
-預期：全數通過（242 條）。
+預期：全數通過（241 條）。
 
 ⚠️ 若「回歸鎖」那條失敗，**不要放寬門檻了事**。先把 `_gold_fail` 裡的題目印出來，逐條看是哪一道閘擋的：
 
@@ -596,7 +598,7 @@ cd "d:/UserData/claude_project/霓的資料/引導式數學專案/week3/dataset"
 PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe" test_driver_unit.py
 ```
 
-預期：全數通過（249 條）。
+預期：全數通過（248 條）。
 
 - [ ] **Step 8: Commit**
 
@@ -773,7 +775,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## 完成條件
 
-- [ ] `test_driver_unit.py` 全數通過（216 → 約 249 條）
+- [ ] `test_driver_unit.py` 全數通過（215 → 約 248 條）
 - [ ] `test_app.py`、`test_phase_routing.py` 全數通過
 - [ ] 33 條手寫提示的回歸鎖通過
 - [ ] Task 1 Step 3 的靈敏度驗證做過，且 `tutor_driver.py` 已還原乾淨
