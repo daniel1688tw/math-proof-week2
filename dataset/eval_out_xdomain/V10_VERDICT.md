@@ -55,7 +55,7 @@ v10 新增的 journey 訓練資料雖然設計上全部收斂在完成即收手�
 
 **v10 不通過守門，不升版。部署維持 `qlora_adapter_v9`。**
 
-- v10 adapter 保留於 `dataset/qlora_adapter_v10/`（本機，gitignore，供後續分析用）。
+- v10 adapter 原保留於 `dataset/qlora_adapter_v10/`；adapter 權重已於 2026-08-07 清理時刪除（本機只留現役 v9）——判退依據與行為紀錄留在文件裡，要重現需依 CLAUDE.md 的超參重訓。
 - 830 例資料集本身（`dialogues_journey.py`）內容經人工撰寫並對照參考解驗證，
   保留在 `training-iter-v10` 分支，作為下次迭代的基礎；問題出在訓練後的模型行為
   交互作用，非訓練資料本身有誤。

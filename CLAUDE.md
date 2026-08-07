@@ -5,7 +5,8 @@
 最佳部署形態（判定依據：`dataset/eval_out_final/FINAL_VERDICT.md`）。
 
 **現行部署形態 = `qlora_adapter_v9` + 含 #11/#12 修復的 driver**。v10、v11 兩輪整體重訓
-皆守門判退（同一個收尾紀律退化重現），adapter 封存於本機供分析，**不要誤以為版號越新越該用**。
+皆守門判退（同一個收尾紀律退化重現），**不要誤以為版號越新越該用**。
+v10／v11 的 adapter 權重已於 2026-08-07 清理時刪除（本機只留現役 v9），判退依據與行為紀錄保留在 `eval_out_xdomain/V10_VERDICT.md`／`V11_VERDICT.md`。
 
 **歷史版本不在工作目錄**：所有被淘汰的方法（MathDial 行為遷移、Ollama 無微調路線、
 v2–v5 adapter 與其評估）完整保存在 git tag **`experiments-v2-v6`**，
@@ -84,7 +85,6 @@ week3/
 │   ├── interactive_turn.py           # 逐輪互動 CLI（維護 session 狀態檔）
 │   ├── app.py / test_app.py          # ★ Gradio 商品化介面（本機單人 Demo）／其純邏輯測試
 │   ├── qlora_adapter_v9/             # ★ 部署 adapter（權重不進 git）
-│   ├── qlora_adapter_v10/ v11/       # 判退封存（本機、gitignore，供分析）
 │   ├── held_out.json / held_out_attempts.json / hard_math_major.json / adv_test_problem.json  # 評估題
 │   ├── xdomain_problems.json         # 跨領域評估題（離散×3 + 線代×3，XDOMAIN_ADAPTER 覆寫）
 │   ├── eval_heldout_v3.py            # 三情境回歸（裸模型，HELDOUT_ADAPTER 覆寫）
@@ -339,7 +339,8 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 - **reveal_ok_zh 加雜訊容忍 ε=0.08**（與 s2_catch 同型：確定性生成、Claude 評審、n≈13）：
   同批 S2 文本五輪判分 0.833–0.942 從未再現基準 1.0（分母隨評審漏填 reveal 鍵浮動）＝純評審雜訊，
   基準 1.0 是幸運高點（弱點 #6）。**保守作法：只加容忍、不降基準 1.0**。
-- 部署預設 adapter 已全面切 v9（各 runner env default），v8 目錄保留可 env 覆寫回退。
+- 部署預設 adapter 已全面切 v9（各 runner env default）。
+  ⚠️ v8 目錄原本保留作 env 覆寫回退，已於 2026-08-07 清理時刪除；現在本機只有 v9，`FINAL_ADAPTER` 等環境變數仍可覆寫但沒有其他版本可指。
 - 本機 6GB 卡教訓：連跑兩輪 suite 之間必須 `ollama stop`（Tier 4 後盾的 Ollama 模型駐留 3.2GB
   會使下一輪載入 4-bit 基底 segfault，兩次撞同一進度點才查出）。
 - **本機 6GB 卡教訓 2（2026-07-22）**：裝了 Antigravity CLI（`agy`）後，**Antigravity IDE
@@ -404,7 +405,7 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 - 830 例資料集本身內容經人工撰寫並對照參考解驗證，問題出在訓練後的模型行為交互作用
   （疑似 journey 資料「連續多輪深入追問」的訓練訊號讓模型收尾後更傾向順勢多教），
   非訓練資料有誤，保留在 `training-iter-v10` 分支供下次迭代參考；v10 adapter 保留於
-  `dataset/qlora_adapter_v10/`（本機、gitignore）供後續分析。
+  `dataset/qlora_adapter_v10/`——adapter 權重已於 2026-08-07 清理時刪除（本機只留現役 v9）——判退依據與行為紀錄留在文件裡，要重現需依 CLAUDE.md 的超參重訓。
   **後續**：v11 以同資料集重訓再試一次，同樣判退（見下節）。
 
 ## v11 迭代（2026-07-24，`eval_out_xdomain/V11_VERDICT.md`）：driver 修復上線、v11 adapter 判退
@@ -421,7 +422,7 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
   - 單元測試由 123 → **127 條 / 13 組**全過；三輪守門確定性指標零退步。
 - **v11 adapter（830 例資料集重訓，eval_loss 1.044）→ 判退，部署維持 v9**
   假設「#11 能兜住 v10 的 H5 過度延伸」不成立：同問題重現（H5 延伸 6 輪、把學生拖進
-  x<0 推廣），X4 另有模型級數學錯誤（誤稱單位矩陣為反例）。adapter 封存本機供分析。
+  x<0 推廣），X4 另有模型級數學錯誤（誤稱單位矩陣為反例）。adapter 權重已於 2026-08-07 清理時刪除（本機只留現役 v9）——判退依據與行為紀錄留在文件裡，要重現需依 CLAUDE.md 的超參重訓。
 
 ### 守門校準（本輪最重要的產出，人工授權後實施）
 

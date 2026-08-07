@@ -88,7 +88,7 @@ the proof is complete」）時 arm `done_closed`，使後續反思輪走 closed�
 
 ## 現場狀態
 - 遠端 4090 容器已 `docker compose down`、GPU0 已釋放；本機無殘留進程、Ollama 無駐留。
-- v11 adapter 保留於 `dataset/qlora_adapter_v11/`（本機、gitignore）供分析；830 例資料集
+- v11 adapter 原保留於 `dataset/qlora_adapter_v11/`；adapter 權重已於 2026-08-07 清理時刪除（本機只留現役 v9）——判退依據與行為紀錄留在文件裡，要重現需依 CLAUDE.md 的超參重訓；830 例資料集
   與 journey 對話仍在 `training-iter-v10` 分支。
 - 計分卡進 git 留證。**未 push、未切換部署預設、未動基準**。
 
