@@ -50,7 +50,8 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
               │  · 階段偵測（交草稿→審閱、逼問→拒絕、嘗試→糾錯、說懂了→請寫證明、
               │              證明確認完成→closed 收尾：禁新問題/替代法/延伸）
               │  · 等級 2 注入 hint_ladders.json 的預寫提示內容
-              │  · 提示梯用盡仍連卡兩次 → walkthrough 逐步教學（一步一確認，教完仍要學生自寫證明）
+              │  · 提示梯用盡仍連卡兩次 → walkthrough 逐步教學（確定性模板：一步一確認、
+              │    答對才前進、教完仍要學生自寫證明；此階段不呼叫生成模型）
               │  · 審閱/糾錯輪 ──► 審閱後盾（review_backstop.py，Ollama 思考型找碴）
               │                    缺漏清單注入 system；不在線自動降級（REVIEW_BACKSTOP=0 關）
               ▼
@@ -143,9 +144,10 @@ conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_q
 
 ### 測試與評估
 ```powershell
-python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（248 條斷言 / 27 組）
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（303 條斷言 / 29 組）
 #   ⚠️ 斷言計數用 grep -cE "^  (✓|✗) "；用 grep -c "✓\|✗" 會多算結尾的總結行
-python dataset\test_phase_routing.py                                      # 真實對話回放驗階段路由（無 GPU，243 場存檔）
+python dataset\test_phase_routing.py                                      # 真實對話回放驗階段路由（無 GPU，299 場存檔）
+python dataset\render_transcripts.py                                      # ★ 把最新一輪守門的對話轉成可讀 md（人工檢視用）
 python dataset\test_app.py                                                # 介面純邏輯，無 GPU、不連 Ollama
 conda run -n lora_project --live-stream python dataset\test_driver_integration.py   # 分級提示（GPU）
 conda run -n lora_project --live-stream python dataset\test_driver_phase.py         # 階段管理（GPU）
@@ -661,6 +663,98 @@ E2E2「連續函數在閉區間有最大值」＝「波爾查諾-魏爾斯特拉
   指示＋中文提示內容」的混語提示——這是已知取捨（混語在 4B 上實際傷害可控），
   不擴充雙語備課。
 
+## 逐步教學可評分化＋語言鎖定＋審閱收尾（2026-08-07，整合 `Codex_修改整合交接_2026-08-07.md`）
+
+Codex 在另一端（`math-proof-week2-training-iter-v11`）做的七項修改，逐項對照本 repo 後
+**七項全部尚未存在**（現況只有兩處部分緩解：空梯 `max(len(ladder),1)` 已在、
+`detect_lang` 已剝 `$…$`）。逐區塊合併並在本 repo 的架構下重做，單元測試 248 → **303 條**。
+
+- **教學步驟變成可評分的**（`auto_reference.py`）：SEGMENTER schema 擴為
+  `{step_id, explain, check, expected_answer, accepted_answers, common_errors}`，
+  加 `validate_teach_steps()` 五道確定性驗收；**驗收不過就整份丟棄改走句級保底**
+  （`_proof_units`／`_balanced_units`／`_fallback_expected`，3–6 步、每步都有答案鍵、
+  移除 QED 記號）。舊資料由 `ensure_checkable_steps()` 冪等補齊。
+  `build_reference()` 另回 `teach_steps_lang` / `teach_steps_source`。
+- **只有答對才前進**（`tutor_driver.grade_walkthrough_answer`）：先看 `common_errors`、
+  再看答案鍵、最後才看卡住（語氣遲疑但答對要算對）。是／否題只看開頭表態
+  （「不是，x₂-x₁<0」不因含「是」而算對；「是，因為…」的完整解釋也不因比不到單字而算錯）；
+  `\ge`/`\geq`/`≥`/`>=` 與正／負／非負／非正、遞增／單調不減統一正規化。
+- **教學輪改為確定性模板、完全不呼叫生成模型**（本輪最大的行為改變）：
+  「第 i/n 步：{explain}\n\n確認問題：{check}」。內容本來就是預寫的，讓模型包裝實測換來
+  同一步逐字重講、一次講掉好幾步、把確認問題換掉（答案鍵無從比對）。
+  副作用是**弱點 #17 的殘留成本一併消失**：教學輪原本每輪最多 4 次重生成
+  （守門該段 12 → 45 分鐘），現在是 0 次。
+- **語言鎖定 `walk_lang` ＋ presented-step 評分**：`_strip_language_neutral_math()`
+  在語言判定前剝除 `$…$`／`$$…$$`／`\(…\)`／`\[…\]`／LaTeX 指令／裸算式；教學期間
+  `step()` 不再重判語言；評分對象是 `walk_presented_step`（上一輪實際呈現那一步），
+  不是依當下語言重新取 `steps[walk_idx]`。**兩層缺一不可**。
+- **「要證明：…」不再被當成交稿**：`_DRAFT_RE` 加反向閘（要／需／欲／待／所），
+  教學期間另走專用路由（只有 `_EXPLICIT_REVIEW_RE` 或整則以「證明：」開頭才進 review）。
+- **審閱無缺漏 → 確定性收尾**：後盾回報 `gaps == []` 時直接用 `REVIEW_PASS` 模板並
+  `done_closed=True`，不再讓說話模型自由發揮（實測會憑空發明缺漏、或確認完成後又追問
+  「下一步該從哪裡下手」）。另加 `terminology` 守衛：題目沒寫 strictly、學生已寫
+  「單調不減」，助教卻還在 increasing／nondecreasing 之間糾結 → 先帶慣例重生成一次，
+  仍糾結就走確定性收尾。**術語慣例（未寫 strictly 的 increasing ＝ 單調不減）四處一致**：
+  答案正規化、`PHASE_INSTRUCTIONS["review"]`（中英）、`auto_reference.VERIFIER_SYSTEM`
+  ／`SEGMENTER_SYSTEM`、`review_backstop.CRITIC_SYSTEM`——只改一處會讓學生寫對卻被判缺漏。
+- **明說卡住的 opener 計為第一次卡住**（自動預設開場白不計），且記在**生成之後**——
+  首輪沒有「上一個問題」可拆，等級 1 的指示在那裡是空話，影響的是下一輪的等級。
+
+### 兩處刻意偏離交接文件（已驗證的取捨）
+
+1. **不加 `TEACH_STEPS_VERIFIER_SYSTEM`（第二個 LLM verifier）**：沿用 LADDER 的取捨——
+   多一次思考型呼叫要多等最長 300 秒，而它擋不掉的錯（答案鍵與問題語意不合）正是它
+   最容易誤判的地方；交接文件自己也寫「列出任何 issue 就安全拒絕」，那會把品質較好的
+   SEGMENTER 輸出換成語法保底。改由確定性驗收 ＋ 下面的重試上限把關。
+2. **加了重試上限 `_MAX_WALK_RETRY=2`**：交接文件的「答錯或卡住都留在同一步」在
+   答案鍵寫壞時會把學生**永遠**困在那一步（答案鍵是自動生成、無人工審閱）。
+   超過上限即揭示 `expected_answer` 並前進。第一次答錯仍然留在原步，驗收清單不受影響。
+
+### 完整守門結果（`2026-08-07T093007_11ab1ae.json`，exit 0）與它抓到的三件事
+
+25 項硬性指標全 ≥ 基準，多項上升（`judge_math_ok_zh` 0.9038→0.9423、`judge_score_zh`
+0.8192→0.8577、`judge_s2_catch_en` 0.7857→0.8571、`judge_altmethod` 中英雙雙 0.8333→1.0）。
+Tier 1/2 逐字比對 **103/104 相同**——唯一差異 `X1/S2/zh` 已查明：該題學生嘗試以
+「…由數學歸納法得證。」結尾，命中 `_CLAIM_DONE_RE` 走 **review**，正好吃到新加的術語慣例句
+（兩版指的是同一個缺漏）。**所以 judge_* 的上升是評審雜訊，不可當成修復有效的證據。**
+
+真正的收穫來自**人工讀對話**（`render_transcripts.py` 產出的 markdown），數字全綠但內容有問題：
+
+1. **教學輪重講逐字重複（我自己引進的退化，中英兩場重現，已修）**：改成確定性模板時
+   順手拿掉了舊的 `WALKTHROUGH_RETRY_NOTE`，於是「重講」＝把同一段原封不動再貼一次。
+   M1 中英兩場 `guidance` 都被評 1 分，英文那場學生本人寫「Repeating it doesn't make it
+   any clearer」。修法：**首次呈現維持模板、重講輪才叫模型換說法**，確認問題仍由程式附上
+   （答案鍵才比得到）；換不出新說法（difflib ≥0.9）或不在線就退回模板並補上該步答案——
+   保證「連續兩則教學回覆不逐字相同」。
+2. **句級保底的答案鍵挑到句尾括號裡的附帶條件（已修）**：A6/zh 的第一步標準答案被訂成
+   `$n\ge 2$` 而非關鍵式 $2^n\ge\binom{n}{2}$，學生答對主關係式反而判錯。
+   `_fallback_expected` 改取**最長**的關係式（句尾常掛括號補充條件）。
+3. **重講時推託「你自己去查」（已修）**：探針重跑實測抓到「這題的關鍵是…你自己查一下
+   二項式展開就知道了」。逐步教學是提示梯用盡後的最後手段，這時推託等於放棄教學 →
+   `_REFUSE_TEACH_RE` 命中即視為重講失敗，退回模板＋答案。只作用於教學重講輪。
+
+修復後單獨重跑 walkthrough 探針（真模型，中英）：**相鄰逐字重複對 2 → 0**、
+`walkthrough_*` 進入／收尾仍為 True。紀錄在 `regression_scores/2026-08-07_walkthrough_recheck.json`。
+> 教訓（延續 `test_phase_routing.py` 的 V4 與 LADDER 那輪）：**硬性指標全綠不等於教得好。**
+> `walkthrough_*` 只知道「有沒有進入、有沒有收尾」，`judge_dialogue_*` 早已因雜訊降為
+> advisory——這三件事沒有任何自動指標抓得到，全靠讀對話。故新增 `render_transcripts.py`，
+> 把每輪守門的對話轉成可讀 markdown，讓「人工讀」變成低成本可重複的動作。
+
+### 守門與驗證狀態
+
+- Tier 0 全過：`test_driver_unit.py` **303 條**、`test_phase_routing.py`（299 場回放、
+  5 條不變式違反 0）、`validate.py`、`test_dataset.py`；`regression_suite.py --quick` exit 0。
+- **`regression_suite.py` 的 walkthrough 探針必須跟著改**：固定回「我懂了」在新規則下
+  是**答錯**（留在同一步），`walkthrough_zh/en` 這兩個硬性指標會從 1.0 掉到 0.5。
+  已改為回「上一輪實際呈現那一步的 `expected_answer`」；`eval_svt_e2e.py` 同步
+  （台詞用 `None` 表示「回答當前步驟的標準答案」）。
+- ⚠️ **本批改動會改變生成行為，不像前幾批可證明對固定探針零影響**：`PHASE_INSTRUCTIONS
+  ["review"]` 加了術語慣例（Tier 1/2 的 S1/S2/S3 不走 review，但 Tier 1b 多輪探針會走）、
+  審閱無缺漏改確定性收尾（Tier 1 全程 `backstop=False`，故只影響 Tier 3 與實際使用）。
+  **推送前需重跑一次完整守門**（GPU + agy，約 1.5hr）。
+- 未跑：`test_driver_phase.py`／`test_driver_integration.py`（需 GPU）、
+  `test_auto_reference.py`／`eval_svt_e2e.py`（需 Ollama）。
+
 ## 專案文件空間（Notion，2026-07-28）
 
 專案架構與決策紀錄已整理進 Notion，入口頁「蘇格拉底式高等數學證明引導助教」
@@ -757,6 +851,12 @@ E2E2「連續函數在閉區間有最大值」＝「波爾查諾-魏爾斯特拉
       跳轉至不一致收斂」（助教在子目標間跳躍，沒把一個走完）。另有延遲成本未解：
       walkthrough 每輪最多 4 次重生成，守門該段由 12 分鐘漲到 45 分鐘，
       **學生每輪等待同步變成 3–4 倍**，下輪應加每輪重生成次數上限。
+17b. ~~逐步教學「有回答就前進」：學生答錯照樣被推到下一步；中文＋長 LaTeX 的正確答案
+    會把 session 切成英文而被另一套步驟的答案鍵判錯；「要證明：…」被當成交完整草稿~~
+    → 已由 2026-08-07 的整合根治（見上方專節）。**殘留**：`expected_answer` 只有
+    確定性驗收（保證可評分、不保證數學語意對得準），品質需人工抽查；句級保底的問題
+    仍是「這一步得到的關鍵關係式是什麼？」這種語法式問法，教學價值低於通過驗收的
+    SEGMENTER 輸出。另外教學輪改成模板後**語氣固定**，這是拿語氣換可預測性的取捨。
 18. ~~備課管線不生成 `hint_ladder`，使用者自帶題目的等級 2 退化成通用指示、
     提早一輪掉進 walkthrough~~ → 已由 **LADDER 階段**根治（2026-08-06，見上方專節）。
     殘留：生成的梯只有確定性驗收（保證安全性，不保證品質），且守門照不到這條路徑；

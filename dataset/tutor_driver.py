@@ -28,9 +28,11 @@
     學生質疑時注入反省指示認真重檢自己。洩漏/防奉送/禁算式防護停用（無參考解可護），
     單問句與回問保底保留。
   * 逐步教學（walkthrough）：hint ladder 用盡後學生再度連卡兩次 → 自動進入。
-    每輪講解一個教學步驟（teach_steps，備課切分或保底段落切分）＋問確認小問題；
-    學生答不出同一步最多重講一次（更簡單說法）後前進；走完接回 writeup→review，
-    學生仍要自己寫出完整證明。此階段教學步驟允許寫式子（洩漏防護對步驟內容放行）。
+    每輪**確定性**輸出一個教學步驟＋一個確認問題（teach_steps，備課切分或句級保底），
+    完全不呼叫生成模型；學生答對（grade_walkthrough_answer 比對 expected_answer）才
+    前進，答錯或卡住留在同一步重講，超過重試上限才揭示答案並前進（答案鍵是自動生成的，
+    不能讓學生死鎖）。教學期間鎖定語言（walk_lang），評分對象是上一輪實際呈現的那一步。
+    走完接回 writeup→review，學生仍要自己寫出完整證明。
 
 用法：
   from tutor_driver import TutorDriver
@@ -105,11 +107,24 @@ _UNDERSTOOD_RE = re.compile(
     r"i understand now|now i understand|i (got|get) it( now)?|makes sense now|i see it now",
     re.I,
 )
+# 交草稿偵測。「證明：」前面若有「要／需／欲／待／所」＝學生在講「要證明什麼」
+# （逐步教學第一步的標準答案就長這樣），不是在交草稿——沒有這道反向閘，
+# 「要證明：對任意 a<b，有 f'(a)≤f'(b)」會被路由進 review，後盾若恰好回報無缺漏，
+# 助教會直接說「證明正確且完整，可以定稿」（實測案例）。
 _DRAFT_RE = re.compile(
-    r"證明[:：]|請幫我審閱|寫好了|"
-    r"here is my proof|my proof:|proof:|please review|i('| ha)ve written|i wrote (it|the|my) proof",
+    r"(?<![要需欲待所])證明[:：]|請幫我審閱|寫好了|"
+    r"here is my proof|my proof:|(?<!to )(?<!we )proof:|please review|"
+    r"i('| ha)ve written|i wrote (it|the|my) proof",
     re.I,
 )
+# 逐步教學期間的專用 review 路由（見 _detect_phase）：教學中學生的每一則訊息
+# 都是在回答確認問題，只有這兩種形態才算「我要交完整草稿了」。
+_EXPLICIT_REVIEW_RE = re.compile(
+    r"請幫我審閱|幫我看(一下|看)?(我的)?證明|我寫好了|寫完了|這是我(的)?完整證明|"
+    r"please review|here is my (complete |full )?proof|i('| ha)ve written (it|the|my) proof",
+    re.I,
+)
+_PROOF_SUBMISSION_START_RE = re.compile(r"^\s*(證明|proof)\s*[:：]", re.I)
 # 宣告完成偵測（弱點 #3，M4 教訓：口頭論證「聽起來完整」時助教傾向直接放行）。
 # 訊息含實質內容（≥80 字元）且宣告證完 → 當成交稿走 review＋審閱後盾逐步複核；
 # 短宣告（只喊「證完了」沒內容）不路由，交給一般流程請他把證明寫出來。
@@ -198,13 +213,27 @@ _ATTEMPT_RE = re.compile(
     re.I,
 )
 
-# 語言偵測：CJK 字元占比 <10% 判為英文（session 級，首則訊息決定）
+# 語言偵測：CJK 字元占比 <10% 判為英文（session 級，逐輪跟隨學生）
 _CJK_RE = re.compile(r"[一-鿿]")
+# 語言中立的數學片段：$…$、$$…$$、\(…\)、\[…\]、LaTeX 指令。
+# 只剝 $…$ 與 \command 不夠——實測「中文＋長 LaTeX」的正確回答（\(f'(x_2)-f'(x_1)
+# =f''(c)(x_2-x_1)\)）會把整串拉丁字母算進英文占比，session 當場切成英文。
+_LANGUAGE_MATH_RE = re.compile(
+    r"\$\$.*?\$\$|\$[^$]*\$|\\\(.*?\\\)|\\\[.*?\\\]|\\[A-Za-z]+", re.S)
+# 裸算式（沒有 $ 包起來、但含關係符的連續符號串）同樣語言中立。
+# 只吃不含空白也不含 CJK 的片段：吃了空白會把整句英文當算式剝掉、
+# 吃了 CJK 會連中文字一起刪掉（那正好反轉判定結果）。
+_BARE_MATH_RE = re.compile(r"[A-Za-z0-9\\'()\[\]{}^_|.,+\-*/]*[=<>≤≥≠]+"
+                           r"[A-Za-z0-9\\'()\[\]{}^_|.,+\-*/=<>≤≥≠]*")
+
+
+def _strip_language_neutral_math(text: str) -> str:
+    """剝除語言中立的數學內容，只留真正能判定語言的自然語言文字。"""
+    return _BARE_MATH_RE.sub(" ", _LANGUAGE_MATH_RE.sub(" ", text or ""))
 
 
 def detect_lang(text: str) -> str:
-    # LaTeX 數學片段與指令語言中立，先剝除再算 CJK 占比
-    text = re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", text)
+    text = _strip_language_neutral_math(text)
     chars = [c for c in text if not c.isspace()]
     if not chars:
         return "zh"
@@ -232,6 +261,8 @@ PHASE_INSTRUCTIONS = {
         "找到後挑最重要的一個，用一個問題指出、讓他自行修正；正確的步驟不要質疑；"
         "只有在完全沒有缺漏時才可確認完成——確認完成後就肯定收尾，"
         "不要拋出延伸問題、變形題或新題目（完成即收手）。"
+        "術語慣例：題目只寫「遞增」而未寫「嚴格遞增」時按單調不減理解，"
+        "學生寫「單調不減／非減少」是精確表述，不是缺漏，不要要求他改寫。"
     ),
     "closed": (
         "本輪指示：這道證明已經完成並確認過了。學生只是補充感想或反思，"
@@ -268,7 +299,10 @@ PHASE_INSTRUCTIONS_EN = {
         "mixed up, special cases not excluded, quantifier order errors. Pick the most important gap and "
         "point to it with one question so the student fixes it themselves; do not question correct "
         "steps; only confirm completion when there is no gap at all — and once you confirm completion, "
-        "close with the affirmation; do not pose extension questions, variants, or new problems."
+        "close with the affirmation; do not pose extension questions, variants, or new problems. "
+        "Terminology convention: when the problem says 'increasing' without 'strictly', read it as "
+        "nondecreasing; a student who writes 'nondecreasing' is being precise, not leaving a gap — "
+        "never ask them to reword it."
     ),
     "closed": (
         "This turn: the proof is already complete and confirmed. The student is only adding a remark or "
@@ -316,29 +350,55 @@ _CHALLENGE_RE = re.compile(
 )
 
 # ── 逐步教學（walkthrough：提示梯用盡仍卡住 → 一小步一確認地教）─────────────────
-WALKTHROUGH_INSTRUCTION = (
-    "本輪指示：學生提示用盡仍無法前進，進入逐步教學。把下面的教學步驟用自己的話講解清楚"
-    "（此輪允許寫出式子），講解完後只問下面的確認問題（可換句話說）。"
-    "不要問別的問題、不要要求學生自己想出這一步。\n教學步驟：{explain}\n確認問題：{check}"
+# 這一階段**不呼叫生成模型**，逐字由 teach_steps 組出來。理由：
+#   (1) 內容本來就是預寫的（設計鐵律：內容拿捏交給預寫內容，模型只負責語氣）——
+#       而這裡連語氣都不值得賭：實測模型會把同一步逐字重講三輪（弱點 #17）、
+#       會一次講掉好幾步、會把確認問題換成別的問題，使答案鍵無從比對。
+#   (2) 教學輪原本每輪最多 4 次重生成（守門該段 12 → 45 分鐘），而等在螢幕前的
+#       正是最需要幫助的那個學生。改成模板後教學輪的生成次數固定為 0。
+WALKTHROUGH_TEMPLATE = "第 {i}/{n} 步：{explain}\n\n確認問題：{check}"
+WALKTHROUGH_TEMPLATE_EN = "Step {i}/{n}: {explain}\n\nCheck: {check}"
+# 錯答／卡住後重講同一步時的前綴（walk_feedback），以及答案鍵用盡強制前進時的揭示句
+WALK_RETRY_WRONG = "剛才的回答還不是這一步要的答案，我們把這一步再看一次。"
+WALK_RETRY_WRONG_EN = ("That is not quite the answer this step is looking for — "
+                       "let's go through this step once more.")
+WALK_RETRY_STUCK = "沒關係，這一步我換個說法再講一次。"
+WALK_RETRY_STUCK_EN = "No problem — let me explain this step a different way."
+# 重講輪（walk_retry ≥ 1）唯一會用到生成模型的地方。第一次呈現用模板（格式與答案鍵
+# 必須固定），但**重講不能逐字重複**——2026-08-07 守門的 M1 中英兩場都栽在這裡：
+# 學生連說看不懂，助教把同一段文字原封不動再貼兩次，評審 guidance 給 1 分，
+# 學生本人在對話裡寫「Repeating it doesn't make it any clearer」。
+WALK_RETRY_INSTRUCTION = (
+    "本輪指示：學生沒聽懂下面這個教學步驟，你要用**完全不同的說法**再講一次。"
+    "可以打比方、代一個具體的小數字、或把步驟拆成更小的動作（此輪允許寫式子）。"
+    "只講這一個步驟，不要跳到下一步，不要問任何問題（問題由系統附上）。\n"
+    "教學步驟：{explain}"
 )
-WALKTHROUGH_INSTRUCTION_EN = (
-    "This turn: the student has exhausted the hints and still cannot proceed, so enter step-by-step "
-    "teaching. Explain the teaching step below clearly in your own words (writing formulas is allowed "
-    "this turn), and afterwards ask only the confirmation question below (you may paraphrase it). Do "
-    "not ask any other question and do not require the student to figure this step out themselves.\n"
-    "Teaching step: {explain}\nConfirmation question: {check}"
+WALK_RETRY_INSTRUCTION_EN = (
+    "This turn: the student did not understand the teaching step below. Explain it again in a "
+    "COMPLETELY different way — use an analogy, plug in a small concrete number, or break it into "
+    "smaller actions (formulas are allowed this turn). Cover only this one step, do not move on, "
+    "and do not ask any question (the system appends it).\n"
+    "Teaching step: {explain}"
 )
-WALKTHROUGH_RETRY_NOTE = (
-    "學生沒聽懂上一輪的講解。換一種更簡單的講法（打比方或用更小的具體例子）"
-    "把同一步驟再講一次，再問一次確認問題。"
+WALK_ANSWER_HINT = "這一步要的答案是：{answer}。"
+WALK_ANSWER_HINT_EN = "The answer this step is looking for is: {answer}."
+# 「你自己去查」型的推託：在一般引導輪還算把主導權還給學生，在**逐步教學的重講輪**
+# 是明確的失敗——學生的提示梯早就用盡、正是因為查不出來才走到這一步。
+# 實測案例（2026-08-07 探針重跑）：「這題的關鍵是「取二次項當下界」，你自己查一下
+# 二項式展開就知道了。」命中即視為重講失敗，退回模板並補上該步答案。
+_REFUSE_TEACH_RE = re.compile(
+    r"你自己(去)?(查|找|想|翻)|自己(查|翻)一下|請自行(查|參閱)|查(一下)?(課本|資料|網路)|"
+    r"look (it|that) up|go (and )?(read|check|look)|figure (it|that) out yourself",
+    re.I,
 )
-WALKTHROUGH_RETRY_NOTE_EN = (
-    "The student did not understand the previous explanation. Explain the same step again in a simpler "
-    "way (an analogy or a smaller concrete example), then ask the confirmation question again."
-)
-# 逐步教學保底切分時的英文確認問句
-_TEACH_CHECK_EN = "Can you restate the reasoning of this step in your own words?"
-_TEACH_CHECK_ZH = "這一步的推理你能自己複述一遍嗎？"
+WALK_REVEAL = "這一步的答案是：{answer}。我們接著看下一步。"
+WALK_REVEAL_EN = "The answer to that step is: {answer}. Let's move on to the next step."
+WALK_REVEAL_LAST = "這一步的答案是：{answer}。"
+WALK_REVEAL_LAST_EN = "The answer to that step is: {answer}."
+# 同一步最多重試幾次就強制前進（答案鍵是自動生成的、沒有人工審過，寫壞時
+# 不能讓學生永遠卡在那一步——這是「只有答對才前進」的安全閥）。
+_MAX_WALK_RETRY = 2
 
 # 收尾偵測：學生致謝或宣告完成 → 對話自然結束，回問保底整段停用
 # （雙語基準評審一致指出：學生已完成證明後任何形式的追問都是扣分項）。
@@ -367,6 +427,20 @@ _FALLBACK_QS_EN = (
 WRITEUP_NUDGE = " 那你能自己把完整的證明寫出來嗎？我來幫你審閱。"
 WRITEUP_NUDGE_EN = " Could you now write out the complete proof yourself? I'll review it for you."
 
+# 審閱通過的確定性收尾：後盾逐步複核回報「無缺漏」時直接用它，不再讓說話模型自由發揮。
+# 理由是實測的兩種失敗：憑空發明缺漏（「非減少和遞增等價嗎？」）與確認完成後又追問
+# 「下一步該從哪裡下手」。後盾說沒有缺漏，這一輪要說的話就沒有需要即興的空間。
+REVIEW_PASS = ("你的證明我已經對照逐步複核過了：每一步的依據都交代清楚，論證完整，"
+               "沒有缺漏。這份證明可以定稿了，做得很好。")
+REVIEW_PASS_EN = ("I've checked your proof step by step: every step is justified, the argument is "
+                  "complete, and there are no gaps. This proof is finished — well done.")
+
+# 術語守衛（弱點：說話模型會在正確證明上憑空挑起 increasing／nondecreasing 之爭）。
+# 題目沒寫 strictly、學生已寫「單調不減」，助教卻還在這兩個詞之間糾結＝假缺漏。
+_STRICT_MONO_RE = re.compile(r"嚴格(單調)?(遞增|遞減)|strictly (increasing|decreasing|monotone)", re.I)
+_NONDEC_TERM_RE = re.compile(r"單調不減|單調非減|非減少|不遞減|non-?decreasing", re.I)
+_INC_TERM_RE = re.compile(r"遞增|increasing", re.I)
+
 
 def is_stuck(student_text: str) -> bool:
     """學生回覆是否屬於「答不出來」。長回覆（有實質嘗試）不算卡住——
@@ -378,6 +452,93 @@ def is_stuck(student_text: str) -> bool:
     if detect_lang(t) == "en":
         return bool(_STUCK_EN_RE.search(t)) and len(t) <= 120
     return bool(_STUCK_RE.search(t)) and len(t) <= 60
+
+
+# ── 逐步教學的答案評分（確定性；答對才前進）──────────────────────────────────
+# 專案術語慣例：題目只寫「遞增／increasing」而未寫「嚴格／strictly」時按**單調不減**理解
+# （Rudin 的慣例）。三處必須一致：這裡的正規化、auto_reference 的 VERIFIER／SEGMENTER
+# prompt、review_backstop 的 CRITIC prompt。只改其中一處會讓學生寫對卻被判缺漏。
+_ANSWER_TERMS = (
+    (r"非負數?|不小於0|non-?negative", "NONNEG"),
+    (r"非正數?|不大於0|non-?positive", "NONPOS"),
+    (r"單調不減|單調非減|非減少|不遞減|non-?decreasing", "NONDEC"),
+    (r"嚴格(單調)?遞增|strictlyincreasing", "STRICTINC"),
+    (r"嚴格(單調)?遞減|strictlydecreasing", "STRICTDEC"),
+    (r"單調遞增|遞增|遞增函數|increasing", "NONDEC"),      # 未寫 strictly ⇒ 單調不減
+    (r"單調不增|遞減|decreasing", "NONINC"),
+    (r"正(?!確|在|式|是|規|常|好)數?|positive", "POS"),
+    (r"負(?!責)數?|negative", "NEG"),
+)
+_YES_RE = re.compile(r"^(是|對|沒錯|正確|會|有|yes|yeah|yep|true|correct|right)")
+_NO_RE = re.compile(r"^(不是|不對|否|沒有|不會|no|nope|not|false|incorrect)")
+
+
+def _answer_normalize(s: str) -> str:
+    """答案比對前的正規化：統一不等號寫法、去空白與裝飾、統一術語。"""
+    s = (s or "").lower()
+    for a, b in (("\\geq", "\\ge"), ("\\leq", "\\le"), ("\\neq", "\\ne"),
+                 ("≥", "\\ge"), ("≤", "\\le"), ("≠", "\\ne"),
+                 (">=", "\\ge"), ("<=", "\\le"), ("!=", "\\ne"),
+                 ("\\left", ""), ("\\right", ""), ("\\dfrac", "\\frac"),
+                 ("\\cdot", ""), ("\\,", ""), ("\\;", "")):
+        s = s.replace(a, b)
+    s = re.sub(r"[\s$，,。.、；;！!]", "", s)
+    for pat, tok in _ANSWER_TERMS:
+        s = re.sub(pat, tok, s)
+    return s
+
+
+def _yesno_kind(norm_expected: str) -> str | None:
+    """標準答案是不是「是／否」型；回傳 'yes'/'no'/None。"""
+    if _YES_RE.match(norm_expected) and len(norm_expected) <= 4:
+        return "yes"
+    if _NO_RE.match(norm_expected) and len(norm_expected) <= 5:
+        return "no"
+    return None
+
+
+def grade_walkthrough_answer(student_text: str, step: dict | None) -> str:
+    """逐步教學的確認問題判分 → 'correct' / 'incorrect' / 'stuck'。
+
+    順序刻意是「先看錯誤答案、再看正確答案、最後才看卡住」：
+    語氣遲疑但答對（「呃…應該是非負吧？」）該算對，不該因為聽起來像卡住而被扣一次。
+    步驟沒有答案鍵時退回舊行為（非卡住即算過）——答案鍵由 ensure_checkable_steps()
+    補齊，這條路徑只在直接呼叫本函式且步驟殘缺時才會走到。
+    """
+    text = (student_text or "").strip()
+    if not text:
+        return "stuck"
+    step = step or {}
+    expected = str(step.get("expected_answer") or "").strip()
+    accepted = [a for a in (step.get("accepted_answers") or []) if str(a).strip()]
+    if not expected and not accepted:
+        return "stuck" if is_stuck(text) else "correct"
+
+    norm = _answer_normalize(text)
+    for err in (step.get("common_errors") or []):
+        e = _answer_normalize(str(err))
+        if e and e in norm:
+            return "incorrect"
+
+    exp_norm = _answer_normalize(expected)
+    kind = _yesno_kind(exp_norm)
+    if kind:
+        # 是／否題只看開頭的表態：「不是，x2-x1<0」不能因為含「是」就算對，
+        # 「是，因為 x_2>x_1，所以 x_2-x_1>0」這種完整解釋也不能因為比不到單字就算錯。
+        head = re.sub(r"^[\s，,。.、！!？?]+", "", text.strip()).lower()
+        said_no = bool(_NO_RE.match(head))          # 「不是…」先判，否定詞優先
+        said_yes = not said_no and bool(_YES_RE.match(head))
+        if said_no or said_yes:
+            return "correct" if (kind == "yes") == said_yes else "incorrect"
+    for cand in [exp_norm] + [_answer_normalize(a) for a in accepted]:
+        if not cand:
+            continue
+        # 極短答案（「0」「是」）容易在長句裡偶然命中 → 要求整句本身就是短答
+        if len(cand) <= 2 and len(norm) > 12:
+            continue
+        if cand in norm:
+            return "correct"
+    return "stuck" if is_stuck(text) else "incorrect"
 
 
 def enforce_single_question(reply: str) -> str:
@@ -583,22 +744,99 @@ class TutorDriver:
         key = "hint_ladder_en" if self.lang == "en" else "hint_ladder"
         return self.problem.get(key) or self.problem.get("hint_ladder") or []
 
+    def _teach_lang(self) -> str:
+        """教學步驟該用哪種語言：walkthrough 進行中鎖定 walk_lang（見 step()）。"""
+        return self.state.get("walk_lang") or self.lang
+
     def _ensure_teach_steps(self) -> list:
-        """取得教學步驟：題目自帶 → Ollama 切分 → 確定性段落切分保底。"""
-        steps = self.problem.get("teach_steps")
-        if steps:
-            return steps
-        proof = self.problem["reference_proof"]
-        check_q = _TEACH_CHECK_EN if self.lang == "en" else _TEACH_CHECK_ZH
+        """取得教學步驟：題目自帶 → Ollama 切分 → 確定性句級保底；一律補齊答案鍵。
+
+        依語言分別取用／快取（teach_steps / teach_steps_en）。同一個 walk_idx 在
+        兩套語言的步驟表裡指向不同內容，所以取用的語言在教學期間必須是鎖定的——
+        否則學生用中文＋長 LaTeX 正確回答，session 一旦被誤判成英文，
+        評分對象就換成另一題的 expected_answer（Codex 交接文件的問題四）。
+        """
+        lang = self._teach_lang()
+        key = "teach_steps_en" if lang == "en" else "teach_steps"
+        steps = self.problem.get(key) or (
+            self.problem.get("teach_steps") if lang == "en" else None)
+        src_lang = self.problem.get("teach_steps_lang") or lang
+        if not steps:
+            proof = self.problem["reference_proof"]
+            try:
+                from auto_reference import (fallback_steps, segment_proof,
+                                            validate_teach_steps)
+                steps = segment_proof(self.problem["statement"], proof)
+                if not validate_teach_steps(steps):
+                    print("[SEGMENTER] 輸出或驗證未通過；改用可驗證的句級保底步驟。")
+                    steps = fallback_steps(proof, lang=src_lang)
+                    self.state["teach_steps_source"] = "fallback"
+                else:
+                    self.state["teach_steps_source"] = "segmenter"
+            except ImportError:                 # auto_reference 不在時的最後保底
+                paras = [p.strip() for p in re.split(r"\n\s*\n", proof) if p.strip()]
+                steps = [{"explain": p} for p in (paras or [proof])[:6]]
+                self.state["teach_steps_source"] = "paragraphs"
+            key = "teach_steps"                 # 生成出來的步驟語言＝參考解語言
         try:
-            from auto_reference import fallback_steps, segment_proof
-            steps = segment_proof(self.problem["statement"], proof) or fallback_steps(proof)
+            from auto_reference import ensure_checkable_steps
+            steps = ensure_checkable_steps(steps, lang=src_lang)
         except ImportError:
-            paras = [p.strip() for p in re.split(r"\n\s*\n", proof) if p.strip()]
-            steps = [{"explain": p, "check": check_q}
-                     for p in (paras or [proof])[:6]]
-        self.problem["teach_steps"] = steps
+            pass
+        self.problem[key] = steps
         return steps
+
+    def _walkthrough_explain(self, step: dict, en: bool) -> str | None:
+        """重講輪：請模型用不同說法再講同一步；失敗或講出來還是一樣就回 None。"""
+        tpl = WALK_RETRY_INSTRUCTION_EN if en else WALK_RETRY_INSTRUCTION
+        base = BASE_SYSTEM_EN if en else BASE_SYSTEM
+        sys_txt = (base.format(proof=self.problem["reference_proof"]) + "\n\n"
+                   + tpl.format(explain=step.get("explain", "")))
+        try:
+            text = self._raw_generate(
+                [{"role": "system", "content": sys_txt}] + self.messages,
+                self.max_new_tokens)
+        except Exception:
+            return None
+        # 問句由系統確定性附上：模型自己問的會變成第二個問題，也可能問到別的東西
+        text = " ".join(s for s in re.split(r"(?<=[。！？.!?])", text or "")
+                        if s.strip() and not _QMARK_RE.search(s)).strip()
+        if len(text) < 10 or _REFUSE_TEACH_RE.search(text):
+            return None                      # 推託「你自己去查」＝沒在教，當成重講失敗
+        prev = next((m["content"] for m in reversed(self.messages)
+                     if m["role"] == "assistant"), "")
+        import difflib
+        if difflib.SequenceMatcher(None, _normalize(text), _normalize(prev)).ratio() >= 0.9:
+            return None                      # 換了說法還是一樣 → 當成失敗，走下面的補救
+        return text
+
+    def _walkthrough_reply(self) -> str:
+        """逐步教學的回覆：一個步驟＋一個確認問題。
+
+        首次呈現完全確定性（格式與答案鍵必須固定）；**重講輪**才叫模型換個說法——
+        逐字重貼同一段是實測會被學生與評審一起打槍的失敗模式（M1 中英兩場）。
+        模型換不出新說法時（或不在線）退回模板，並補上這一步要的答案，
+        確保「連續兩則教學回覆不會逐字相同」這條不變式無論如何都成立。
+
+        同時記下「這一輪實際呈現的是哪一步」（walk_presented_*）——下一輪必須拿它
+        來評分，而不是依當下語言重新去取 steps[walk_idx]。
+        """
+        steps = self._ensure_teach_steps()
+        idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
+        step = steps[idx]
+        en = self._teach_lang() == "en"
+        tpl = WALKTHROUGH_TEMPLATE_EN if en else WALKTHROUGH_TEMPLATE
+        check = step.get("check", "")
+        explain = step.get("explain", "")
+        if self.state.get("walk_retry"):
+            explain = self._walkthrough_explain(step, en) or (
+                explain + " " + (WALK_ANSWER_HINT_EN if en else WALK_ANSWER_HINT).format(
+                    answer=str(step.get("expected_answer") or "").strip()))
+        body = tpl.format(i=idx + 1, n=len(steps), explain=explain, check=check)
+        lead = self.state.pop("walk_feedback", "")
+        self.state.update(walk_presented_step=step, walk_presented_idx=idx,
+                          walk_presented_step_id=step.get("step_id"))
+        return (lead + "\n\n" + body) if lead else body
 
     # ---- 生成 ----------------------------------------------------------------
     def _backstop_block(self) -> str:
@@ -652,14 +890,9 @@ class TutorDriver:
         phase_map = PHASE_INSTRUCTIONS_EN if en else PHASE_INSTRUCTIONS
         level_map = LEVEL_INSTRUCTIONS_EN if en else LEVEL_INSTRUCTIONS
         sys_txt = base.format(proof=self.problem["reference_proof"])
-        if phase == "walkthrough":               # 逐步教學：注入當前步驟
-            steps = self._ensure_teach_steps()
-            idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
-            walk_tpl = WALKTHROUGH_INSTRUCTION_EN if en else WALKTHROUGH_INSTRUCTION
-            instr = walk_tpl.format(**steps[idx])
-            if self.state.get("walk_retry"):
-                instr += "\n" + (WALKTHROUGH_RETRY_NOTE_EN if en else WALKTHROUGH_RETRY_NOTE)
-        elif phase in phase_map:                 # 階段指示優先於等級指示
+        # phase == "walkthrough" 不會走到這裡：教學輪由 _walkthrough_reply() 確定性產出，
+        # 完全不呼叫生成模型（見 WALKTHROUGH_TEMPLATE 的說明）。
+        if phase in phase_map:                   # 階段指示優先於等級指示
             instr = phase_map[phase]
             if phase in ("review", "rectify"):
                 instr += self._backstop_block()
@@ -740,9 +973,7 @@ class TutorDriver:
 
     def _generate(self, level: int) -> str:
         msgs = [{"role": "system", "content": self._system(level)}] + self.messages
-        # 教學輪要「講解＋確認問題」，給多一點生成空間
-        max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
-        return self._raw_generate(msgs, max_new)
+        return self._raw_generate(msgs, self.max_new_tokens)
 
     def _regen_budget_left(self) -> bool:
         """本輪「品質類」重生成的配額是否還有剩（安全閥，見 _MAX_REGEN_PER_TURN）。"""
@@ -753,12 +984,7 @@ class TutorDriver:
         self.state["_regens"] = self.state.get("_regens", 0) + 1
         stronger = self._system(level) + f"\n（注意：{note}）"
         msgs = [{"role": "system", "content": stronger}] + self.messages
-        max_new = self.max_new_tokens + (160 if self.state.get("phase") == "walkthrough" else 0)
-        text = self._raw_generate(msgs, max_new)
-        # 教學輪允許「講解＋確認問題」多問句結構，重生成也不可截斷
-        if self.state.get("phase") == "walkthrough":
-            return text
-        return enforce_single_question(text)
+        return enforce_single_question(self._raw_generate(msgs, self.max_new_tokens))
 
     def _allowed_equation_src(self) -> str:
         """等級 2 算式檢查的白名單來源：題目敘述＋當前提示＋學生說過的話。"""
@@ -877,16 +1103,76 @@ class TutorDriver:
             log.regenerated = True
         return reply
 
+    def _raises_mono_quibble(self, reply: str) -> bool:
+        """回覆是否在對一份已寫「單調不減」的正確證明糾結 increasing／nondecreasing。
+
+        四道閘同時成立才算：審閱輪、題目沒寫 strictly、學生草稿已用非嚴格說法、
+        回覆同時提到兩種說法且還在發問。任何一道不成立就放行——這道守衛擋的是
+        「憑空發明的術語缺漏」，不是真的術語錯誤（題目寫 strictly 時就該糾正）。
+        """
+        if self.state.get("phase") != "review" or self.is_peer():
+            return False
+        if _STRICT_MONO_RE.search(self.problem.get("statement", "")):
+            return False
+        draft = next((m["content"] for m in reversed(self.messages)
+                      if m["role"] == "user"), "")
+        return bool(_NONDEC_TERM_RE.search(draft)
+                    and _NONDEC_TERM_RE.search(reply) and _INC_TERM_RE.search(reply)
+                    and _QMARK_RE.search(reply))
+
+    def _terminology_guard(self, reply: str, level: int, log: TurnLog) -> str:
+        """假術語缺漏攔截：先請模型重寫（帶上慣例），仍糾結就改用確定性收尾。
+
+        走到最後那一步時，助教除了這個假缺漏之外沒挑出任何問題＝證明已經過關，
+        與既有的「審閱輪回覆無問句 ⇒ arm done_closed」是同一個判準。
+        """
+        if not self._raises_mono_quibble(reply):
+            return reply
+        log.guards.append("terminology")
+        en = self.lang == "en"
+        reply = self._regen(level, (
+            "Project convention: 'increasing' without 'strictly' means nondecreasing. The student's "
+            "wording is precise, not a gap. Do not raise this terminology point; if there is no other "
+            "gap, confirm the proof is complete." if en else
+            "本專案慣例：題目未寫「嚴格遞增」時，「遞增」即單調不減，學生寫「單調不減」"
+            "是精確表述、不是缺漏。不要再提這個術語問題；若沒有其他缺漏就確認證明完成。"))
+        log.regenerated = True
+        if self._raises_mono_quibble(reply):
+            log.guards.append("terminology_unresolved")
+            reply = REVIEW_PASS_EN if en else REVIEW_PASS
+            self.state["done_closed"] = True
+        return reply
+
     def _tutor_turn(self) -> str:
         level = min(self.state["stuck_count"], 2)
         phase = self.state.get("phase")
         en = self.lang == "en"
         peer = self.is_peer()
-        walkthrough = phase == "walkthrough"
+        walkthrough = phase == "walkthrough" and not peer
         self.state["_regens"] = 0          # 本輪重生成配額歸零（見 _MAX_REGEN_PER_TURN）
-        reply = self._generate(level)
-        if not walkthrough:                   # 教學輪允許「講解＋確認問題」多句結構
-            reply = enforce_single_question(reply)
+
+        # 逐步教學：確定性輸出，完全不經生成模型與各道重生成守衛
+        # （內容是預寫的教學步驟，本來就允許寫式子；問句就是該步的確認問題）。
+        if walkthrough:
+            reply = self._walkthrough_reply()
+            log = TurnLog(level=level, stuck_count=self.state["stuck_count"],
+                          guards=["walkthrough_step"])
+            self.state["turns"].append(log)
+            self.messages.append({"role": "assistant", "content": reply})
+            return reply
+
+        # 審閱通過：後盾逐步複核回報「無缺漏」→ 確定性收尾，不讓模型自由發揮
+        # （憑空發明缺漏、或確認完成後又追問下一步，實測都出現過）。
+        if not peer and phase == "review" and self.state.get("backstop_gaps") == []:
+            reply = REVIEW_PASS_EN if en else REVIEW_PASS
+            self.state["done_closed"] = True
+            log = TurnLog(level=level, stuck_count=self.state["stuck_count"],
+                          guards=["backstop", "review_pass"])
+            self.state["turns"].append(log)
+            self.messages.append({"role": "assistant", "content": reply})
+            return reply
+
+        reply = enforce_single_question(self._generate(level))
 
         # 階段保底：writeup_request 輪若模型沒請學生寫證明，直接用模板取代
         if phase == "writeup_request" and not _WRITEUP_OK_RE.search(reply):
@@ -911,6 +1197,8 @@ class TutorDriver:
                 "不該替整份論證掛保證。重寫：把你的看法明確標為不確定，並問學生他怎麼看。"))
             log.regenerated = True
 
+        reply = self._terminology_guard(reply, level, log)
+
         # 重複回問保底：與近 3 輪助教回覆相同 → 加強指示重生成一次（中英共用）。
         # 必須排在回問保底**之前**：排在後面時，這裡的重生成會把剛補上的保底問句
         # 整個蓋掉，最終回覆反而沒有問句（保底保證失效）。
@@ -921,19 +1209,8 @@ class TutorDriver:
                      "question that moves to the next step." if en else
                      "上一稿重複了你先前問過的問題。不要重複任何舊問題，針對學生最新訊息回應，"
                      "問一個推進到下一步的新問題。")
-            if walkthrough:
-                # 教學輪的內容由 teach_steps 決定：叫模型「不要重複」但注入的仍是同一個
-                # 步驟，幾乎不可能有幫助（計數 stub 實測每輪都白付一次生成）。跳過那次
-                # 勸說，直接走確定性補救——推進到下一個教學步驟重講。
-                # （teach_steps 此時已被 _system() 快取，不會再打 Ollama。）
-                log.guards.append("repeat_unresolved")
-                steps = self._ensure_teach_steps()
-                if self.state.get("walk_idx", 0) + 1 < len(steps):
-                    self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
-                    self.state["walk_retry"] = 0
-                    reply = self._regen(level, _note)
-                    log.regenerated = True
-            elif self._regen_budget_left():
+            # 教學輪不會走到這裡（確定性輸出、且重講同一步是刻意行為）
+            if self._regen_budget_left():
                 reply = self._content_guards(self._regen(level, _note), level, log)
                 log.regenerated = True
                 # 複驗：greedy 解碼下 system 只多一句提醒，重生成常常還是同一段話。
@@ -946,54 +1223,49 @@ class TutorDriver:
         if not peer and confirms_whole_proof_done(reply):
             self.state["done_closed"] = True
 
-        # 回問保底：引導輪/拒絕輪/同學輪/教學輪都必須以問題收尾；
+        # 回問保底：引導輪/拒絕輪/同學輪都必須以問題收尾；
         # 但學生已致謝/宣告完成 → 對話收尾，不強迫再問
+        # （教學輪不在此列：確認問題本來就是模板的一部分，不可能缺。）
         last_user = next((m["content"] for m in reversed(self.messages)
                           if m["role"] == "user"), "")
         # done_closed 後一律不硬補：證明已確認完成還被追問「下一步該從哪裡下手」是
         # 最突兀的扣分項（update.md 稽核）。closed 階段本就不補，這道是階段判定沒落在
         # closed（例如學生質疑而落回一般流程）時的保險。
-        needs_q = (walkthrough or peer
-                   or (level < 2 and phase in (None, "refuse_leak"))) \
+        needs_q = (peer or (level < 2 and phase in (None, "refuse_leak"))) \
             and not self.state.get("done_closed") \
             and not (phase is None and _DONE_RE.search(last_user))
         if needs_q and not _QMARK_RE.search(reply):
             log.guards.append("no_question")
-            if walkthrough:                   # 教學輪確定性補上該步的確認問題
-                steps = self._ensure_teach_steps()
-                idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
-                reply = reply.rstrip() + " " + steps[idx]["check"]
+            # 配額用盡就不再賭模型服從，直接走下面的確定性補救（保底句／交稿請求）
+            regen = self._regen(level, (
+                "Your previous draft had no question. Rewrite: it must end with one question guiding "
+                "the student to the next step." if en else
+                "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。"
+            )) if self._regen_budget_left() else ""
+            if _QMARK_RE.search(regen):
+                reply = self._content_guards(regen, level, log)
+                log.regenerated = True
             else:
-                # 配額用盡就不再賭模型服從，直接走下面的確定性補救（保底句／交稿請求）
-                regen = self._regen(level, (
-                    "Your previous draft had no question. Rewrite: it must end with one question guiding "
-                    "the student to the next step." if en else
-                    "上一稿沒有問題句。重寫：最後必須是一個引導學生思考下一步的問句。"
-                )) if self._regen_budget_left() else ""
-                if _QMARK_RE.search(regen):
-                    reply = self._content_guards(regen, level, log)
-                    log.regenerated = True
-                else:
-                    # 上一輪才剛補過保底句 → 這輪不再硬補（避免對話收尾時連輪追問）；
-                    # 其餘情況輪換措辭補上（不會連續出現同一句）。
-                    prev = self.state["turns"][-1].guards if self.state["turns"] else []
-                    if "fallback" not in prev:
-                        # 對話已深入、學生剛交出實質推導、助教又下了總評式肯定——
-                        # 這是「證明其實已走完，只是全程沒有交稿步驟」的樣子。補通用
-                        # 追問會答非所問，改請他交稿（三道閘一起才算，避免 mid-proof
-                        # 的單步肯定被誤判成整份完成）。
-                        if (len(self.messages) >= 6
-                                and len(last_user.strip()) >= 80
-                                and _ENDORSE_RE.search(reply)):
-                            log.guards.append("writeup_nudge")
-                            reply = reply.rstrip() + (WRITEUP_NUDGE_EN if en else WRITEUP_NUDGE)
-                            self.state["writeup_asked"] = True
-                        else:
-                            log.guards.append("fallback")
-                            pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
-                            i = self.state.get("fb_idx", 0)
-                            reply = reply.rstrip() + pool[i % len(pool)]
-                            self.state["fb_idx"] = i + 1
+                # 上一輪才剛補過保底句 → 這輪不再硬補（避免對話收尾時連輪追問）；
+                # 其餘情況輪換措辭補上（不會連續出現同一句）。
+                prev = self.state["turns"][-1].guards if self.state["turns"] else []
+                if "fallback" not in prev:
+                    # 對話已深入、學生剛交出實質推導、助教又下了總評式肯定——
+                    # 這是「證明其實已走完，只是全程沒有交稿步驟」的樣子。補通用
+                    # 追問會答非所問，改請他交稿（三道閘一起才算，避免 mid-proof
+                    # 的單步肯定被誤判成整份完成）。
+                    if (len(self.messages) >= 6
+                            and len(last_user.strip()) >= 80
+                            and _ENDORSE_RE.search(reply)):
+                        log.guards.append("writeup_nudge")
+                        reply = reply.rstrip() + (WRITEUP_NUDGE_EN if en else WRITEUP_NUDGE)
+                        self.state["writeup_asked"] = True
+                    else:
+                        log.guards.append("fallback")
+                        pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
+                        i = self.state.get("fb_idx", 0)
+                        reply = reply.rstrip() + pool[i % len(pool)]
+                        self.state["fb_idx"] = i + 1
 
         # 同學模式首輪：確定性補上誠實聲明（不賭模型自己說）
         if peer and not any(m["role"] == "assistant" for m in self.messages):
@@ -1014,6 +1286,12 @@ class TutorDriver:
         # 記為已用 → 提示被消耗但學生從未看到；更糟的是 walkthrough 的進入條件是
         # ladder_idx >= 梯長，一串糾錯輪就能把梯吃光、讓學生一條提示都沒拿到就被推進
         # 逐步教學（等於跳過分級引導直接開始講解）。
+        # 逐步教學最後一步答錯時的答案揭示（_walkthrough_transition 留下的）。
+        # 補在**所有守衛之後**：這句是 driver 用 teach_steps 組出來的，內容本來就與
+        # 參考解重疊，放在守衛之前會被洩漏防護判為抄參考解而整段重生成掉（實測）。
+        if phase == "writeup_request" and self.state.get("walk_feedback"):
+            reply = self.state.pop("walk_feedback") + " " + reply
+
         if level == 2 and phase is None and not peer:
             self.state["ladder_idx"] += 1     # 下次再進等級 2 用下一條提示
             # ⚠️ 這裡曾把 stuck_count 歸零（「給過想法後重新計數」）。對**恢復的**學生
@@ -1030,6 +1308,15 @@ class TutorDriver:
         if self.is_peer():                    # 同儕沒有階段機，只偵測質疑
             self.state["phase"] = ("peer_reflect"
                                    if _CHALLENGE_RE.search(student_text) else None)
+            return
+        if self.state.get("walk_active"):
+            # 逐步教學期間，學生說的每一句預設都是在回答當前步驟的確認問題。
+            # 只有兩種形態算「我要交完整草稿」：明說請你審閱，或整則以「證明：」開頭。
+            # 這道專用路由是必要的——第 1 步的標準答案常常長成「要證明：對任意 a<b…」，
+            # 走一般 _DRAFT_RE 會被當成交稿，教學就這樣被中斷（Codex 交接文件的問題六）。
+            self.state["phase"] = ("review" if (
+                _EXPLICIT_REVIEW_RE.search(student_text)
+                or _PROOF_SUBMISSION_START_RE.search(student_text)) else "walkthrough")
             return
         if _DRAFT_RE.search(student_text):
             self.state["phase"] = "review"
@@ -1066,20 +1353,58 @@ class TutorDriver:
         else:
             self.state["phase"] = None
 
+    def _clear_presented(self) -> None:
+        for k in ("walk_presented_step", "walk_presented_idx", "walk_presented_step_id"):
+            self.state.pop(k, None)
+
     def _walkthrough_transition(self, student_text: str) -> None:
-        """逐步教學狀態機：進入 / 重講 / 前進 / 收尾（交草稿隨時可打斷進審閱）。"""
+        """逐步教學狀態機：進入 / 重講 / 前進 / 收尾（交草稿隨時可打斷進審閱）。
+
+        只有**答對**才前進（grade_walkthrough_answer）；答錯或卡住留在同一步重講。
+        評分對象是「上一輪實際呈現的那一步」（walk_presented_step），不是依當下語言
+        重新取 steps[walk_idx]——步驟表若因語言切換而換了一套，後者會拿另一題的
+        標準答案去評分（Codex 交接文件的問題四，實測會把正確答案判錯）。
+        """
         if self.state.get("walk_active"):
             if self.state.get("phase") == "review":   # 學生交草稿 → 結束教學進審閱
                 self.state["walk_active"] = False
+                self.state.pop("walk_lang", None)
+                self._clear_presented()
                 return
             steps = self._ensure_teach_steps()
-            if self._is_stuck_now(student_text) and not self.state.get("walk_retry"):
-                self.state["walk_retry"] = 1          # 同一步換簡單說法重講一次
-            else:
+            idx = min(self.state.get("walk_idx", 0), len(steps) - 1)
+            presented = self.state.get("walk_presented_step") or steps[idx]
+            en = self._teach_lang() == "en"
+            verdict = grade_walkthrough_answer(student_text, presented)
+            if verdict == "correct":
                 self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
                 self.state["walk_retry"] = 0
+                self.state.pop("walk_feedback", None)
+                self._clear_presented()
+            else:
+                retry = self.state.get("walk_retry", 0) + 1
+                self.state["walk_retry"] = retry
+                if retry > _MAX_WALK_RETRY:
+                    # 安全閥：答案鍵是自動生成、沒有人工審過的，寫壞時不能讓學生
+                    # 永遠困在同一步——揭示標準答案後帶他往下走。
+                    answer = str(presented.get("expected_answer") or "").strip()
+                    last = self.state.get("walk_idx", 0) + 1 >= len(steps)
+                    tpl = ((WALK_REVEAL_LAST_EN if en else WALK_REVEAL_LAST) if last
+                           else (WALK_REVEAL_EN if en else WALK_REVEAL))
+                    self.state["walk_feedback"] = tpl.format(answer=answer) if answer else ""
+                    self.state["walk_idx"] = self.state.get("walk_idx", 0) + 1
+                    self.state["walk_retry"] = 0
+                    self._clear_presented()
+                elif verdict == "stuck":
+                    self.state["walk_feedback"] = WALK_RETRY_STUCK_EN if en else WALK_RETRY_STUCK
+                else:
+                    self.state["walk_feedback"] = WALK_RETRY_WRONG_EN if en else WALK_RETRY_WRONG
             if self.state["walk_idx"] >= len(steps):  # 教完 → 請學生自己寫證明
                 self.state["walk_active"] = False
+                self.state.pop("walk_lang", None)
+                self._clear_presented()
+                # walk_feedback 刻意不清：最後一步答錯時的答案揭示還沒說出口，
+                # 由下一輪（writeup_request）帶出去，否則那一步的答案就這樣消失了。
                 self.state["phase"] = "writeup_request"
                 self.state["writeup_asked"] = True
             else:
@@ -1091,8 +1416,11 @@ class TutorDriver:
         if (self.state["stuck_count"] >= 2
                 and self.state["ladder_idx"] >= ladder_len
                 and self.state.get("phase") is None):
+            # 進入時鎖定語言：教學期間 session 語言不再跟著學生訊息跑，
+            # 否則同一個 walk_idx 會在中英兩套步驟表之間跳來跳去。
             self.state.update(walk_active=True, walk_idx=0, walk_retry=0,
-                              phase="walkthrough", stuck_count=0)
+                              phase="walkthrough", stuck_count=0, walk_lang=self.lang)
+            self._clear_presented()
 
     # ---- session 快照（逐輪 CLI 每輪都是新行程，需跨行程還原）------------------
     def dump_state(self) -> dict:
@@ -1124,6 +1452,7 @@ class TutorDriver:
     def start(self, opener: str | None = None) -> str:
         # session 語言：有 opener 依 opener 判定，否則依題目陳述
         self.state["lang"] = detect_lang(opener if opener else self.problem["statement"])
+        user_opener = opener
         if self.lang == "en":
             opener = opener or "I've read the problem but don't know how to start. Could you give me a first hint?"
             first = f"Problem: {self.problem['statement']}\n\n{opener}"
@@ -1134,15 +1463,27 @@ class TutorDriver:
         if not self.is_peer() and self.state.get("phase") in ("review", "rectify"):
             self._consult_backstop(first)
         self.messages = [{"role": "user", "content": first}]
-        return self._tutor_turn()
+        reply = self._tutor_turn()
+        # 使用者明確說出口的「我不知道怎麼開始」要計為第一次卡住；系統自動填的預設
+        # 開場白不計（否則每一場對話都無條件從等級 1 起跳）。沒有這一筆，
+        # 「開場就明說卡住」的學生等於白卡一輪，整條升級軌跡往後延一輪——
+        # 使用者自帶題目（提示梯短或沒有）尤其吃虧。
+        # 記在**生成之後**：首輪沒有「上一個問題」可拆，等級 1 的指示在這裡是空話；
+        # 影響的是下一輪的等級，不是這一輪的措辭。
+        if (user_opener and is_stuck(user_opener) and not self.is_peer()
+                and self.state.get("phase") is None):
+            self.state["stuck_count"] = 1
+        return reply
 
     def step(self, student_text: str) -> str:
         # 語言跟隨「學生」而非題目：學生訊息夠長且語言明確不同 → 切換 session 語言
         # （支援「英文題＋中文學生」等混合，以及對話中途換語言；短訊息不切以免誤判）。
         if "lang" not in self.state:             # 未經 start() 直接 step 時補判語言
             self.state["lang"] = detect_lang(student_text)
-        else:
-            _s = re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", student_text)
+        elif not self.state.get("walk_active"):
+            # 逐步教學進行中不重判語言（walk_lang 鎖定）：一則「中文＋長 LaTeX」的
+            # 正確回答就足以把 session 切成英文，接著整個步驟表與答案鍵一起換掉。
+            _s = _strip_language_neutral_math(student_text)
             if len([c for c in _s if not c.isspace()]) >= 12:
                 self.state["lang"] = detect_lang(student_text)
         # #12：對話中途自然證完、助教上一則親口確認整個證明完成 → arm done_closed，

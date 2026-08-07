@@ -14,9 +14,10 @@ except Exception:
     pass
 
 from tutor_driver import (
-    PHASE_INSTRUCTIONS, TutorDriver, enforce_single_question, gives_new_equation,
-    is_spoonfeeding, is_stuck, leaks_reference, load_problems_with_ladders,
-    _FALLBACK_QS, _FALLBACK_QS_EN,
+    PHASE_INSTRUCTIONS, REVIEW_PASS, TutorDriver, detect_lang, enforce_single_question,
+    gives_new_equation, grade_walkthrough_answer, is_overpraising, is_spoonfeeding,
+    is_stuck, leaks_reference, load_problems_with_ladders,
+    _FALLBACK_QS, _FALLBACK_QS_EN, _MAX_WALK_RETRY, _normalize,
 )
 
 FAIL = []
@@ -335,19 +336,39 @@ check("verdict fail 含 LaTeX escape 降級解析",
       (parse_verdict(r'思考後：{"verdict": "fail", "issues": ["$\frac{p+q}{2}$ 是有理數"]}')
        or {}).get("verdict") == "fail")
 check("verdict 垃圾輸出 → None", parse_verdict("我覺得這證明還行。") is None)
-s_ok = parse_steps('[{"explain": "先建立包含關係", "check": "Tv 在哪個集合？"},'
-                   '{"explain": "套秩零度定理", "check": "兩維度和是多少？"}]')
+s_ok = parse_steps('[{"explain": "先建立包含關係", "check": "Tv 在哪個集合？",'
+                   ' "expected_answer": "ker T", "common_errors": ["im T"]},'
+                   '{"explain": "套秩零度定理", "check": "兩維度和是多少？",'
+                   ' "expected_answer": "n"}]')
 check("teach_steps 可解析", s_ok is not None and len(s_ok) == 2 and s_ok[0]["check"])
+check("teach_steps 保留答案鍵與 step_id",
+      s_ok[0]["expected_answer"] == "ker T" and s_ok[0]["common_errors"] == ["im T"]
+      and s_ok[0]["step_id"] != s_ok[1]["step_id"])
 check("teach_steps 缺欄位 → None", parse_steps('[{"explain": "只有講解"}]') is None)
-fb = fallback_steps("第一段。\n\n第二段。\n\n第三段。")
-check("保底切分：三段 → 3 步且含通用確認問句",
-      len(fb) == 3 and "複述" in fb[0]["check"])
+fb = fallback_steps("第一段的推理由此開始。\n\n第二段接著推出關鍵不等式 a<b。\n\n第三段收束結論。")
+check("保底切分：3–6 步、每步都有 step_id 與 expected_answer",
+      3 <= len(fb) <= 6 and all(s["step_id"] and s["expected_answer"] for s in fb))
+_ONE_PARA = ("因為 f 在區間上連續且可微，由中值定理存在 c 使得 f(b)-f(a)=f'(c)(b-a)，"
+             "又 f'(c)>=0，所以 f(b)>=f(a)，故 f 單調不減。$\\blacksquare$")
+fb2 = fallback_steps(_ONE_PARA)
+check("單段完整證明仍切成 3–6 個小步驟（第一步不含整份證明）",
+      3 <= len(fb2) <= 6 and len(fb2[0]["explain"]) < len(_ONE_PARA) * 0.6)
+check("保底切分移除 QED 記號，不產生空答案鍵的最後一步",
+      "blacksquare" not in fb2[-1]["explain"] and fb2[-1]["expected_answer"])
+_TAILCOND = fallback_steps(
+    "對 $n\\ge 1$，由二項式定理 $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$（$n\\ge 2$）。"
+    "\n\n故 $0\\le \\dfrac{n}{2^n}\\le \\dfrac{2}{n-1}$。\n\n由夾擠定理得 $\\dfrac{n}{2^n}\\to 0$。")
+check("答案鍵取主關係式而非句尾括號裡的附帶條件（守門 A6/zh 實測踩過）",
+      _TAILCOND[0]["expected_answer"] != "$n\\ge 2$"
+      and "binom" in _TAILCOND[0]["expected_answer"])
 
 _walk_prob = {
     "id": "W1", "statement": "測試題", "reference_proof": "步驟甲。\n\n步驟乙。",
     "hint_ladder": ["提示一", "提示二"],
-    "teach_steps": [{"explain": "教步驟甲", "check": "甲懂了嗎？"},
-                    {"explain": "教步驟乙", "check": "乙懂了嗎？"}],
+    "teach_steps": [{"explain": "教步驟甲", "check": "甲的關鍵定理是什麼？",
+                     "expected_answer": "中值定理"},
+                    {"explain": "教步驟乙", "check": "乙得到什麼結論？",
+                     "expected_answer": "有界"}],
 }
 w = _StubDriver(tok=None, model=_StubModel(), problem=dict(_walk_prob))
 w.generated_levels = []
@@ -355,21 +376,45 @@ w.messages = [{"role": "user", "content": "題目…開始"}]
 w.state["ladder_idx"] = 2                      # 模擬提示梯已用盡
 w.step("我不知道，想不出來。")                  # 卡 1
 check("卡 1 尚未進入教學", not w.state.get("walk_active"))
-w.step("還是不會。")                            # 卡 2 → 進入 walkthrough
+r_w = w.step("還是不會。")                      # 卡 2 → 進入 walkthrough
 check("提示梯用盡＋連卡兩次 → 進入 walkthrough",
       w.state.get("walk_active") and w.state["phase"] == "walkthrough"
       and w.state["walk_idx"] == 0)
-check("walkthrough system 注入步驟與確認問題",
-      "教步驟甲" in w._system(0) and "甲懂了嗎" in w._system(0))
-w.step("聽不懂，不明白。")                       # 同步驟卡住 → 重講一次
+check("教學輪確定性輸出「一個步驟＋一個確認問題」（不經生成模型）",
+      "教步驟甲" in r_w and "甲的關鍵定理是什麼？" in r_w and "第 1/2 步" in r_w)
+check("教學輪記下本輪實際呈現的步驟（下一輪據此評分）",
+      w.state["walk_presented_idx"] == 0
+      and w.state["walk_presented_step"]["expected_answer"] == "中值定理")
+w.step("聽不懂，不明白。")                       # 卡住 → 同一步重講
 check("卡住 → 同一步重講（walk_idx 不動、retry=1）",
-      w.state["walk_idx"] == 0 and w.state["walk_retry"] == 1
-      and "更簡單的講法" in w._system(0))
-w.step("還是不太懂。")                           # 重講過仍卡 → 前進
-check("重講過仍卡 → 前進到步驟 2", w.state["walk_idx"] == 1)
-w.step("喔，甲我懂了！")                         # 答得出 → 前進；步驟用盡 → 請寫證明
+      w.state["walk_idx"] == 0 and w.state["walk_retry"] == 1)
+r_wrong = w.step("應該是夾擠定理吧。")           # 答錯 → 仍留在同一步
+check("答錯 → 留在同一步（不因為有回答就前進）", w.state["walk_idx"] == 0)
+check("答錯後的下一輪帶上修正提示、重講同一步",
+      "還不是這一步要的答案" in r_wrong and "第 1/2 步" in r_wrong)
+w.step("是中值定理。")                           # 答對 → 前進
+check("答對才前進到步驟 2", w.state["walk_idx"] == 1 and w.state["walk_retry"] == 0)
+w.step("這一步得到的是有界。")                    # 答對 → 步驟用盡 → 請寫證明
 check("步驟教完 → 轉 writeup_request 且教學結束",
       not w.state.get("walk_active") and w.state["phase"] == "writeup_request")
+
+# 安全閥：答案鍵是自動生成的，寫壞時不能讓學生永遠卡在同一步
+wS = _StubDriver(tok=None, model=_StubModel(), problem=dict(_walk_prob))
+wS.generated_levels = []
+wS.messages = [{"role": "user", "content": "題目…開始"}]
+wS.state.update(walk_active=True, walk_idx=0, walk_retry=0, phase="walkthrough",
+                walk_lang="zh", ladder_idx=2)
+wS._tutor_turn()
+for _ in range(_MAX_WALK_RETRY):
+    wS.step("我覺得是別的東西。")
+check(f"同一步連錯 {_MAX_WALK_RETRY} 次仍留在原步（重試上限內）", wS.state["walk_idx"] == 0)
+r_rev = wS.step("還是不知道。")
+check("超過重試上限 → 揭示答案並強制前進（答案鍵寫壞不得困住學生）",
+      wS.state["walk_idx"] == 1 and "中值定理" in r_rev)
+for _ in range(_MAX_WALK_RETRY + 1):          # 最後一步也連續答不出來 → 教完轉交稿
+    r_last = wS.step("還是不知道。")
+check("最後一步的答案揭示不得被守衛吃掉（要出現在轉交稿那一輪）",
+      wS.state["phase"] == "writeup_request" and "有界" in r_last)
 
 w2 = _StubDriver(tok=None, model=_StubModel(), problem=dict(_walk_prob))
 w2.generated_levels = []
@@ -711,11 +756,13 @@ op3._tutor_turn()
 check("正常肯定（很好／這一步是對的）→ 不觸發 overpraise",
       op3.messages[-1]["content"] == op3.first)
 
+check("後盾複核無誤時的『完全正確』→ is_overpraising 不成立（肯定是正當的）",
+      not is_overpraising("完全正確，每一步的依據都交代了。", []))
 op4 = _GuardStub(tok=None, model=_StubModel(), problem=probs["A2"])
 op4.first = "完全正確，每一步的依據都交代了。"
 op4.regen = "（不該被觸發的重生成稿）"
 op4.messages = [{"role": "user", "content": "證明：……（完整草稿）"}]
-op4.state["phase"] = "review"
+op4.state["phase"] = "rectify"            # review＋gaps==[] 改走確定性收尾（見 [28]）
 op4.state["backstop_gaps"] = []          # 後盾複核無誤 → 肯定是正當的
 op4._tutor_turn()
 check("後盾複核無誤時的『完全正確』→ 不觸發 overpraise",
@@ -1030,19 +1077,20 @@ class _AlwaysRepeatStub(TutorDriver):
 
 rr = _AlwaysRepeatStub(tok=None, model=_StubModel(),
                        problem=dict(probs["A6"], teach_steps=[
-                           {"explain": "步驟一", "check": "這步懂嗎？"},
-                           {"explain": "步驟二", "check": "那這步呢？"},
-                           {"explain": "步驟三", "check": "這樣清楚嗎？"}]))
+                           {"explain": "步驟一", "check": "這步的定理是？",
+                            "expected_answer": "夾擠定理"},
+                           {"explain": "步驟二", "check": "那這步得到什麼？",
+                            "expected_answer": "有界"},
+                           {"explain": "步驟三", "check": "結論是什麼？",
+                            "expected_answer": "收斂"}]))
 rr.state["lang"] = "zh"
-rr.state.update(phase="walkthrough", walk_active=True, walk_idx=0)
+rr.state.update(phase="walkthrough", walk_active=True, walk_idx=0, walk_lang="zh")
 rr.messages = [{"role": "user", "content": "題目…"},
                {"role": "assistant", "content": _LOOP},
                {"role": "user", "content": "還是不懂。"}]
-rr._tutor_turn()
-check("教學輪重生成後仍重複 → 推進 walk_idx（不原地打轉）",
-      rr.state.get("walk_idx") == 1)
-check("log.guards 記錄 repeat_unresolved",
-      "repeat_unresolved" in rr.state["turns"][-1].guards)
+r_walk = rr._tutor_turn()
+check("教學輪不再受重複偵測影響（內容確定性、重講同一步是刻意行為）",
+      "步驟一" in r_walk and rr.state.get("walk_idx") == 0)
 
 rr2 = _AlwaysRepeatStub(tok=None, model=_StubModel(), problem=probs["A6"])
 rr2.state["lang"] = "zh"
@@ -1094,8 +1142,16 @@ check("連卡兩次 → 仍升到等級 2（罐頭升級路徑不受影響）",
 esc_en = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
 esc_en.generated_levels = []
 esc_en.start(opener="I have no idea how to start. Could you give me a first hint?")
+check("明說卡住的 opener 計為第一次卡住（自帶題目才不會白卡一輪）",
+      esc_en.state["stuck_count"] == 1)
 esc_en.step("I don't know, I can't figure it out.")
-check("英文純困惑 → 仍計為卡住", esc_en.state["stuck_count"] == 1)
+check("英文純困惑 → 仍計為卡住（opener 已卡 1，這是第 2 次）",
+      esc_en.state["stuck_count"] == 2 and esc_en.state["turns"][-1].level == 2)
+esc_auto = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+esc_auto.generated_levels = []
+esc_auto.start()                                  # 系統自動填的預設開場白
+check("自動預設 opener 不計為卡住（否則每場都從等級 1 起跳）",
+      esc_auto.state["stuck_count"] == 0)
 
 print("[24] 持續卡關時支援等級必須單調遞增（弱點 #17 的根因）")
 # 2026-08-02 守門 M1 回放診斷：等級序列是 0→1→2→1→2→1→walkthrough。
@@ -1137,10 +1193,9 @@ check("學生恢復 → stuck_count 歸零、等級回到 0",
       rec2.state["stuck_count"] == 0 and rec2.generated_levels[-1] == 0)
 
 print("[25] 重生成成本控制（教學輪延遲：學生每輪等待）")
-# 計數 stub 實測：walkthrough 探針整段 22 次生成、7200 tokens，repeat+repeat_unresolved
-# 每輪都觸發＝每輪多付 2 次生成。但教學輪的內容由 teach_steps 決定，模型重複時叫它
-# 「不要重複」而注入的仍是同一個步驟，幾乎不可能有幫助——那次重生成是純浪費。
-# 有效的是確定性補救（推進到下一個教學步驟），故教學輪直接跳過「勸他別重複」那次。
+# 計數 stub 曾實測：walkthrough 探針整段 22 次生成、7200 tokens（repeat 每輪都觸發）。
+# 教學輪改成確定性模板後，這一段的生成次數固定為 0——內容本來就是預寫的教學步驟，
+# 讓模型改寫只換來重複迴圈與每輪多等數十秒（弱點 #17 的殘留成本）。
 
 
 class _CountingStub(TutorDriver):
@@ -1153,19 +1208,18 @@ class _CountingStub(TutorDriver):
 
 
 _TS = dict(probs["A6"], teach_steps=[
-    {"explain": f"步驟{i + 1}", "check": "這步懂嗎？"} for i in range(6)])
+    {"explain": f"步驟{i + 1}", "check": f"第 {i + 1} 步的重點是什麼？",
+     "expected_answer": f"重點{i + 1}"} for i in range(6)])
 cw = _CountingStub(tok=None, model=_StubModel(), problem=_TS)
 cw.n = 0
 cw.state["lang"] = "zh"
-cw.state.update(phase="walkthrough", walk_active=True, walk_idx=0)
+cw.state.update(phase="walkthrough", walk_active=True, walk_idx=0, walk_lang="zh")
 cw.messages = [{"role": "user", "content": "題目…"},
                {"role": "assistant", "content": "先觀察這個序列的行為。"},
                {"role": "user", "content": "還是不懂。"}]
-cw._tutor_turn()
-check(f"教學輪重複時只重生成一次（實得生成 {cw.n} 次）", cw.n <= 2)
-check("→ 仍推進 walk_idx（確定性補救保留）", cw.state.get("walk_idx") == 1)
-check("→ 仍記錄 repeat_unresolved（失敗仍可被量測）",
-      "repeat_unresolved" in cw.state["turns"][-1].guards)
+r_cw = cw._tutor_turn()
+check(f"教學輪完全不呼叫生成模型（實得生成 {cw.n} 次）", cw.n == 0)
+check("→ 仍輸出該步的講解與確認問題", "步驟1" in r_cw and "第 1 步的重點是什麼？" in r_cw)
 
 # 一般輪（非教學輪）保留「勸他別重複」的重生成——那裡換措辭是有意義的
 cg = _CountingStub(tok=None, model=_StubModel(), problem=probs["A6"])
@@ -1194,7 +1248,7 @@ print("[26] 空梯路徑：使用者自帶題目沒有 hint_ladder 時的升級�
 
 
 class _CapturingStub(_StubDriver):
-    """在「生成當下」擷取 system。
+    """在「生成當下」擷取 system；教學輪不生成，改記 (level, 'walkthrough', 模板回覆)。
 
     ⚠️ 不可在 step() 回傳後才讀 _system()：ladder_idx 在該輪結尾才遞增
     （tutor_driver.py 的 level==2 分支），事後讀會看到遞增後的狀態，
@@ -1206,12 +1260,19 @@ class _CapturingStub(_StubDriver):
         self.captured.append((level, self.state.get("phase"), self._system(level)))
         return super()._generate(level)
 
+    def _walkthrough_reply(self):
+        reply = super()._walkthrough_reply()
+        self.captured.append((min(self.state["stuck_count"], 2), "walkthrough", reply))
+        return reply
+
 
 _LAD_PROB = {
     "id": "L1", "statement": "測試題：證明某序列收斂。",
     "reference_proof": "步驟甲。\n\n步驟乙。",
-    "teach_steps": [{"explain": "教步驟甲", "check": "甲懂了嗎？"},
-                    {"explain": "教步驟乙", "check": "乙懂了嗎？"}],
+    "teach_steps": [{"explain": "教步驟甲", "check": "甲的定理是什麼？",
+                     "expected_answer": "夾擠定理"},
+                    {"explain": "教步驟乙", "check": "乙的結論是什麼？",
+                     "expected_answer": "收斂"}],
 }
 _STUCK_MSGS = ["我不知道，想不出來。", "還是不會。", "完全沒有頭緒。",
                "還是想不到，可以再提示一下嗎？"]
@@ -1354,8 +1415,12 @@ try:
         if system is _ar.VERIFIER_SYSTEM:
             return '{"verdict": "pass", "issues": []}'
         if system is _ar.SEGMENTER_SYSTEM:
-            return ('[{"explain": "先建立不等式", "check": "左邊是什麼？"}, '
-                    '{"explain": "再取極限", "check": "極限是多少？"}]')
+            return ('[{"explain": "先建立不等式", "check": "左邊是什麼？",'
+                    ' "expected_answer": "|a_n-L|"}, '
+                    '{"explain": "再取極限", "check": "極限是多少？",'
+                    ' "expected_answer": "0"}, '
+                    '{"explain": "收束結論", "check": "結論是什麼？",'
+                    ' "expected_answer": "數列收斂"}]')
         if system is _ar.LADDER_SYSTEM:
             return _LADDER_JSON
         return None
@@ -1364,7 +1429,21 @@ try:
     _res = _ar.build_reference("測試題敘述", k=1, verbose=False)
     check("build_reference：verified 且 LADDER 通過 → 結果帶 hint_ladder",
           _res["status"] == "verified" and _res.get("hint_ladder") == _OK)
-    check("build_reference：teach_steps 不受影響", len(_res["teach_steps"]) == 2)
+    check("build_reference：合格的 SEGMENTER 輸出直接採用（3 步、標記 segmenter）",
+          len(_res["teach_steps"]) == 3 and _res["teach_steps_source"] == "segmenter"
+          and _res["teach_steps_lang"] == "zh")
+
+    def _fake_chat_bad_steps(system, user, temperature, timeout=600):
+        if system is _ar.SEGMENTER_SYSTEM:      # 只有 2 步、沒有答案鍵 → 驗收不過
+            return ('[{"explain": "先建立不等式", "check": "左邊是什麼？"}, '
+                    '{"explain": "再取極限", "check": "極限是多少？"}]')
+        return _fake_chat(system, user, temperature, timeout)
+
+    _ar._chat = _fake_chat_bad_steps
+    _res_fb = _ar.build_reference("測試題敘述", k=1, verbose=False)
+    check("build_reference：SEGMENTER 驗收不過 → 改走句級保底且標記 fallback",
+          _res_fb["teach_steps_source"] == "fallback"
+          and all(s["expected_answer"] for s in _res_fb["teach_steps"]))
 
     def _fake_chat_bad_ladder(system, user, temperature, timeout=600):
         if system is _ar.LADDER_SYSTEM:
@@ -1377,6 +1456,254 @@ try:
           _res2["status"] == "verified" and "hint_ladder" not in _res2)
 finally:
     _ar._chat = _orig_chat
+
+print("[28] 逐步教學的答案評分、語言鎖定與審閱收尾（Codex 交接整合）")
+from auto_reference import ensure_checkable_steps, validate_teach_steps  # noqa: E402
+
+# ── 教學步驟驗收（確定性五道閘）────────────────────────────────────────────
+_GOOD_STEPS = [{"explain": "由中值定理", "check": "用哪個定理？", "expected_answer": "中值定理"},
+               {"explain": "差的符號", "check": "差是正是負？", "expected_answer": "非負"},
+               {"explain": "收束結論", "check": "結論是什麼？", "expected_answer": "f 單調不減"}]
+check("驗收：3 步、欄位齊全 → 通過", validate_teach_steps(_GOOD_STEPS))
+check("驗收：只有 2 步 → 退（相容解析，但不合教學規格）",
+      not validate_teach_steps(_GOOD_STEPS[:2]))
+check("驗收：缺 expected_answer → 退",
+      not validate_teach_steps([dict(s, expected_answer="") for s in _GOOD_STEPS]))
+check("驗收：一個 check 問兩件事 → 退（無法用單一答案鍵評分）",
+      not validate_teach_steps([dict(_GOOD_STEPS[0], check="用哪個定理？前提是什麼？")]
+                               + _GOOD_STEPS[1:]))
+check("驗收：問題與答案都雷同 → 退",
+      not validate_teach_steps([_GOOD_STEPS[0], dict(_GOOD_STEPS[0]), _GOOD_STEPS[2]]))
+_legacy = ensure_checkable_steps([{"explain": "由中值定理得 f(b)-f(a)=f'(c)(b-a)。",
+                                   "check": "用了哪個定理？"}])
+check("舊式步驟補齊：step_id／expected_answer 都補上，既有 check 不被改寫",
+      _legacy[0]["step_id"] and _legacy[0]["expected_answer"]
+      and _legacy[0]["check"] == "用了哪個定理？")
+
+# ── 答案評分 grade_walkthrough_answer ─────────────────────────────────────
+_YN = {"expected_answer": "是", "accepted_answers": [], "common_errors": []}
+check("正確的 yes/no 長答可通過",
+      grade_walkthrough_answer("是，因為 x_2>x_1，所以 x_2-x_1>0，是正數。", _YN) == "correct")
+check("反向不等式的否定答仍判錯",
+      grade_walkthrough_answer("不是，x_2-x_1<0。", _YN) == "incorrect")
+check("『正』不能通過『非負』（前者比後者強）",
+      grade_walkthrough_answer("正", {"expected_answer": "非負"}) == "incorrect")
+check("『非負』本身可通過『非負』",
+      grade_walkthrough_answer("應該是非負的", {"expected_answer": "非負"}) == "correct")
+check("函數單調非減題答『遞減』→ 判錯",
+      grade_walkthrough_answer("遞減", {"expected_answer": "單調不減"}) == "incorrect")
+check("術語慣例：未寫 strictly 的『遞增』等同『單調不減』",
+      grade_walkthrough_answer("f' 遞增", {"expected_answer": "單調不減"}) == "correct")
+_EQ = {"expected_answer": r"f'(x_2)-f'(x_1)=f''(c)(x_2-x_1)"}
+check("學生多寫等價式與理由仍通過（\\ge0／\\geq 0 等寫法統一）",
+      grade_walkthrough_answer(
+          r"存在 $c$，使得 $f'(x_2)-f'(x_1)=f''(c)(x_2-x_1)$，而 $f''(c)\geq 0$。", _EQ)
+      == "correct")
+check("答不出來 → stuck（不算答錯）",
+      grade_walkthrough_answer("完全不知道", _EQ) == "stuck")
+check("common_errors 命中 → incorrect（優先於其他判定）",
+      grade_walkthrough_answer("是夾擠定理", {"expected_answer": "中值定理",
+                                            "common_errors": ["夾擠定理"]}) == "incorrect")
+check("步驟沒有答案鍵 → 退回舊行為（非卡住即算過），不讓學生死鎖",
+      grade_walkthrough_answer("我想想", {"explain": "只有講解"}) == "correct")
+
+# ── 語言：LaTeX 不得把中文回答判成英文；教學期間語言鎖定 ────────────────────
+_ZH_LATEX = r"存在 \(c\in(x_1,x_2)\)，使得 \(f'(x_2)-f'(x_1)=f''(c)(x_2-x_1)\)。"
+check("中文＋\\(...\\) 公式 → 仍判為中文", detect_lang(_ZH_LATEX) == "zh")
+check("中文＋\\[...\\] 顯示公式 → 仍判為中文",
+      detect_lang(r"我得到 \[a_n \le M\] 這個結果，所以有界。") == "zh")
+check("中文＋裸算式 → 仍判為中文",
+      detect_lang("那就是 f(x_2)-f(x_1)=f'(c)(x_2-x_1) 這個式子。") == "zh")
+check("真正的英文訊息不受影響", detect_lang("I think the mean value theorem applies here.") == "en")
+
+_BI_PROB = {
+    "id": "B1", "statement": "測試題", "reference_proof": "步驟甲。\n\n步驟乙。",
+    "teach_steps": [{"explain": "中文步驟一", "check": "關鍵等式是什麼？",
+                     "expected_answer": r"f'(x_2)-f'(x_1)=f''(c)(x_2-x_1)"},
+                    {"explain": "中文步驟二", "check": "結論是什麼？",
+                     "expected_answer": "單調不減"}],
+    # 英文步驟刻意換一套順序：語言若在教學途中跳動，walk_idx 就會指到別題的答案鍵
+    "teach_steps_en": [{"explain": "EN step one", "check": "Is the difference positive?",
+                        "expected_answer": "Positive"},
+                       {"explain": "EN step two", "check": "What is the conclusion?",
+                        "expected_answer": "nondecreasing"}],
+}
+bl = _StubDriver(tok=None, model=_StubModel(), problem=dict(_BI_PROB))
+bl.generated_levels = []
+bl.messages = [{"role": "user", "content": "題目…開始"}]
+bl.state.update(ladder_idx=2, lang="zh")
+bl.step("我不知道，想不出來。")
+bl.step("還是不會。")
+check("進入 walkthrough 時鎖定語言 walk_lang", bl.state.get("walk_lang") == "zh")
+bl.step(_ZH_LATEX)
+check("中文＋長 LaTeX 的正確答案：語言不跳動、依中文步驟評分而前進",
+      bl.state.get("walk_lang") == "zh" and bl.lang == "zh"
+      and bl.state["walk_idx"] == 1)
+
+# 上一輪呈現的步驟才是評分對象：步驟表中途被換掉也不能拿新表的答案鍵評舊問題
+ps = _StubDriver(tok=None, model=_StubModel(), problem=dict(_BI_PROB))
+ps.generated_levels = []
+ps.messages = [{"role": "user", "content": "題目…開始"}]
+ps.state.update(walk_active=True, walk_idx=0, walk_retry=0, phase="walkthrough",
+                walk_lang="zh", ladder_idx=2)
+ps._tutor_turn()                                   # 呈現中文第 1 步
+ps.problem["teach_steps"] = [{"explain": "被換掉的步驟", "check": "？",
+                              "expected_answer": "完全不同的答案"}] * 2
+ps.step(r"$f'(x_2)-f'(x_1)=f''(c)(x_2-x_1)$")
+check("依上一輪實際呈現的 step 評分（步驟表被換掉仍判對）", ps.state["walk_idx"] == 1)
+
+# ── 「要證明：…」不得被當成交完整草稿 ──────────────────────────────────────
+tp = _StubDriver(tok=None, model=_StubModel(), problem=dict(_BI_PROB))
+tp.generated_levels = []
+tp.messages = [{"role": "user", "content": "題目…開始"}]
+tp.state.update(walk_active=True, walk_idx=0, walk_retry=0, phase="walkthrough",
+                walk_lang="zh", ladder_idx=2)
+tp._tutor_turn()
+tp.step("要證明：對任意 a<b，有 f'(a)≤f'(b)。")
+check("教學中「要證明：…」→ 維持 walkthrough，由當前步驟評分",
+      tp.state["phase"] == "walkthrough" and tp.state.get("walk_active"))
+tp.step("證明：如下……請幫我審閱。")
+check("教學中「證明：…請幫我審閱」→ 仍可中斷進 review",
+      tp.state["phase"] == "review" and not tp.state.get("walk_active"))
+check("離開教學時解除語言鎖定", tp.state.get("walk_lang") is None)
+
+d_tp = _StubDriver(tok=None, model=_StubModel(), problem=dict(_BI_PROB))
+d_tp.generated_levels = []
+d_tp.messages = [{"role": "user", "content": "題目…開始"}]
+d_tp.step("要證明：對任意 a<b，有 f'(a)≤f'(b)，這樣理解對嗎？")
+check("一般輪的「要證明：…」也不再被 _DRAFT_RE 當成交稿",
+      d_tp.state["phase"] != "review")
+
+# ── 審閱無缺漏 → 確定性收尾；術語守衛 ─────────────────────────────────────
+rp = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A2"])
+rp.generated_levels = []
+rp.review_reply = "（不該被使用的生成稿）"
+rp.messages = [{"role": "user", "content": "證明：……（完整草稿）"}]
+rp.state["phase"] = "review"
+rp.state["backstop_gaps"] = []
+r_rp = rp._tutor_turn()
+check("後盾回報無缺漏 → 直接用確定性收尾模板（不呼叫說話模型）", r_rp == REVIEW_PASS)
+check("收尾模板不帶任何問題", "？" not in r_rp and "?" not in r_rp)
+check("收尾即 arm done_closed（後續反思不再開新題）", rp.state.get("done_closed"))
+
+rg = _ReviewStub(tok=None, model=_StubModel(), problem=probs["A2"])
+rg.generated_levels = []
+rg.review_reply = "你寫的是有缺漏的，δ 的取法還要再想想，對嗎？"
+rg.messages = [{"role": "user", "content": "證明：……（完整草稿）"}]
+rg.state["phase"] = "review"
+rg.state["backstop_gaps"] = ["δ 的取法沒有同時控制兩個因子"]
+rg._tutor_turn()
+check("後盾找到缺漏 → 仍走說話模型引導修正（不誤觸收尾）",
+      rg.messages[-1]["content"] == rg.review_reply and not rg.state.get("done_closed"))
+
+
+class _MonoStub(_StubDriver):
+    """審閱輪憑空挑起 increasing／nondecreasing 之爭（重生成也照樣糾結）。"""
+    QUIBBLE = "你寫「單調不減」，但題目說的是遞增，這兩者一樣嗎？"
+
+    def _generate(self, level):
+        return self.QUIBBLE
+
+    def _regen(self, level, note):
+        return self.QUIBBLE
+
+
+_MONO_PROB = {"id": "MONO", "statement": "設 f 二階可微且 f''(x)≥0，證明 f' 遞增。",
+              "reference_proof": "由中值定理即得。"}
+mq = _MonoStub(tok=None, model=_StubModel(), problem=dict(_MONO_PROB))
+mq.generated_levels = []
+mq.messages = [{"role": "user", "content": "證明：由中值定理，f'(x_2)≥f'(x_1)，故 f' 單調不減。"}]
+mq.state["phase"] = "review"
+r_mq = mq._tutor_turn()
+check("題目沒寫嚴格遞增、學生已寫單調不減 → 攔截假術語缺漏",
+      "terminology" in mq.state["turns"][-1].guards and r_mq == REVIEW_PASS
+      and mq.state.get("done_closed"))
+
+ms = _MonoStub(tok=None, model=_StubModel(),
+               problem=dict(_MONO_PROB, statement="證明 f' 嚴格遞增。"))
+ms.generated_levels = []
+ms.messages = [{"role": "user", "content": "證明：…故 f' 單調不減。"}]
+ms.state["phase"] = "review"
+r_ms = ms._tutor_turn()
+check("題目寫了嚴格遞增 → 不攔截（那是真的術語缺漏）",
+      "terminology" not in ms.state["turns"][-1].guards and r_ms == _MonoStub.QUIBBLE)
+
+print("[29] 教學輪重講不得逐字重複（2026-08-07 守門 M1 中英兩場實測退化）")
+# 原始症狀：學生連說看不懂，助教把同一段教學文字原封不動再貼兩次，
+# 評審 guidance 給 1 分，學生本人在對話裡寫「Repeating it doesn't make it any clearer」。
+_RT_PROB = {
+    "id": "RT", "statement": "測試題", "reference_proof": "步驟甲。\n\n步驟乙。",
+    "teach_steps": [{"explain": "教步驟甲", "check": "甲的定理是什麼？",
+                     "expected_answer": "中值定理"},
+                    {"explain": "教步驟乙", "check": "乙的結論是什麼？",
+                     "expected_answer": "有界"}],
+}
+
+
+class _RetryStub(TutorDriver):
+    """重講時模型給得出新說法。"""
+    n = 0
+
+    def _raw_generate(self, msgs, max_new):
+        self.n += 1
+        return f"換個說法：想像把甲拆成很小的一步（第 {self.n} 次講）。"
+
+
+rt = _RetryStub(tok=None, model=_StubModel(), problem=dict(_RT_PROB))
+rt.n = 0
+rt.state.update(lang="zh", walk_lang="zh", walk_active=True, walk_idx=0,
+                walk_retry=0, phase="walkthrough", ladder_idx=2)
+rt.messages = [{"role": "user", "content": "題目…"}]
+first = rt._tutor_turn()
+check("首次呈現仍是確定性模板（0 次生成）", rt.n == 0 and "教步驟甲" in first)
+rt.step("完全看不懂。")
+second = rt.messages[-1]["content"]
+check("重講輪叫模型換個說法（1 次生成）", rt.n == 1 and "換個說法" in second)
+check("重講與上一則不逐字相同", _normalize(second) != _normalize(first))
+check("重講仍附上同一個確認問題（答案鍵才比得到）", "甲的定理是什麼？" in second)
+check("重講不推進步驟", rt.state["walk_idx"] == 0 and rt.state["walk_retry"] == 1)
+
+
+class _SameStub(TutorDriver):
+    """最壞情況：模型換不出新說法（或不在線）。"""
+    n = 0
+
+    def _raw_generate(self, msgs, max_new):
+        self.n += 1
+        return "教步驟甲"
+
+
+sm = _SameStub(tok=None, model=_StubModel(), problem=dict(_RT_PROB))
+sm.n = 0
+sm.state.update(lang="zh", walk_lang="zh", walk_active=True, walk_idx=0,
+                walk_retry=0, phase="walkthrough", ladder_idx=2)
+sm.messages = [{"role": "user", "content": "題目…"}]
+f1 = sm._tutor_turn()
+sm.step("完全看不懂。")
+f2 = sm.messages[-1]["content"]
+check("模型換不出新說法 → 退回模板但補上該步答案（仍不逐字相同）",
+      _normalize(f2) != _normalize(f1) and "中值定理" in f2)
+
+
+class _RefuseTeachStub(TutorDriver):
+    """重講時推託「你自己去查」——探針重跑實測抓到的模型失敗模式。"""
+
+    def _raw_generate(self, msgs, max_new):
+        return "這題的關鍵是「取二次項當下界」，你自己查一下二項式展開就知道了。"
+
+
+rf = _RefuseTeachStub(tok=None, model=_StubModel(), problem=dict(_RT_PROB))
+rf.state.update(lang="zh", walk_lang="zh", walk_active=True, walk_idx=0,
+                walk_retry=0, phase="walkthrough", ladder_idx=2)
+rf.messages = [{"role": "user", "content": "題目…"}]
+rf._tutor_turn()
+rf.step("完全看不懂。")
+r_rf = rf.messages[-1]["content"]
+check("重講推託「你自己去查」→ 不採用（提示梯早已用盡，這時推託等於放棄教學）",
+      "自己查" not in r_rf and "中值定理" in r_rf)
+check("一般引導輪不受這道守衛影響（只管教學重講輪）",
+      "自己查" in _RefuseTeachStub(tok=None, model=_StubModel(),
+                                  problem=dict(_RT_PROB))._generate(0))
 
 print()
 if FAIL:

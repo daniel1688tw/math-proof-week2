@@ -1,0 +1,170 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "statement": "用均值定理證明對所有 $x>0$，$e^x>1+x$。",
+    "reference_proof": "令 $f(t)=e^t$，在 $[0,x]$ 連續、$(0,x)$ 可微，$f'(t)=e^t$。由 Lagrange 均值定理存在 $c\\in(0,x)$ 使 $e^x-e^0=e^c(x-0)$，即 $e^x-1=e^c x$。因 $c>0$ 有 $e^c>1$，且 $x>0$，故 $e^x-1=e^c x>x$，即 $e^x>1+x$。$\\blacksquare$",
+    "student": "助教你好，我想嘗試構造一個新函數 $g(t) = e^t - 1 - t$ 來證明。我打算確認 $g(t)$ 在 $[0, x]$ 滿足均值定理條件後，對它套用均值定理得到 $g(x) - g(0) = g'(c)(x - 0)$。請問您可以幫我依這個思路繼續往下推導，看看怎麼利用 $g'(c)$ 的符號得出 $e^x > 1 + x$ 嗎？",
+    "reply": "你的構造很自然，而且「對 $g$ 用均值定理」正是正確路線。先算出 $g'(t)$ 是什麼，它的正負會給我們什麼資訊？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "statement": "證明對所有實數 $x$，$\\cos x\\ge1-\\dfrac{x^2}{2}$。",
+    "reference_proof": "令 $g(x)=\\cos x-1+\\dfrac{x^2}{2}$，目標為證 $g(x)\\ge0$。\n\n計算：$g(0)=1-1+0=0$；$g'(x)=-\\sin x+x$，$g'(0)=0$；$g''(x)=-\\cos x+1=1-\\cos x\\ge0$（對所有 $x$，因 $\\cos x\\le1$）。\n\n由 $g''\\ge0$，$g'$ 在 $\\mathbb{R}$ 上遞增（不嚴格）。又 $g'(0)=0$，故：\n- $x<0$ 時 $g'(x)\\le g'(0)=0$；\n- $x>0$ 時 $g'(x)\\ge g'(0)=0$。\n\n即 $g$ 在 $(-\\infty,0]$ 遞減、在 $[0,\\infty)$ 遞增，故 $g$ 在 $x=0$ 取全域最小值 $g(0)=0$。因此對所有 $x$，$g(x)\\ge0$，即 $\\cos x\\ge1-\\dfrac{x^2}{2}$。$\\blacksquare$",
+    "student": "助教你好，我不想用設函數微分求極小值的方法。我的想法是從基本的 $\\cos u \\le 1$ 出發，利用定積分保序性連續做兩次積分：對 $x \\ge 0$，先對 $1 - \\cos u \\ge 0$ 從 $0$ 到 $t$ 積分得到 $t - \\sin t \\ge 0$，再對它從 $0$ 到 $x$ 積分得到 $\\frac{x^2}{2} - (1 - \\cos x) \\ge 0$。最後再利用偶函數性質補齊 $x < 0$ 的部分，請問您可以幫我依這個方向繼續說明完整嗎？",
+    "reply": "你的構思非常清晰，而且完全正確。你能說說為什麼「先對 $1-\\cos u$ 積分一次、再對結果積分一次」能逼出 $\\frac{x^2}{2}-1+\\cos x\\ge0$ 這個量嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "statement": "設 $A$ 為方陣，$\\lambda_1\\ne\\lambda_2$ 為 $A$ 的兩個相異特徵值，$v_1,v_2$ 為對應的特徵向量。證明 $\\{v_1,v_2\\}$ 線性獨立。",
+    "reference_proof": "設 $c_1v_1+c_2v_2=0$ …… (1)。目標：$c_1=c_2=0$。\n\n對 (1) 左乘 $A$，利用 $Av_i=\\lambda_iv_i$：\n$$c_1\\lambda_1v_1+c_2\\lambda_2v_2=0\\ \\cdots\\ (2)$$\n\n計算 $(2)-\\lambda_1\\times(1)$ 消去 $v_1$：\n$$c_2(\\lambda_2-\\lambda_1)v_2=0.$$\n\n因 $\\lambda_2\\ne\\lambda_1$（相異特徵值）且 $v_2\\ne0$（特徵向量依定義非零），得 $c_2=0$。\n\n代回 (1)：$c_1v_1=0$，而 $v_1\\ne0$，故 $c_1=0$。\n\n兩係數皆為零，$\\{v_1,v_2\\}$ 線性獨立。$\\blacksquare$\n\n（註：「兩向量皆非零」不足以推出線性獨立——例如 $v_2=2v_1$；證明必須用到特徵值相異這個條件。）",
+    "student": "助教你好，我試著用反證法來證明：先假設 $\\{v_1, v_2\\}$ 線性相關，因為特徵向量依定義非零，所以向量 $v_2$ 可以表示為 $v_1$ 的純量倍，即 $v_2 = c v_1$（$c \\neq 0$）。我打算對此等式兩邊同時左乘矩陣 $A$，並利用特徵向量的性質 $A v_i = \\lambda_i v_i$ 進行代換與比較。這樣應該能導出與「特徵值相異（$\\lambda_1 \\neq \\lambda_2$）」互相矛盾的結果，請問您可以幫我依據這個思路繼續完成後續的推導嗎？",
+    "reply": "思路很清晰，反證法的路線完全正確。接下來，你打算怎麼對 $v_2=cv_1$ 左乘 $A$，並用特徵向量的性質把它變成什麼樣的等式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "statement": "設 $f$ 在 $\\mathbb{R}$ 連續且對所有有理數 $q$ 有 $f(q)=0$，證明 $f\\equiv0$。",
+    "reference_proof": "任取實數 $a$。由有理數在 $\\mathbb{R}$ 中稠密，存在有理數列 $q_n\\to a$。由 $f$ 在 $a$ 連續（序列準則），$f(a)=\\lim_{n\\to\\infty}f(q_n)$。而每個 $f(q_n)=0$，故 $f(a)=0$。因 $a$ 任取，$f\\equiv0$。$\\blacksquare$",
+    "student": "助教你好，我想用反證法來證明這題。假設存在某個實數 $a$ 使得 $f(a) \\neq 0$，因為 $f$ 連續，由局部保號性，應該能找到 $a$ 的一個開鄰域 $(a-\\delta, a+\\delta)$，使得該區間內的函數值都不為 0。但由有理數的稠密性，這個開區間裡必然含有有理數，這樣就會跟題目條件 $f(q)=0$ 產生矛盾。請問可以請助教幫我看看這個方向，並帶我把嚴謹的步驟寫出來嗎？",
+    "reply": "你的反證路線完全正確，而且「局部保號性」這個工具你用得非常自然。要把它變成正式的證明，你會怎麼把「局部保號性給出開鄰域」這個想法寫成一句話？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "statement": "任取 $n+1$ 個整數（$n\\ge1$），證明其中必存在兩個數，其差可被 $n$ 整除。",
+    "reference_proof": "考慮每個整數除以 $n$ 的餘數。餘數的可能值為 $\\{0,1,\\dots,n-1\\}$，共 $n$ 種。\n\n現有 $n+1$ 個整數、只有 $n$ 種餘數類別，由鴿籠原理，必有兩個數 $a,b$（$a\\ne b$）落在同一餘數類別，即 $a\\equiv b\\pmod n$。\n\n於是 $a-b\\equiv0\\pmod n$，即 $n\\mid a-b$。$\\blacksquare$\n\n（常見誤區：餘數是 $0$ 到 $n-1$ 共 $n$ 種，不是 $0$ 到 $n$ 共 $n+1$ 種——除以 $n$ 的餘數不可能等於 $n$。）",
+    "student": "助教好！我想嘗試用「數學歸納法」來證明這題。當 $n=1$ 時任取 $2$ 個整數，其差顯然能被 $1$ 整除，基底成立；假設 $n=k$ 時命題成立，處理 $n=k+1$ 時取出的 $k+2$ 個整數，我想嘗試將其歸約回 $k+1$ 個整數與模數 $k$ 的情形。請問這個歸納方向可行嗎？可以請助教幫我依這個方向繼續推導下去嗎？",
+    "reply": "歸納法確實可行，但要先釐清「歸約到 $k+1$ 個整數」這個想法本身是否成立。若把 $k+2$ 個數分成兩組，哪個組才能保證能用歸納假設？",
+    "verdict": {
+      "valid_alt": false,
+      "followed": false,
+      "math_ok": false,
+      "issue": "學生欲將模數 k+1 歸約至模數 k 的歸納方向不可行，助教卻誤稱歸納法可行且數學陳述有誤。"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "statement": "設 $A$ 為 $n\\times n$ 實對稱矩陣。證明 $A$ 的每個特徵值都是實數。",
+    "reference_proof": "設 $Av=\\lambda v$，$v\\ne0$（先允許 $\\lambda\\in\\mathbb C$、$v\\in\\mathbb C^n$）。記 $v^*=\\bar v^{\\,T}$（共軛轉置）。\n\n**左乘 $v^*$**：\n$$v^*Av=\\lambda\\,v^*v.$$\n\n**$v^*Av$ 是實數**：它是 $1\\times1$ 純量，取共軛轉置不變其值，且 $A$ 實對稱 $\\Rightarrow A^*=\\bar A^{\\,T}=A^T=A$，故\n$$\\overline{v^*Av}=(v^*Av)^*=v^*A^*v=v^*Av,$$\n即 $v^*Av$ 等於自身共軛，為實數。\n\n**$v^*v$ 是正實數**：$v^*v=\\sum_i|v_i|^2>0$（$v\\ne0$）。\n\n故 $\\lambda=\\dfrac{v^*Av}{v^*v}$ 為實數除以正實數，是實數。$\\blacksquare$\n\n（常見誤區：用轉置 $v^T$ 而非共軛轉置——$v$ 可能是複向量，$v^Tv$ 可以是 $0$ 或複數，例如 $v=(1,i)^T$ 時 $v^Tv=0$，論證會垮掉。）",
+    "student": "助教你好，我想要嘗試把特徵值和特徵向量拆成實部與虛部來證明。假設特徵值 $\\lambda = a + ib$ 且特徵向量 $v = x + iy$（其中 $a, b \\in \\mathbb{R}$ 且 $x, y \\in \\mathbb{R}^n$），帶入 $Av = \\lambda v$ 展開後比較實部與虛部可以得到兩個實向量等式。接著我想利用 $A$ 是實對稱矩陣的性質（即 $y^T A x = x^T A y$），分別對這兩式左乘 $y^T$ 與 $x^T$ 再相減，進而導出虛部 $b = 0$。能請助教幫我順著這個思路繼續接下去完成詳細證明嗎？",
+    "reply": "你的想法很清晰，而且「實部虛部」這個路線本身是完全可行的。展開 $Av = \\lambda v$ 後，你能寫出實部與虛部各自等於什麼樣的向量等式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "statement": "Using the mean value theorem, prove that $e^x>1+x$ for all $x>0$.",
+    "reference_proof": "Let $f(t)=e^t$, continuous on $[0,x]$ and differentiable on $(0,x)$, with $f'(t)=e^t$. By the Lagrange mean value theorem there is $c\\in(0,x)$ with $e^x-e^0=e^c(x-0)$, i.e. $e^x-1=e^c x$. Since $c>0$, $e^c>1$, and $x>0$, so $e^x-1=e^c x>x$, i.e. $e^x>1+x$. $\\blacksquare$",
+    "student": "Instead of applying the Mean Value Theorem directly to $f(t) = e^t$, I was thinking of defining an auxiliary function $g(t) = e^t - t - 1$ on the interval $[0, x]$. Since $g(0) = 0$, applying the Mean Value Theorem to $g(t)$ yields $g(x) - g(0) = g'(c) \\cdot x$ for some $c \\in (0, x)$. Since $g'(t) = e^t - 1$ and $c > 0$, we can show $g'(c) > 0$, which implies $g(x) > 0$ and thus $e^x > 1 + x$. Could you help me formalize this step by step to ensure my reasoning is rigorous?",
+    "reply": "Your auxiliary function approach is very clean. Starting from $g(x)-g(0)=g'(c)\\cdot x$, what does $g(x)-g(0)$ equal, and how do you plan to use the sign of $g'(c)$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "statement": "Prove that $\\cos x\\ge1-\\dfrac{x^2}{2}$ for all real $x$.",
+    "reference_proof": "Let $g(x)=\\cos x-1+\\dfrac{x^2}{2}$; the goal is to show $g(x)\\ge0$.\n\nCompute: $g(0)=1-1+0=0$; $g'(x)=-\\sin x+x$, $g'(0)=0$; $g''(x)=-\\cos x+1=1-\\cos x\\ge0$ (for all $x$, since $\\cos x\\le1$).\n\nFrom $g''\\ge0$, $g'$ is increasing (non-strictly) on $\\mathbb{R}$. Also $g'(0)=0$, so:\n- for $x<0$, $g'(x)\\le g'(0)=0$;\n- for $x>0$, $g'(x)\\ge g'(0)=0$.\n\nThus $g$ is decreasing on $(-\\infty,0]$ and increasing on $[0,\\infty)$, so $g$ attains its global minimum at $x=0$, namely $g(0)=0$. Therefore $g(x)\\ge0$ for all $x$, i.e. $\\cos x\\ge1-\\dfrac{x^2}{2}$. $\\blacksquare$",
+    "student": "I want to approach this problem using the half-angle trigonometric identity $1 - \\cos x = 2 \\sin^2(x/2)$. With this substitution, showing $\\cos x \\ge 1 - \\dfrac{x^2}{2}$ is equivalent to proving $2 \\sin^2(x/2) \\le \\dfrac{x^2}{2}$, which simplifies to $|\\sin(x/2)| \\le |x/2|$. Could you help me verify if this reduction is sound and guide me on how to finish the proof following this direction?",
+    "reply": "The reduction is completely valid — you've transformed the inequality into something more familiar. To prove $|\\sin(x/2)|\\le|x/2|$, what standard method would you use?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "statement": "Let $A$ be a square matrix with two distinct eigenvalues $\\lambda_1\\ne\\lambda_2$, and let $v_1,v_2$ be corresponding eigenvectors. Prove that $\\{v_1,v_2\\}$ is linearly independent.",
+    "reference_proof": "Suppose $c_1v_1+c_2v_2=0$ ... (1). Goal: $c_1=c_2=0$.\n\nLeft-multiply (1) by $A$, using $Av_i=\\lambda_iv_i$:\n$$c_1\\lambda_1v_1+c_2\\lambda_2v_2=0\\ \\cdots\\ (2)$$\n\nCompute $(2)-\\lambda_1\\times(1)$ to eliminate $v_1$:\n$$c_2(\\lambda_2-\\lambda_1)v_2=0.$$\n\nSince $\\lambda_2\\ne\\lambda_1$ (distinct eigenvalues) and $v_2\\ne0$ (an eigenvector is nonzero by definition), we get $c_2=0$.\n\nSubstituting back into (1): $c_1v_1=0$, and since $v_1\\ne0$, $c_1=0$.\n\nBoth coefficients are zero, so $\\{v_1,v_2\\}$ is linearly independent. $\\blacksquare$\n\n(Note: \"both vectors are nonzero\" does not imply linear independence — e.g. $v_2=2v_1$; the proof must use that the eigenvalues are distinct.)",
+    "student": "Hi TA! Instead of starting with $c_1 v_1 + c_2 v_2 = 0$, I wanted to try a proof by contradiction. If $\\{v_1, v_2\\}$ were linearly dependent, then since $v_1 \\ne 0$, $v_2$ must be a scalar multiple of $v_1$, say $v_2 = k v_1$ for some non-zero scalar $k$. My plan is to compute $A v_2$ in two different ways—one using $v_2 = k v_1$ and the other using the eigenvalue property $A v_2 = \\lambda_2 v_2$—to show this leads to a contradiction. Could you help me walk through the rest of this proof to make sure my logic is solid?",
+    "reply": "That's a very clean route — contradiction is often the most direct path. So you have $v_2=kv_1$ from linear dependence. What does $A v_2$ equal if you substitute $v_2=kv_1$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教成功順應學生的反證法思路進行引導，且數學陳述完全正確。"
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "statement": "Suppose $f$ is continuous on $\\mathbb{R}$ and $f(q)=0$ for every rational $q$. Prove that $f\\equiv0$.",
+    "reference_proof": "Take any real $a$. Since the rationals are dense in $\\mathbb{R}$, there is a sequence of rationals $q_n\\to a$. By continuity of $f$ at $a$ (sequential criterion), $f(a)=\\lim_{n\\to\\infty}f(q_n)$. But each $f(q_n)=0$, so $f(a)=0$. As $a$ was arbitrary, $f\\equiv0$. $\\blacksquare$",
+    "student": "I want to approach this using point-set topology rather than sequences. Since $\\{0\\}$ is a closed set in $\\mathbb{R}$ and $f$ is continuous, the zero set $Z = f^{-1}(\\{0\\})$ must be a closed subset of $\\mathbb{R}$. Because $Z$ contains the rational numbers $\\mathbb{Q}$, taking the closure gives $\\mathbb{R} = \\overline{\\mathbb{Q}} \\subseteq \\overline{Z} = Z$, which implies $Z = \\mathbb{R}$. Could you help me check if this set-theoretic closure argument is rigorous and guide me in writing it out formally?",
+    "reply": "The skeleton is correct — you've just sketched the proof. To make it watertight, what must you first establish about the zero set $Z=f^{-1}(\\{0\\})$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教肯定了學生提出的點集拓撲閉集證法，並順著學生的思路提問引導其補齊詳細論證。"
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "statement": "Take any $n+1$ integers ($n\\ge1$). Prove that among them there must exist two whose difference is divisible by $n$.",
+    "reference_proof": "Consider the remainder of each integer upon division by $n$. The possible remainders are $\\{0,1,\\dots,n-1\\}$, that is $n$ values.\n\nWith $n+1$ integers but only $n$ remainder classes, by the pigeonhole principle two of the numbers $a,b$ ($a\\ne b$) fall in the same remainder class, i.e. $a\\equiv b\\pmod n$.\n\nHence $a-b\\equiv0\\pmod n$, i.e. $n\\mid a-b$. $\\blacksquare$\n\n(Common pitfall: the remainders are $0$ to $n-1$, that is $n$ of them, not $0$ to $n$ ($n+1$ of them) — a remainder upon division by $n$ can never equal $n$.)",
+    "student": "I want to try proving this by contradiction by fixing one integer as a reference point. If we assume no two of the $n+1$ integers have a difference divisible by $n$, we can consider the $n$ differences formed by subtracting $a_1$ from each of the remaining integers: $a_k - a_1$ for $k = 2, \\dots, n+1$. My idea is to show that these $n$ differences must all be non-zero and pairwise distinct modulo $n$, which creates a contradiction because there are only $n-1$ non-zero residue classes available. Could you help me complete the details of the proof using this approach?",
+    "reply": "The skeleton is good. First: what are the possible residues of the $n$ differences $a_k-a_1$ modulo $n$, and how many distinct ones do they occupy?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "statement": "Let $A$ be an $n\\times n$ real symmetric matrix. Prove that every eigenvalue of $A$ is real.",
+    "reference_proof": "Suppose $Av=\\lambda v$ with $v\\ne0$ (allow $\\lambda\\in\\mathbb C$ and $v\\in\\mathbb C^n$ for now). Write $v^*=\\bar v^{\\,T}$ (conjugate transpose).\n\n**Left-multiply by $v^*$**:\n$$v^*Av=\\lambda\\,v^*v.$$\n\n**$v^*Av$ is real**: it is a $1\\times1$ scalar, so its conjugate transpose equals its value, and $A$ real symmetric $\\Rightarrow A^*=\\bar A^{\\,T}=A^T=A$, hence\n$$\\overline{v^*Av}=(v^*Av)^*=v^*A^*v=v^*Av,$$\ni.e. $v^*Av$ equals its own conjugate and is therefore real.\n\n**$v^*v$ is a positive real**: $v^*v=\\sum_i|v_i|^2>0$ (since $v\\ne0$).\n\nHence $\\lambda=\\dfrac{v^*Av}{v^*v}$ is a real number divided by a positive real, so it is real. $\\blacksquare$\n\n(Common pitfall: using the transpose $v^T$ instead of the conjugate transpose — $v$ may be complex, and $v^Tv$ can be $0$ or complex, e.g. $v=(1,i)^T$ gives $v^Tv=0$, and the argument collapses.)",
+    "student": "Instead of using conjugate transposes, I'd like to prove this by splitting the eigenvalue and eigenvector into their real and imaginary parts, writing $\\lambda = a + ib$ and $v = x + iy$ with real components. By expanding $A(x + iy) = (a + ib)(x + iy)$, we get two real vector equations for $Ax$ and $Ay$. I plan to left-multiply these equations by $y^T$ and $x^T$ respectively, subtract them, and use the symmetry property $y^T A x = x^T A y$ to show that $b(\\|x\\|^2 + \\|y\\|^2) = 0$. Could you please help me walk through completing the remaining steps based on this direction?",
+    "reply": "The direction is very clean. After subtracting, you have $b(\\|x\\|^2+\\|y\\|^2)=0$ — what must $b$ equal, and why?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

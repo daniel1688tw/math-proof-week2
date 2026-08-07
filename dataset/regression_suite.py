@@ -369,8 +369,14 @@ _MULTITURN_SCRIPT = {
 }
 
 
-def tier1(tok, model, metrics: dict, lang: str = "zh") -> list:
-    """回傳 items：每筆 {id, scenario, reply, lang, ...} 供 Tier 2 評審。lang 決定語言與指標後綴。"""
+def tier1(tok, model, metrics: dict, lang: str = "zh", probes: list | None = None) -> list:
+    """回傳 items：每筆 {id, scenario, reply, lang, ...} 供 Tier 2 評審。lang 決定語言與指標後綴。
+
+    probes（選填）：把升級與逐步教學這兩個**多輪**探針的對話逐輪收進去存檔。
+    它們原本只留下一個 0/1 指標，對話本身跑完就丟——而分級提示與逐步教學正是
+    最需要人工看內容的兩段（指標只答得出「有沒有進入／有沒有收尾」，答不出
+    「教得好不好」）。純記錄，不影響生成與任何指標。
+    """
     from tutor_driver import TutorDriver, is_spoonfeeding
     problems = _load_problems(lang)
     att = json.loads((HERE / f"held_out_attempts{'_en' if lang == 'en' else ''}.json"
@@ -414,31 +420,60 @@ def tier1(tok, model, metrics: dict, lang: str = "zh") -> list:
     metrics["s1_structural" + sfx] = round(s1_ok / len(DEEP_IDS), 4)
     metrics["s3_refusal" + sfx] = round(s3_ok / len(DEEP_IDS), 4)
 
+    def _snap(d, student, reply):
+        """一輪的對話快照（含 driver 當下的決策狀態，人工檢視時最需要的就是這些）。"""
+        return {"student": student, "reply": reply,
+                "phase": d.state.get("phase"), "level": d.state["turns"][-1].level,
+                "ladder_idx": d.state["ladder_idx"],
+                "walk_idx": d.state.get("walk_idx"),
+                "walk_retry": d.state.get("walk_retry"),
+                "guards": list(d.state["turns"][-1].guards)}
+
     esc_ok = 0
     from tutor_driver import TutorDriver as TD
     for pid in ESC_IDS:
         d = TD(tok, model, dict(problems[pid]), backstop=False)
-        d.start()
-        d.step(L["stuck1"])
-        r = d.step(L["stuck2"])
+        turns = [_snap(d, None, d.start())]
+        for msg in (L["stuck1"], L["stuck2"]):
+            turns.append(_snap(d, msg, d.step(msg)))
+        r = turns[-1]["reply"]
         all_replies.append(r)
         ok = d.state["turns"][-1].level == 2 and bool(_QMARK.search(r)) \
             and d.state["ladder_idx"] == 1
         esc_ok += ok
+        if probes is not None:
+            probes.append({"id": pid, "lang": lang, "probe": "escalation",
+                           "passed": bool(ok),
+                           "statement": problems[pid].get("statement", ""),
+                           "reference_proof": problems[pid].get("reference_proof", ""),
+                           "hint_ladder": d._ladder(), "turns": turns})
         print(f"  [{pid}/{lang}] 升級 {'✓' if ok else '✗'}")
     metrics["escalation" + sfx] = round(esc_ok / len(ESC_IDS), 4)
 
     d = TD(tok, model, dict(problems["A6"]), backstop=False)
-    d.start()
+    turns = [_snap(d, None, d.start())]
     for msg in L["walk"]:
-        d.step(msg)
+        turns.append(_snap(d, msg, d.step(msg)))
     entered = bool(d.state.get("walk_active"))
-    for _ in range(12):
+    # 逐步教學改成「答對才前進」後，固定回「我懂了」是**答錯**（留在同一步）。
+    # 探針要模擬真正答對：回上一輪實際呈現那一步的標準答案。
+    for _ in range(24):
         if not d.state.get("walk_active"):
             break
-        d.step(L["got"])
+        presented = d.state.get("walk_presented_step") or {}
+        ans = presented.get("expected_answer") or L["got"]
+        turns.append(_snap(d, ans, d.step(ans)))
     finished = not d.state.get("walk_active") and d.state.get("phase") == "writeup_request"
     metrics["walkthrough" + sfx] = round((entered + finished) / 2, 4)
+    if probes is not None:
+        probes.append({"id": "A6", "lang": lang, "probe": "walkthrough",
+                       "entered": entered, "finished": finished,
+                       "statement": problems["A6"].get("statement", ""),
+                       "reference_proof": problems["A6"].get("reference_proof", ""),
+                       "hint_ladder": d._ladder(),
+                       "teach_steps": d.problem.get("teach_steps"),
+                       "teach_steps_source": d.state.get("teach_steps_source"),
+                       "turns": turns})
     print(f"  [A6/{lang}] walkthrough 進入 {'✓' if entered else '✗'} 收尾 {'✓' if finished else '✗'}")
 
     sq = sum(1 for r in all_replies if len(_QMARK.findall(r)) <= 1)
@@ -526,7 +561,10 @@ def tier1_multiturn(tok, model, metrics: dict, lang: str = "zh") -> list:
                         (not leak, single, phase_ok, ladder_ok, close_ok, rectify_ok))
         print(f"  [{pid}/{lang}] 多輪 洩漏/單問句/階段/提示梯/收尾/糾錯不中斷 = {flags}"
               f"（phases={'>'.join(str(x) for x in phases)}）")
-        records.append({"id": pid, "lang": lang, "turns": turns})
+        # 存檔一律附上題目與參考解：人工檢視時要判斷助教講得對不對、有沒有洩漏，
+        # 光有對話不夠——不附的話還要自己回去對照 problems.json 才讀得下去。
+        records.append({"id": pid, "lang": lang, "statement": p.get("statement", ""),
+                        "reference_proof": p.get("reference_proof", ""), "turns": turns})
 
     n = len(MULTITURN_IDS)
     metrics["mt_no_leak" + sfx] = round(ok_leak / n, 4)
@@ -690,7 +728,10 @@ def tier3_generate(tok, model, lang: str = "zh") -> list:
                "max_level": max((t.level for t in d.state["turns"]), default=0)}
         print(f"  [{pid}/{lang}] 升級軌跡 ladder_idx={esc['ladder_idx']} "
               f"max_level={esc['max_level']} walkthrough={esc['walk_active']}")
-        records.append({"id": pid, "persona": persona, "history": history,
+        records.append({"id": pid, "persona": persona,
+                        "statement": p.get("statement", ""),
+                        "reference_proof": p.get("reference_proof", ""),
+                        "history": history,
                         "lang": lang, "verdict": None, "escalation": esc})
     return records
 
@@ -772,7 +813,9 @@ def tier_s4_generate(tok, model, lang: str = "zh") -> list:
         stu = stu.strip().strip('"')
         d = TutorDriver(tok, model, dict(p), backstop=False)
         reply = d.step(stu)          # 直接以學生的方法陳述起手
-        records.append({"id": pid, "lang": lang, "student": stu, "reply": reply, "verdict": None})
+        records.append({"id": pid, "lang": lang, "statement": p.get("statement", ""),
+                        "reference_proof": p.get("reference_proof", ""),
+                        "student": stu, "reply": reply, "verdict": None})
         print(f"  [{pid}/{lang}] S4 生成完成")
     return records
 
@@ -914,6 +957,7 @@ def main():
 
     LANGS = ("zh", "en")
     items, dialogue_records, s4_records, multiturn_records = [], [], [], []
+    probe_records: list = []
     if args.rejudge:
         if not claude_available():
             print("\n✗ 找不到 claude CLI")
@@ -956,7 +1000,7 @@ def main():
         tok, model = load_model()
         for lg in LANGS:
             print(f"\n=== Tier 1（{lg}）：19 深度題生成 + 結構指標（GPU）===")
-            items += tier1(tok, model, metrics, lg)
+            items += tier1(tok, model, metrics, lg, probe_records)
             print(f"\n=== Tier 1b（{lg}）：多輪確定性探針（結構不變式，不經評審）===")
             multiturn_records += tier1_multiturn(tok, model, metrics, lg)
             if not args.gen_only:
@@ -1000,6 +1044,11 @@ def main():
         # 學生台詞是寫死的，greedy 下同輸入必同輸出，逐字差異＝生成端真的變了。
         (SCORE_DIR / f"{stem}_multiturn.json").write_text(
             json.dumps(multiturn_records, ensure_ascii=False, indent=2), encoding="utf-8")
+    if probe_records:
+        # 升級／逐步教學探針的逐輪對話（含 phase／level／ladder_idx／walk_idx／guards
+        # 與該題實際用的 teach_steps）。這兩段的指標只有 0/1，內容好不好只能人工看。
+        (SCORE_DIR / f"{stem}_probes.json").write_text(
+            json.dumps(probe_records, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n計分卡：{SCORE_DIR / (stem + '.json')}")
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
 

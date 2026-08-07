@@ -48,9 +48,17 @@ def load():
 
 
 def run_dialogue(d: TutorDriver, student_turns: list, md: list):
+    """student_turns 的元素可以是字串，或 None＝「回答當前教學步驟的標準答案」。
+
+    逐步教學改成「答對才前進」後，寫死的「我懂了」會被判成答錯而停在同一步——
+    端對端要驗的是教完整條路徑，所以那幾輪改成逐步讀取當前 expected_answer。
+    """
     reply = d.start()
     md.append(f"**助教**（phase={d.state.get('phase')}）：{reply}\n")
     for msg in student_turns:
+        if msg is None:
+            presented = d.state.get("walk_presented_step") or {}
+            msg = presented.get("expected_answer") or "這一步我懂了。"
         md.append(f"**學生**：{msg}\n")
         reply = d.step(msg)
         info = (f"phase={d.state.get('phase')} walk_idx={d.state.get('walk_idx')} "
@@ -74,10 +82,9 @@ def main():
         "真的想不到，再提示我。",       # 卡2 → 等級2（ladder[1]，梯用盡）
         "我還是不會。",                # 卡1
         "完全沒頭緒，我真的不會。",     # 卡2 → 應進 walkthrough
-        "喔喔，這一步我懂了。",         # 答得出 → 下一步
-        "聽不懂這步。",                # 卡 → 重講
-        "這樣講我懂了！",              # → 前進/教完
-        "好，我懂整個思路了。",         # 視步數而定 → writeup
+        None,                          # 答對當前步驟 → 下一步
+        "聽不懂這步。",                # 卡 → 重講同一步
+        None, None, None, None, None,  # 逐步答對 → 教完 → writeup_request
     ]
     run_dialogue(d, stuck_then_learn, md)
 

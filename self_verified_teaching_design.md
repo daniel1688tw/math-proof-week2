@@ -24,9 +24,23 @@
   → 產出 {status: "verified", reference_proof, teach_steps} 或 {status: "unverified", best_attempt}
 ```
 
-- `teach_steps`：由 SEGMENTER（同模型）把驗證過的參考解切成 3–6 個教學步驟，
-  每步 `{explain, check}`（講解內容＋確認理解的小問題），供逐步教學使用。
-  切分失敗時退回確定性段落切分＋通用確認問句。
+- `teach_steps`：由 SEGMENTER（同模型）把驗證過的參考解切成 3–6 個教學步驟，供逐步教學使用。
+  **每步的 schema（2026-08-07 擴充成可評分）**：
+  `{step_id, explain, check, expected_answer, accepted_answers, common_errors}`。
+  沒有 `expected_answer`，driver 只能「有回答就當答對」——實測學生答錯照樣被推到下一步。
+- **確定性驗收 `validate_teach_steps()`**（與 LADDER 同型，五道閘）：步數 3–6／
+  explain＋check＋expected_answer 皆非空／check 只含一個問號（問兩件事就無法用單一
+  答案鍵評分）／答案 ≤60 字／不得有「問題與答案都雷同」的兩步。任一不過即整份丟棄。
+  刻意**不**再叫一個 LLM 當 teach-step verifier：多一次思考型呼叫要多等最長 300 秒，
+  而它擋不掉的錯（答案鍵與問題語意不合）正是它最容易誤判的地方；真正的安全網是
+  driver 端的重試上限（見第三節）。
+- **句級保底 `fallback_steps()`**（驗收不過／Ollama 離線時走）：舊版只按空行切段，
+  參考解常常只有一段 ⇒ 第一步幾乎是整份證明、確認問題是無法驗證的「你能複述嗎」。
+  改為：句級切分（`_proof_units`）→ 合併／再切到 3–6 步（`_balanced_units`）→
+  每步擷取最後一個關係式或結論子句當答案鍵（`_fallback_expected`）。
+  **它是語法式保底不是第二個 LLM**：保證步數、欄位與可評分性，保證不了數學語意對齊。
+- `build_reference()` 另回傳 `teach_steps_lang`（步驟語言）與 `teach_steps_source`
+  （`segmenter` / `fallback`），供 driver 與 UI 使用。
 - CLI：`python auto_reference.py --statement "..." [--id NEW1] [--out file.json]`；
   也可 `--problems xdomain_problems.json --id X4 --blind` 對已知解題目盲測（忽略現有解）。
 - 所有 Ollama 呼叫沿用 review_backstop 的教訓：`num_predict=8192`（思考鏈空間）、
@@ -52,19 +66,36 @@
 
 觸發（自動）：`ladder_idx >= len(hint_ladder)` 且 stuck_count 再次達 2。
 
-狀態機：
+狀態機（2026-08-07 改為「答對才前進」）：
 ```
-walkthrough 進入 → walk_idx=0
-每輪：講解 teach_steps[walk_idx].explain（微調模型用自己的話包裝）＋ 問 check 小問題
-  學生答得出（非 stuck）→ walk_idx += 1
-  學生答不出（stuck）→ 換更簡單說法重講一次（每步最多重講 1 次）→ 前進
+walkthrough 進入 → walk_idx=0、walk_lang=當下 session 語言（鎖定）
+每輪：確定性輸出「第 i/n 步：{explain}\n\n確認問題：{check}」（不呼叫生成模型），
+      並記下本輪實際呈現的步驟 walk_presented_step/idx/step_id
+  下一輪 grade_walkthrough_answer(學生訊息, walk_presented_step)：
+    correct   → walk_idx += 1、walk_retry=0
+    incorrect → 留在同一步，walk_retry += 1，下一輪帶「還不是這一步要的答案」重講
+    stuck     → 留在同一步，walk_retry += 1，下一輪帶「這一步我再講一次」重講
+  walk_retry > 2（安全閥）→ 揭示 expected_answer 後強制前進
 walk_idx 走完 → 接回既有 writeup_request（請學生自己寫完整證明）→ review 審閱
-中途學生交草稿 → 直接進 review（草稿優先權不變）
+中途學生**明確**交草稿（請幫我審閱／整則以「證明：」開頭）→ 進 review
 ```
 
-- 教學步驟內容加入洩漏白名單（教學步允許寫式子）；spoonfeed/formula 防護在此階段停用。
-- `teach_steps` 來源：題目自帶（備課時產生）→ 否則臨場呼叫 SEGMENTER（Ollama 在線）
-  → 再否則確定性段落切分（保底，不依賴 Ollama）。
+- **教學輪完全不經生成模型**。內容本來就是預寫的，而讓模型「用自己的話包裝」實測換來：
+  同一步逐字重講三輪（弱點 #17）、一次講掉好幾步、把確認問題換成別的問題（答案鍵
+  就此無從比對）。改成模板後教學輪生成次數固定為 0，學生每輪等待也從數十秒降到即時。
+- **語言鎖定 `walk_lang`**：教學期間 `step()` 不再重判 session 語言。一則「中文＋長
+  LaTeX」的正確回答就足以把 session 切成英文，接著同一個 `walk_idx` 指向另一套排序
+  不同的英文步驟，正確答案被拿另一題的 `expected_answer` 評分。兩層防護缺一不可：
+  語言判定先剝除 `$…$`／`$$…$$`／`\(…\)`／`\[…\]`／LaTeX 指令／裸算式
+  （`_strip_language_neutral_math`），**且**評分對象是上一輪實際呈現的那一步。
+- **重試上限是必要的**：答案鍵由模型或語法保底自動生成、沒有人工審過，寫壞時
+  「只有答對才前進」會把學生永遠困在同一步。上限之後揭示答案並帶他往下走。
+- `teach_steps` 來源：題目自帶（備課時產生）→ 否則臨場呼叫 SEGMENTER（Ollama 在線，
+  仍過 `validate_teach_steps`）→ 再否則句級保底。取用時一律過 `ensure_checkable_steps()`
+  補齊 `step_id`／`expected_answer`（舊資料相容，冪等，不改寫既有內容）。
+- 交草稿的判定在教學期間收窄：第 1 步的標準答案常常長成「要證明：對任意 a<b…」，
+  走一般 `_DRAFT_RE`（含 `證明[:：]`）會被當成交稿而中斷教學，後盾若恰好回報無缺漏，
+  助教會直接說「可以定稿」。`_DRAFT_RE` 另加反向閘：「要／需／欲／待／所」＋「證明：」不算交稿。
 
 ## 四、驗證計畫
 
