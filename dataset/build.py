@@ -7,8 +7,8 @@ build.py — 高等數學蘇格拉底引導資料集建置腳本
   2. 從 src/dialogues_*.py 收集所有對話原始碼（不含 system）
   3. 為每條對話注入 grounded system（帶對應題目的 <REFERENCE_PROOF>）
   4. 依 kind 分流輸出：
-       - core      → dialogues_core.jsonl
-       - augmented / short → dialogues_augmented.jsonl
+       - core      → dialogues_core.jsonl        ┐ 供人工檢視分流結果的本機中間產物，
+       - augmented / short → dialogues_augmented.jsonl ┘ 無程式讀取、已 gitignore
   5. 合併全部，固定亂數種子 shuffle，9:1 切 train.jsonl / val.jsonl
 
 所有題目與對話內容皆由 Claude 手寫（見 memory: dataset-content-authored-by-claude），

@@ -9,6 +9,11 @@ qlora_adapter/
 qlora_adapter_v*/
 *.safetensors
 
+# build.py 的中間產物：core/aug 兩份分流檔的內容 100% 併入 train.jsonl + val.jsonl，
+# 全 repo 沒有任何程式讀取它們（只有 build.py 寫），重跑 build.py 即可重生。
+dataset/dialogues_core.jsonl
+dataset/dialogues_augmented.jsonl
+
 # Python
 __pycache__/
 *.pyc
