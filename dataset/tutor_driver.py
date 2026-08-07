@@ -358,6 +358,9 @@ _CHALLENGE_RE = re.compile(
 #       正是最需要幫助的那個學生。改成模板後教學輪的生成次數固定為 0。
 WALKTHROUGH_TEMPLATE = "第 {i}/{n} 步：{explain}\n\n確認問題：{check}"
 WALKTHROUGH_TEMPLATE_EN = "Step {i}/{n}: {explain}\n\nCheck: {check}"
+# 上面兩個模板的步驟標頭，供 _strip_walk_template() 在比對前剝除（見 code review I-2）
+_WALK_HEAD_RE = re.compile(r"^\s*(?:第\s*\d+\s*/\s*\d+\s*步[:：]|Step\s*\d+\s*/\s*\d+\s*:)\s*",
+                           re.I)
 # 錯答／卡住後重講同一步時的前綴（walk_feedback），以及答案鍵用盡強制前進時的揭示句
 WALK_RETRY_WRONG = "剛才的回答還不是這一步要的答案，我們把這一步再看一次。"
 WALK_RETRY_WRONG_EN = ("That is not quite the answer this step is looking for — "
@@ -500,10 +503,18 @@ def _yesno_kind(norm_expected: str) -> str | None:
 def grade_walkthrough_answer(student_text: str, step: dict | None) -> str:
     """逐步教學的確認問題判分 → 'correct' / 'incorrect' / 'stuck'。
 
-    順序刻意是「先看錯誤答案、再看正確答案、最後才看卡住」：
+    順序是「先看正確答案、再看錯誤答案、最後才看卡住」：
     語氣遲疑但答對（「呃…應該是非負吧？」）該算對，不該因為聽起來像卡住而被扣一次。
     步驟沒有答案鍵時退回舊行為（非卡住即算過）——答案鍵由 ensure_checkable_steps()
     補齊，這條路徑只在直接呼叫本函式且步驟殘缺時才會走到。
+
+    ⚠️ `common_errors` **必須排在答案鍵之後**（2026-08-07 code review I-1）。
+    它是無長度下限的子字串比對，排在前面時，只要生成的錯答是正確答案的子字串，
+    答對就永遠先命中 incorrect——實測 `expected="非負"` ＋ `common_errors=["負"]`、
+    `expected="$x_2-x_1>0$"` ＋ `["0"]` 兩組（都是 SEGMENTER 很可能真的生成的內容）
+    都會把**答對判成答錯**，學生被連說兩次「這還不是這一步要的答案」才被重試上限帶過。
+    代價：答案裡同時混了正確答案與某個錯誤說法時判為 correct——對教學系統來說，
+    這個方向的誤判遠比反過來安全。
     """
     text = (student_text or "").strip()
     if not text:
@@ -515,11 +526,6 @@ def grade_walkthrough_answer(student_text: str, step: dict | None) -> str:
         return "stuck" if is_stuck(text) else "correct"
 
     norm = _answer_normalize(text)
-    for err in (step.get("common_errors") or []):
-        e = _answer_normalize(str(err))
-        if e and e in norm:
-            return "incorrect"
-
     exp_norm = _answer_normalize(expected)
     kind = _yesno_kind(exp_norm)
     if kind:
@@ -538,6 +544,13 @@ def grade_walkthrough_answer(student_text: str, step: dict | None) -> str:
             continue
         if cand in norm:
             return "correct"
+    # 沒命中任何答案鍵，才輪到錯答清單（同樣套用短答保護，理由同上）
+    for err in (step.get("common_errors") or []):
+        e = _answer_normalize(str(err))
+        if not e or (len(e) <= 2 and len(norm) > 12):
+            continue
+        if e in norm:
+            return "incorrect"
     return "stuck" if is_stuck(text) else "incorrect"
 
 
@@ -803,12 +816,35 @@ class TutorDriver:
                         if s.strip() and not _QMARK_RE.search(s)).strip()
         if len(text) < 10 or _REFUSE_TEACH_RE.search(text):
             return None                      # 推託「你自己去查」＝沒在教，當成重講失敗
+        # 比對對象**必須包含 step["explain"] 本身**（2026-08-07 code review I-2）。
+        # 只比「上一則完整回覆」抓不到最乾淨的失敗版本：那則回覆含「第 i/n 步：」前綴
+        # 與確認問題，而這裡的 text 只有講解本體，長度天生不對等——實測 96 字的真實步驟
+        # 逐字吐回只算 0.845 < 0.9，會被當成「新說法」採用。
+        # 這與弱點 #17 第一批修復是同一個錯誤（保底句把 0.85 稀釋成 0.768）：
+        # **凡是比對「模型輸出」與「上一則回覆」，都要先剝掉 driver 自己加上去的部分。**
         prev = next((m["content"] for m in reversed(self.messages)
                      if m["role"] == "assistant"), "")
         import difflib
-        if difflib.SequenceMatcher(None, _normalize(text), _normalize(prev)).ratio() >= 0.9:
-            return None                      # 換了說法還是一樣 → 當成失敗，走下面的補救
+        norm_text = _normalize(text)
+        for other in (step.get("explain", ""), self._strip_walk_template(prev)):
+            if not other:
+                continue
+            if difflib.SequenceMatcher(None, norm_text, _normalize(other)).ratio() >= 0.9:
+                return None                  # 換了說法還是一樣 → 當成失敗，走下面的補救
         return text
+
+    @staticmethod
+    def _strip_walk_template(reply: str) -> str:
+        """剝掉教學回覆上 driver 自己加的模板部分，只留講解本體。
+
+        剝除對象：回饋前綴（walk_feedback，以空行分隔）、「第 i/n 步：」／「Step i/n:」
+        標頭，以及尾端的確認問題段。剝不乾淨時退回原字串（比對只會更寬鬆，不會誤殺）。
+        """
+        body = (reply or "").split("\n\n")
+        # 帶回饋前綴時，講解本體是含步驟標頭的那一段
+        seg = next((s for s in body if _WALK_HEAD_RE.match(s.strip())), None)
+        seg = seg if seg is not None else (body[0] if body else "")
+        return _WALK_HEAD_RE.sub("", seg.strip()).strip()
 
     def _walkthrough_reply(self) -> str:
         """逐步教學的回覆：一個步驟＋一個確認問題。

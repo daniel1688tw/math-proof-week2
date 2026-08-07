@@ -1706,6 +1706,80 @@ check("一般引導輪不受這道守衛影響（只管教學重講輪）",
                                   problem=dict(_RT_PROB))._generate(0))
 
 print()
+print("[30] 2026-08-07 code review 的三項 Important")
+# ── I-1：common_errors 不得把正確答案判成錯 ────────────────────────────────
+# 錯答清單用無長度下限的子字串比對、又排在 expected_answer 之前，只要生成的錯答
+# 是正確答案的子字串，答對就永遠先命中 incorrect。兩組 common_errors 都是
+# SEGMENTER 很可能真的生成的內容（「負」「0」正是這兩題最典型的錯答）。
+check("I-1 錯答是正確答案的子字串時，答對仍判 correct（非負 vs 負）",
+      grade_walkthrough_answer(
+          "非負", {"expected_answer": "非負", "common_errors": ["負"]}) == "correct")
+check("I-1 錯答是正確答案的子字串時，答對仍判 correct（關係式 vs 0）",
+      grade_walkthrough_answer(
+          "$x_2-x_1>0$",
+          {"expected_answer": "$x_2-x_1>0$", "common_errors": ["0"]}) == "correct")
+check("I-1 真的答錯仍要判 incorrect（守衛不可因此失效）",
+      grade_walkthrough_answer(
+          "負", {"expected_answer": "非負", "common_errors": ["負"]}) == "incorrect")
+check("I-1 錯答清單仍能攔下含正確片段的錯誤說法",
+      grade_walkthrough_answer(
+          "遞減", {"expected_answer": "單調不減", "common_errors": ["遞減"]}) == "incorrect")
+
+# ── I-2：重講的防重複比對要抓得到「逐字重講 explain」──────────────────────
+# 比對對象原本是上一則**完整回覆**（含「第 i/n 步：」前綴與確認問題），而受測文字
+# 只有 explain 本體，長度天生不對等：96 字的真實步驟逐字吐回只算 0.845 < 0.9。
+# 這正是這道守衛要擋的失敗模式，卻是它最抓不到的一個。
+_LONG_EXPLAIN = ("由於數列 $\\{a_n\\}$ 收斂到 $L$，依收斂定義，對 $\\varepsilon=1$ 存在 $N$，"
+                 "使得所有 $n>N$ 都有 $|a_n-L|<1$，因此 $|a_n|<|L|+1$。")
+# ⚠️ expected_answer 刻意**不出現在 explain 裡**：若答案鍵是 explain 的子字串，
+# 「回覆含答案」在模型逐字吐回時也會成立，斷言就變成永遠為真的裝飾（V4 教訓）。
+_LONG_PROB = {
+    "id": "RT2", "statement": "測試題", "reference_proof": "步驟甲。\n\n步驟乙。",
+    "teach_steps": [{"explain": _LONG_EXPLAIN, "check": "這一步靠的是哪一個性質？",
+                     "expected_answer": "尾端有界性"},
+                    {"explain": "教步驟乙", "check": "乙的結論是什麼？",
+                     "expected_answer": "有界"}],
+}
+
+
+class _EchoExplainStub(TutorDriver):
+    """最壞情況：模型「重講」時把 explain 逐字吐回來。"""
+
+    def _raw_generate(self, msgs, max_new):
+        return _LONG_EXPLAIN
+
+
+eo = _EchoExplainStub(tok=None, model=_StubModel(), problem=dict(_LONG_PROB))
+eo.state.update(lang="zh", walk_lang="zh", walk_active=True, walk_idx=0,
+                walk_retry=0, phase="walkthrough", ladder_idx=2)
+eo.messages = [{"role": "user", "content": "題目…"}]
+e1 = eo._tutor_turn()
+eo.step("完全看不懂。")
+e2 = eo.messages[-1]["content"]
+check("I-2 模型逐字吐回 explain → 視為重講失敗，退回模板並補上該步答案",
+      "尾端有界性" in e2 and "答案" in e2)
+# 剝掉 driver 補的回饋前綴後比對本體：只比整則會因為前綴不同而永遠成立（同上教訓）。
+check("I-2 重講的講解本體不得與首次呈現逐字相同",
+      _normalize(e2.split("\n\n", 1)[-1]) != _normalize(e1))
+
+# ── I-3：備課端與 driver 端的語言判定必須一致 ─────────────────────────────
+# auto_reference._detect_lang 沒跟上 _strip_language_neutral_math 的強化：
+# 以算式為主的中文被判成 en → teach_steps_lang 寫錯、中文講解配英文確認問句。
+import auto_reference as _ar  # noqa: E402
+
+for _txt in ("故 \\(\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\dfrac{7}{n+2}<\\varepsilon\\) 成立。",
+             "所以 f(x_2)-f(x_1)=f'(c)(x_2-x_1)>=0"):
+    check(f"I-3 備課端語言判定與 driver 一致（{_txt[:12]}…）",
+          _ar._detect_lang(_txt) == detect_lang(_txt) == "zh")
+check("I-3 真正的英文仍判 en（修復不可把所有東西都判成中文）",
+      _ar._detect_lang("Since the sequence converges to $L$, choose $N$ with $|a_n-L|<1$.")
+      == detect_lang("Since the sequence converges to $L$, choose $N$ with $|a_n-L|<1$.")
+      == "en")
+_ZH_PROOF = "取 $N$ 使 $n>N$ 時 $|a_n-L|<1$。\n\n故 $|a_n|<|L|+1$，數列有界。"
+check("I-3 句級保底的確認問句跟著參考解語言走（中文證明不得配英文問句）",
+      all("這一步" in s["check"] for s in _ar.fallback_steps(_ZH_PROOF)))
+
+print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
     sys.exit(1)

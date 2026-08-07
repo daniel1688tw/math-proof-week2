@@ -426,11 +426,25 @@ _FALLBACK_CHECK = {
 
 
 def _detect_lang(text: str) -> str:
-    """教學步驟／參考解的語言標記（CJK 占比 <10% 視為英文）。"""
-    chars = [c for c in re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", text or "") if not c.isspace()]
-    if not chars:
-        return "zh"
-    return "en" if sum(1 for c in chars if "一" <= c <= "鿿") / len(chars) < 0.10 else "zh"
+    """教學步驟／參考解的語言標記——**直接沿用 driver 的判定，兩端不可分岔**。
+
+    2026-08-07 code review I-3：driver 那邊把判定前的剝除強化成
+    `_strip_language_neutral_math()`（另含 `\\(…\\)`／`\\[…\\]`／裸算式），這裡卻還是
+    舊寫法，於是以算式為主的中文兩端判定相反（實測
+    `故 \\(…\\dfrac{7}{n+2}<\\varepsilon\\) 成立。` → driver 判 zh、這裡判 en）。
+    下游是 `teach_steps_lang` 寫錯與「中文講解配英文確認問句」。
+    延用 `validate_ladder` 既有的**函式內延遲 import** 模式（tutor_driver 只在函式內
+    import auto_reference，故無載入期循環）；真的取不到時退回舊行為，不讓備課掛掉。
+    """
+    try:
+        from tutor_driver import detect_lang
+        return detect_lang(text)
+    except ImportError:
+        chars = [c for c in re.sub(r"\$[^$]*\$|\\[A-Za-z]+", " ", text or "")
+                 if not c.isspace()]
+        if not chars:
+            return "zh"
+        return "en" if sum(1 for c in chars if "一" <= c <= "鿿") / len(chars) < 0.10 else "zh"
 
 
 def ensure_checkable_steps(steps: list, lang: str | None = None) -> list:
@@ -520,13 +534,17 @@ def build_reference(statement: str, k: int = K_CANDIDATES,
             if verbose:
                 print("  [SEGMENTER] 切分教學步驟…")
             _emit("SEGMENTER", "")
+            # 語言只判一次、往下傳（code review I-3）：原本 fallback_steps／
+            # ensure_checkable_steps／teach_steps_lang 是三個各自為政的判定，
+            # 逐步驟自判時，一個以算式為主的中文步驟很容易配上英文確認問句。
+            steps_lang = _detect_lang(proof)
             steps = segment_proof(statement, proof)
             source = "segmenter"
             if not validate_teach_steps(steps):
                 # 所有失敗路徑（Ollama 離線／解析不出／驗收不過）收斂到同一個結果
                 print("[SEGMENTER] 輸出或驗證未通過；改用可驗證的句級保底步驟。")
-                steps, source = fallback_steps(proof), "fallback"
-            steps = ensure_checkable_steps(steps)
+                steps, source = fallback_steps(proof, lang=steps_lang), "fallback"
+            steps = ensure_checkable_steps(steps, lang=steps_lang)
             if verbose:
                 print("  [LADDER] 生成分級提示…")
             _emit("LADDER", "")
@@ -535,7 +553,7 @@ def build_reference(statement: str, k: int = K_CANDIDATES,
                 print("  [LADDER] " + ("產出 2 條提示" if hints
                                         else "未通過驗收，改用通用提示"))
             out = {"status": "verified", "reference_proof": proof,
-                   "teach_steps": steps, "teach_steps_lang": _detect_lang(proof),
+                   "teach_steps": steps, "teach_steps_lang": steps_lang,
                    "teach_steps_source": source, "log": log}
             if hints:                       # 驗收不過就不寫這個鍵（等同今日行為）
                 out["hint_ladder"] = hints
