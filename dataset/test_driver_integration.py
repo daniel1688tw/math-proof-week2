@@ -29,7 +29,7 @@ sys.path.insert(0, str(HERE))
 from tutor_driver import TutorDriver, load_problems_with_ladders, _QMARK_RE  # noqa: E402
 
 MODEL_DIR = HERE.parent / "learn_path" / "socratic_tutor" / "qwen3_4b"
-ADAPTER_DIR = HERE / os.environ.get("DRIVER_ADAPTER", "qlora_adapter_v5")
+ADAPTER_DIR = HERE / os.environ.get("DRIVER_ADAPTER", "qlora_adapter_v9")
 OUT_DIR = HERE / "eval_out_driver"
 
 STUCK_SCRIPT = ["我不知道，想不出來。", "還是想不到，可以再提示一下嗎？"]
