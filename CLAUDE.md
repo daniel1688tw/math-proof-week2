@@ -74,13 +74,13 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
 ```
 week3/
 ├── dataset/                          # ★ 一切核心
-│   ├── src/                          # 手寫內容源碼（50 題 + 400 對話，Claude 撰寫並驗證）
+│   ├── src/ + src_en/                # 手寫內容源碼（50 題 + 中英平行對話，Claude 撰寫並驗證）
 │   ├── build.py / validate.py / test_dataset.py     # 建置與驗證
-│   ├── problems.json / train.jsonl / val.jsonl       # 建置產出（360/40）
-│   ├── hint_ladders.json             # 分級提示內容（driver 等級 2 用）
+│   ├── problems.json / train.jsonl / val.jsonl       # 建置產出（747/83＝830 例；v9 訓練用的是不含 journey 的 814）
+│   ├── hint_ladders.json             # 分級提示內容（driver 等級 2 用；只 17 題，其餘靠備課 LADDER 生成）
 │   ├── tutor_driver.py               # ★ 對話驅動程式
 │   ├── review_backstop.py            # 審閱後盾（Ollama 思考型找碴，可降級）
-│   ├── auto_reference.py             # ★ 自動備課管線（生成→驗證→修補→教學步驟切分）
+│   ├── auto_reference.py             # ★ 自動備課管線（PROVER→VERIFIER→REPAIR→SEGMENTER→LADDER）
 │   ├── interactive_turn.py           # 逐輪互動 CLI（維護 session 狀態檔）
 │   ├── app.py / test_app.py          # ★ Gradio 商品化介面（本機單人 Demo）／其純邏輯測試
 │   ├── qlora_adapter_v9/             # ★ 部署 adapter（權重不進 git）
@@ -101,7 +101,10 @@ week3/
 │   ├── measure_gate_noise.py         # ★ 量守門指標的純評審雜訊 vs ε（判退時先跑這支）
 │   ├── measure_stuck_detection.py / stuck_labels.json  # is_stuck 準確度量表 + 251 則標註
 │   ├── regression_baseline_antigravity.json  # ★ 現行基準（預設評審後端；只升不降）
+│   ├── render_transcripts.py         # 把守門對話轉成可讀 md（人工檢視用）
 │   ├── regression_baseline.json / regression_scores/  # Claude 後端基準與各版本計分卡
+│   │                                 #   ⚠️ regression_scores/*_dialogues.json 是
+│   │                                 #      test_phase_routing.py 的回放語料，不可刪
 │   └── eval_out_final/ / eval_out_v6/ / eval_out_hard/ / eval_out_driver/ / eval_out_xdomain/  # 現行報告
 ├── learn_path/socratic_tutor/        # 訓練引擎（僅 4 檔）
 │   ├── common.py                     # 模型與路徑設定（env 覆寫）
@@ -109,11 +112,14 @@ week3/
 │   ├── download_chunked.py           # 分塊下載基底模型（VPN 節流對策）
 │   ├── test_4bit_load.py             # 4-bit 載入煙霧測試
 │   └── qwen3_4b/                     # 基底權重（~8GB，不進 git）
+├── server_train/                     # 伺服器端訓練管線（Dockerfile / compose / workspace）
 ├── .claude/skills/pre-push-check/    # /pre-push-check skill：推送前守門流程（進版控）
 ├── docs/
 │   ├── code-review-product-ui.md     # 商品化介面 code review（第 2 次，覆蓋前版）
 │   ├── notion/                       # Notion 專案空間的內容源（00–09，見下方「專案文件空間」）
 │   └── superpowers/                  # 設計 spec 與實作計畫
+├── 專案架構設計.md                     # ★ 架構的權威來源（設計問題/鐵律/各層職責/取捨）
+├── update.md                         # 與 training-iter-v11 的行為差異對照
 ├── dataset_plan.md / socratic_math_research.md      # 設計文件
 ├── self_verified_teaching_design.md  # 自我驗證教學設計（備課/同學模式/逐步教學）
 ├── 專題成果報告.md                     # 論文式完整報告
@@ -299,7 +305,7 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 
 ## 雙語化與守門重設計（2026-07-14~15，v7 adapter，計分卡 `regression_scores/`）
 
-- **v7 = 中英平行資料重訓**（`src/`＋`src_en/` 共 800 例）；英文評估資產齊備
+- **v7 = 中英平行資料重訓**（`src/`＋`src_en/` 共 814 例＝733/81）；英文評估資產齊備
   （`held_out_en.json`、`hard_math_major_en.json`、`xdomain_problems_en.json`、`hint_ladders_en.json`）。
 - **語言跟隨學生**：session 語言逐輪依學生訊息重判（≥12 非空白字元才切，防短訊息誤判），
   支援「英文題＋中文學生」與對話中途換語言。
@@ -341,7 +347,7 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
   `taskkill /F /IM "Antigravity.exe"` + `"Antigravity IDE.exe"`。`agy` CLI 憑證存磁碟，
   IDE 關掉不影響評審呼叫。
 
-## 評審後端：改用 agy / Gemini 3.6 Flash Medium 為預設（2026-07-22，`dataset/JUDGE_BACKEND_MIGRATION_PLAN.md`）
+## 評審後端：改用 agy / Gemini 3.6 Flash Medium 為預設（2026-07-22）
 
 - Antigravity CLI（`agy`）已完整接入 `regression_suite.py` 抽象層並成為**預設評審**
   （`JUDGE_BACKEND=antigravity` + `AGY_MODEL="Gemini 3.6 Flash (Medium)"`）；
@@ -352,8 +358,10 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
   正確區分引導/數學、最快（6.5s）→ 採用。教訓：**模型層級高 ≠ 當裁判可靠**（Pro 反而崩）。
 - 基準 `regression_baseline_antigravity.json` = 兩輪保守 **min**（吸收 en 對話/後盾 ±1 案
   的 n=3 本質雜訊，Claude 亦有）。不同裁判的尺不可互比，故獨立基準檔。
-- 選型腳本留存：`test_agy_stability.py`（壓測）、`test_agy_rigor.py`/`test_agy_rigor2.py`
-  （判準對照，一錯一對），未來換模型可快速重評。
+- 選型當時的一次性腳本（壓測 `test_agy_stability.py`、判準對照 `test_agy_rigor*.py`）與
+  遷移計畫文件已於 2026-08-07 清理時刪除；**選型結論保留在本節與 `regression_suite.py`
+  開頭的註解**。未來要換評審模型時，依該註解記的方法重寫壓測即可
+  （25 次連續呼叫測可解析率 ＋ 拿一錯一對的已知案例測判準）。
 
 ## Driver hardening（2026-07-19，計分卡 `2026-07-19T154401_f4c1ee4.json`，25/25 全綠）
 
@@ -370,7 +378,7 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 
 ## v10 資料集擴充與訓練實驗（2026-07-19~21，判定不採用，`eval_out_xdomain/V10_VERDICT.md`）
 
-- **新增 `dialogues_journey.py`**（中英各 8 段，共 16 段，資料集 800→830 例）針對三項
+- **新增 `dialogues_journey.py`**（中英各 8 段，展開後資料集 814→830 例）針對三項
   driver 蓋不住的訓練面弱點：
   - **#7 跨題型「剛學完但易卡住」旅程**（5 題，涵蓋極限/連續/微分/積分/級數）：
     fragile persona 多次卡住（含長訊息＋強困惑），助教逐級加深、連卡兩次才點名定理
@@ -514,10 +522,10 @@ conda run -n lora_project --live-stream python dataset\interactive_turn.py --pro
 - **特殊 phase 消耗提示梯**：`phase` 有值時 system 注入的是階段指示、根本沒有提示內容，
   卻照樣推進 `ladder_idx`；更糟的是 walkthrough 進入條件為 `ladder_idx >= 梯長`，實測
   一串糾錯輪就能把梯吃光，**學生一條提示都沒拿到就被推進逐步教學**。改為只在
-  `phase is None` 時推進。（`phase與算式防護確認.md` 另兩點——walkthrough／peer 也會
+  `phase is None` 時推進。（同一份 code review 另提兩點——walkthrough／peer 也會
   消耗——**實測不成立**，早已由 `not walkthrough and not peer` 擋掉。）
 - **同學模式沒有背書守衛**：`is_overpraising` 被關在 `if not peer` 內，同儕模式完全不生效
-  ——正是 `v11_改進實測評估.md`「首輪誠實聲明有效、之後大量『完全正確／你已完全掌握』」
+  ——正是 v11 人工實測記下的「首輪誠實聲明有效、之後大量『完全正確／你已完全掌握』」
   的根因。新增 `peer_endorse` 守衛（`_ENDORSE_RE`／`_FLOURISH_RE`）。
 
 **完整守門 exit 0**（計分卡 `2026-08-01T193728_8be3255.json`）：25 項硬性指標全 ≥ 基準，
@@ -663,7 +671,7 @@ E2E2「連續函數在閉區間有最大值」＝「波爾查諾-魏爾斯特拉
   指示＋中文提示內容」的混語提示——這是已知取捨（混語在 4B 上實際傷害可控），
   不擴充雙語備課。
 
-## 逐步教學可評分化＋語言鎖定＋審閱收尾（2026-08-07，整合 `Codex_修改整合交接_2026-08-07.md`）
+## 逐步教學可評分化＋語言鎖定＋審閱收尾（2026-08-07，整合 Codex 交接）
 
 Codex 在另一端（`math-proof-week2-training-iter-v11`）做的七項修改，逐項對照本 repo 後
 **七項全部尚未存在**（現況只有兩處部分緩解：空梯 `max(len(ladder),1)` 已在、

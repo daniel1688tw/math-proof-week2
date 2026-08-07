@@ -45,7 +45,7 @@ sys.path.insert(0, str(HERE))
 
 SCORE_DIR = HERE / "regression_scores"
 # 基準檔按評審後端分開：不同裁判的尺不可互比（換後端必須重建獨立基準）。
-# ── 評審後端選型結論（2026-07-22，JUDGE_BACKEND_MIGRATION_PLAN.md §七）──
+# ── 評審後端選型結論（2026-07-22；完整脈絡見 CLAUDE.md「評審後端」節）──
 # 預設：Antigravity CLI（agy / **Gemini 3.6 Flash Medium**），Claude 保留為 JUDGE_BACKEND=claude 備援。
 # 選型（各檔位 25 次壓測皆 100% 可解析、零逾時）：
 #   · 3.5 Flash Medium：判準對照乾淨案例憑空捏造誤殺 → 淘汰
