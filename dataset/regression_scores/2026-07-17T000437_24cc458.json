@@ -1,9 +1,0 @@
-{
-  "timestamp": "2026-07-17T00:04:37",
-  "commit": "24cc458",
-  "judge_model": "sonnet",
-  "judge_backend": "claude",
-  "metrics": {
-    "tier0": 1.0
-  }
-}

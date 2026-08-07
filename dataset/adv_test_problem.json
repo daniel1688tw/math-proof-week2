@@ -1,6 +1,0 @@
-{
-  "id": "ADV1",
-  "topic": "微分（L'Hôpital 法則）",
-  "statement": "設 $f,g$ 在 $[a,a+\\delta)$ 連續、在 $(a,a+\\delta)$ 可微，$f(a)=g(a)=0$，且 $g'(x)\\ne0$ 對所有 $x\\in(a,a+\\delta)$ 成立。若 $\\lim_{x\\to a^+}\\dfrac{f'(x)}{g'(x)}=L$ 存在，證明 $\\lim_{x\\to a^+}\\dfrac{f(x)}{g(x)}=L$。（此即 L'Hôpital 法則 0/0 型的嚴格證明。）",
-  "reference_proof": "**第一步（$g(x)\\ne0$）**：任取 $x\\in(a,a+\\delta)$。$g$ 在 $[a,x]$ 連續、$(a,x)$ 可微，由均值定理存在 $\\xi\\in(a,x)$ 使 $g(x)-g(a)=g'(\\xi)(x-a)$。因 $g(a)=0$ 且 $g'(\\xi)\\ne0$、$x\\ne a$，故 $g(x)=g'(\\xi)(x-a)\\ne0$。這保證了 $f(x)/g(x)$ 對所有 $x\\in(a,a+\\delta)$ 都有定義。\n\n**第二步（套用 Cauchy 均值定理）**：固定 $x\\in(a,a+\\delta)$。$f,g$ 在 $[a,x]$ 連續、$(a,x)$ 可微，且 $g'$ 在 $(a,x)$ 上處處非零，由 Cauchy 均值定理存在 $c=c(x)\\in(a,x)$ 使\n$$\\big(f(x)-f(a)\\big)g'(c)=\\big(g(x)-g(a)\\big)f'(c).$$\n因 $f(a)=g(a)=0$，此式化簡為 $f(x)g'(c)=g(x)f'(c)$。由第一步 $g(x)\\ne0$，且可證 $g'(c)\\ne0$（$c\\in(a,a+\\delta)$），兩邊除以 $g(x)g'(c)$ 得\n$$\\frac{f(x)}{g(x)}=\\frac{f'(c)}{g'(c)}.$$\n\n**第三步（夾擠 $c\\to a^+$）**：因 $c=c(x)$ 滿足 $a<c<x$，當 $x\\to a^+$ 時由夾擠定理 $c\\to a^+$。已知 $\\lim_{t\\to a^+}\\dfrac{f'(t)}{g'(t)}=L$，故對這個依 $x$ 變動、趨向 $a^+$ 的 $c$，複合極限給出\n$$\\lim_{x\\to a^+}\\frac{f'(c(x))}{g'(c(x))}=L.$$\n結合第二步的等式 $\\dfrac{f(x)}{g(x)}=\\dfrac{f'(c)}{g'(c)}$，得 $\\lim_{x\\to a^+}\\dfrac{f(x)}{g(x)}=L$。$\\blacksquare$"
-}
