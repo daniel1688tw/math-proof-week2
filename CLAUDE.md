@@ -116,6 +116,7 @@ week3/
 ├── .claude/skills/pre-push-check/    # /pre-push-check skill：推送前守門流程（進版控）
 ├── docs/
 │   ├── code-review-product-ui.md     # 商品化介面 code review（第 2 次，覆蓋前版）
+│   ├── code-review-walkthrough-gradable.md  # 逐步教學可評分化批次 code review（2026-08-07）
 │   ├── notion/                       # Notion 專案空間的內容源（00–09，見下方「專案文件空間」）
 │   └── superpowers/                  # 設計 spec 與實作計畫
 ├── 專案架構設計.md                     # ★ 架構的權威來源（設計問題/鐵律/各層職責/取捨）
@@ -150,7 +151,7 @@ conda run -n lora_project --live-stream python learn_path\socratic_tutor\train_q
 
 ### 測試與評估
 ```powershell
-python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（303 條斷言 / 29 組）
+python dataset\test_driver_unit.py                                        # 純邏輯，無 GPU（313 條斷言 / 32 組）
 #   ⚠️ 斷言計數用 grep -cE "^  (✓|✗) "；用 grep -c "✓\|✗" 會多算結尾的總結行
 python dataset\test_phase_routing.py                                      # 真實對話回放驗階段路由（無 GPU，299 場存檔）
 python dataset\render_transcripts.py                                      # ★ 把最新一輪守門的對話轉成可讀 md（人工檢視用）
@@ -763,6 +764,62 @@ Tier 1/2 逐字比對 **103/104 相同**——唯一差異 `X1/S2/zh` 已查明�
 - 未跑：`test_driver_phase.py`／`test_driver_integration.py`（需 GPU）、
   `test_auto_reference.py`／`eval_svt_e2e.py`（需 Ollama）。
 
+### Code review（2026-08-07，`docs/code-review-walkthrough-gradable.md`）
+
+對 `11ab1ae..a2ba4fd` 做 code review，總評 **4.2/5、無 Critical、可維持現狀部署**。
+三項 Important **全部是「新加的守衛在特定輸入下不生效」**，逐項以可執行證據確認
+（見弱點 #20/#21/#22），不是回歸；Minor 5 項（註解被拆開、空答案鍵的句尾、
+`_DRAFT_RE` 反向閘只列五個字、`teach_steps` 快取鍵語意、驗收對象是補齊前的版本）。
+
+**這輪 review 最值得記的一件事**：I-2（重講防重複抓不到逐字重講）與弱點 #17 第一批
+修復踩的是**同一個錯誤**——拿「模型這次講的內容」去比對「上一則完整回覆」，而後者
+還包含 driver 自己加的模板前綴與確認問題，稀釋掉相似度。#17 那次是保底句把 0.85
+門檻稀釋到 0.768，這次是模板把 0.9 門檻稀釋到 0.845。
+**凡是用 difflib 比對「模型輸出」與「上一則回覆」的地方，都要先剝掉 driver 自己
+加的部分**，否則門檻等於形同虛設。全檔目前還有第三處同型比對
+（`_repeats_previous`）已經有 `_strip_driver_tail`，是唯一做對的那個。
+
+## Code review 三項 Important 修復（2026-08-07 第二批，計分卡 `2026-08-07T183953_a2ba4fd.json`）
+
+全程 TDD（6 條斷言先以正確理由失敗才實作），單元測試 303 → **313 條 / 32 組**。
+**完整守門 exit 0**：25 項硬性指標全 ≥ 基準。
+
+- **#20 修法**：`common_errors` 移到答案鍵**之後**比對，並套用 `accepted_answers` 既有的
+  短答保護。代價自覺：答案裡同時混了正確答案與某個錯誤說法時判 correct——對教學系統
+  而言這個方向的誤判遠比反過來安全。
+- **#21 修法**：比對對象加上 `step["explain"]` 本身，並新增 `_strip_walk_template()`
+  在比對前剝掉 driver 自己加的模板（回饋前綴／`第 i/n 步：` 標頭／確認問題段）。
+- **#22 修法**：`auto_reference._detect_lang` 改成**直接沿用 `tutor_driver.detect_lang`**
+  （函式內延遲 import，沿用 `validate_ladder` 既有模式；取不到時退回舊行為），
+  兩端從此不可能分岔；`build_reference` 另把語言算一次往下傳給 `fallback_steps` /
+  `ensure_checkable_steps` / `teach_steps_lang`（原本是三個各自為政的判定）。
+
+### 這輪唯一的真實證據來自 `_probes.json`，不是 judge 分數
+
+Tier 1/2 的 104 筆回覆與上輪**逐字 104/104 相同** ⇒ 固定探針的生成端零變化 ⇒
+**所有 `judge_*` 波動（含上升）都是評審雜訊，不可當成修復有效的證據**。
+真正可歸因的證據是 walkthrough 探針的逐輪存檔：
+
+| | `11ab1ae`（修復前） | `a2ba4fd`（修復後） |
+|---|:---:|:---:|
+| A6/zh 相鄰逐字重複 | 1 | **0** |
+| A6/en 相鄰逐字重複 | 1 | **0** |
+| 進入／收尾 | True／True | True／True |
+
+（註：本輪 `teach_steps_source` 為 `segmenter`、上輪為 `fallback`——Ollama 在線與否
+不同，故非完全受控對照；但兩輪的重講輪都實際發生過，重複數 1→0 是可歸因的。）
+
+### advisory 指標的中文下滑與本批無關（已查證，不要誤記為退步）
+
+`judge_dialogue_math_ok_zh` 0.6667→0.25、`judge_dialogue_guidance_zh` 0.6→0.45
+看起來很嚇人，但 Tier 3 的 8 場對話中**只有 M1 中英兩場進入 walkthrough**
+（其餘 6 場 `walkthrough=False`、`ladder_idx=0`），亦即 H5/M2/X4 三場**根本沒碰到
+本批改動的任何一行**，其分數變動只可能來自 Gemini 學生每輪走不同路徑（輸入隨機）。
+英文同期反而上升（`dialogue_math_ok_en` 0.6667→1.0）也印證這點。
+M1 中英兩場則是 guidance **兩輪都是 1 分**，維持不變＝弱點 K 未動。
+> 方法教訓：advisory 指標波動時，先查「這一場有沒有走到你改的那條路徑」，
+> 再決定要不要當回事。`escalation.walk_active` 就是這個問題的直接答案。
+
 ## 專案文件空間（Notion，2026-07-28）
 
 專案架構與決策紀錄已整理進 Notion，入口頁「蘇格拉底式高等數學證明引導助教」
@@ -881,3 +938,42 @@ Tier 1/2 逐字比對 **103/104 相同**——唯一差異 `X1/S2/zh` 已查明�
     這正是弱點 #13 說的「Tier 1/2 是單輪探針，測不到多輪行為」那塊盲區——
     補上探針後第一次量就見底。**下輪優先處理**；注意單輪的 `s3_refusal_en` 長期 1.0，
     可見「單輪不洩漏」完全推不出「多輪不洩漏」。
+20. ~~`common_errors` 排在答案鍵之前比對，會把正確答案判成錯~~ → **已修**（2026-08-07 第二批，守門 exit 0，見上方專節）。原始診斷（code review I-1，`tutor_driver.py:518`）：錯誤答案用**無長度下限的子字串**比對，且排在
+    `expected_answer` 之前，只要生成的錯答是正確答案的子字串就永遠先命中。
+    實測：`expected_answer="非負"` ＋ `common_errors=["負"]`，學生答「非負」判 incorrect；
+    `expected_answer="$x_2-x_1>0$"` ＋ `common_errors=["0"]`，答對同樣判 incorrect
+    ——兩組都是 SEGMENTER 很可能真的生成的內容。`_MAX_WALK_RETRY` 擋住了死鎖
+    （最多兩輪就被帶過），但學生會被連說兩次「這還不是這一步要的答案」，而他答的
+    就是標準答案。**修法**：先比對答案鍵、沒命中才查 `common_errors`，並套用
+    `accepted_answers` 那裡已有的短答保護（`len(cand) <= 2 and len(norm) > 12` 跳過）。
+21. ~~教學重講的防重複比對抓不到「逐字重講」~~ → **已修**（2026-08-07 第二批，守門 exit 0，見上方專節）。原始診斷（code review I-2，`tutor_driver.py:809`）：
+    比對對象是**上一則完整助教回覆**（含 `第 i/n 步：` 前綴與確認問題），而受測文字
+    只有 explain 本體，長度天生不對等。實測 96 字的真實步驟：模型把 explain 逐字原樣
+    吐回，相似度 **0.845 < 0.9 → 判定為「新說法」而採用**。這道守衛正是為了擋
+    M1 那兩場「原封不動再貼一次」而加的，卻擋不住最乾淨的那個版本。
+    **修法**：改成比對 `step["explain"]`，或比對前剝掉模板前綴與 `check`（門檻 0.9 沒問題）。
+    ⚠️ 與弱點 #17 第一批修復同型，見上方「Code review」節記的通則。
+22. ~~`auto_reference._detect_lang` 沒跟上 `tutor_driver.detect_lang` 的強化~~ → **已修**（2026-08-07 第二批，守門 exit 0，見上方專節）。原始診斷（code review I-3，`auto_reference.py:428`）：這批把語言判定前的剝除擴成
+    `_strip_language_neutral_math()`（含 `\(…\)`／`\[…\]`／裸算式），但 `auto_reference`
+    仍是舊寫法。實測同一段中文兩者判定相反（`故 \(…\dfrac{7}{n+2}<\varepsilon\) 成立。`
+    → driver 判 zh、備課判 **en**）。下游兩處：`build_reference()` 寫出的
+    `teach_steps_lang`（`app.py` 存進題目、driver 當 `src_lang`），以及
+    `ensure_checkable_steps(steps)` **沒帶 lang** 而逐步驟自行判定——算式為主的中文步驟
+    很容易配上英文確認問句。**修法**：共用同一個剝除函式，並在 `build_reference`
+    把語言算一次往下傳（現在 `fallback_steps` / `ensure_checkable_steps` / `_detect_lang`
+    是三個各自為政的判定）。
+23. **等級 2 提示梯用盡時，助教會推託「你自己去查」** ← 2026-08-07 第二批守門
+    **讀對話**抓到（`a2ba4fd_transcripts.md:556`），**尚未修**。A6/zh 逐步教學探針的
+    倒數第二輪（等級 2、`ladder_idx=2`＝提示梯已耗盡）逐字輸出：
+
+    > 這題需要「取二次項當下界」這個技巧，你自己查一下二項式展開就知道了。
+
+    這正是 `_REFUSE_TEACH_RE` 要擋的失敗模式，但那道守衛**只作用於 walkthrough 重講輪**
+    （2026-08-07 第一批刻意限定範圍），而這句出現在進 walkthrough 的**前一輪**——
+    學生此刻已經把整條提示梯用完，推託等於在最需要幫助的時間點放棄教學。
+    **非本批引進**：與上一輪計分卡（`11ab1ae_transcripts.md:553`）**逐字相同**，
+    且該筆屬 104/104 相同的固定探針集合，是長期存在、只是沒人讀到。
+    **修法方向**：把 `_REFUSE_TEACH_RE` 的作用域從「教學重講輪」擴大到
+    「等級 2 且 `ladder_idx >= 梯長`」，命中即重生成。
+    ⚠️ 不可無條件全域套用——一般引導輪的「你自己試著寫出…」是正當的蘇格拉底問法
+    （同一份 transcript 裡有 6 處），擴太寬會把它們一起誤殺。

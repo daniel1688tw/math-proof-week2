@@ -29,7 +29,9 @@ v10／v11 兩輪整體重訓皆經守門判退，**版號越新不代表越該�
                          說懂了→writeup_request / 證明確認完成→closed 收尾
              · 等級 2 注入提示梯內容（內建題來自 hint_ladders.json，
                使用者自帶題目來自備課的 LADDER 階段）
-             · 提示梯用盡仍連卡兩次 → walkthrough 逐步教學（一步一確認，教完仍要學生自寫證明）
+             · 提示梯用盡仍連卡兩次 → walkthrough 逐步教學：**確定性模板、不呼叫模型**，
+               一步一確認、**答對才前進**（比對備課產出的答案鍵），答錯留在同一步重講，
+               重試上限到了才揭示答案；教完仍要學生自寫證明
              · review/rectify 輪：審閱後盾（Ollama 思考型模型對照參考解找碴，
                缺漏清單注入 system；未裝 Ollama 自動降級，REVIEW_BACKSTOP=0 關閉）
            → QLoRA 微調模型（4-bit nf4）+ grounded system prompt（內含該題參考解）
@@ -117,7 +119,7 @@ python train_qlora.py
 
 ```bash
 cd dataset
-python test_driver_unit.py            # 驅動程式邏輯（無 GPU，250 條斷言 / 28 組）
+python test_driver_unit.py            # 驅動程式邏輯（無 GPU，313 條斷言 / 32 組）
 python test_phase_routing.py          # 真實對話回放驗階段路由不變式（無 GPU，299 場存檔）
 python test_app.py                    # 介面純邏輯（無 GPU、不連 Ollama）
 python test_dataset.py                # 資料集結構與內容檢查

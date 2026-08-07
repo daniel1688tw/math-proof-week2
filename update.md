@@ -232,7 +232,7 @@ advisory（照算照印、不進 pass/fail），並在多次評審上取共識�
 決策邏輯全部是確定性程式碼，可離線驗證，不需要 GPU：
 
 ```powershell
-python dataset\test_driver_unit.py      # 250 條斷言 / 28 組，數秒完成
+python dataset\test_driver_unit.py      # 313 條斷言 / 32 組，數秒完成
 python dataset\test_phase_routing.py    # 299 場真實對話回放，5 條不變式
 python dataset\test_app.py              # 介面純邏輯（不連 Ollama）
 ```

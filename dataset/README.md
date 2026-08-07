@@ -55,7 +55,7 @@ conda run -n lora_project --live-stream python dataset\test_dataset.py   # 分�
 
 | 檔案 | 需要 | 內容 |
 |---|---|---|
-| `test_driver_unit.py` | — | **303 條斷言**，driver 全部確定性邏輯 + LADDER 生成端 |
+| `test_driver_unit.py` | — | **313 條斷言**，driver 全部確定性邏輯 + LADDER 生成端 |
 | `test_phase_routing.py` | — | 回放 `regression_scores/*_dialogues.json` 的 299 場真實對話，驗 5 條階段路由不變式 |
 | `test_dataset.py` / `validate.py` | — | 資料集分佈與品質標準 |
 | `test_app.py` | — | 介面純邏輯 |
