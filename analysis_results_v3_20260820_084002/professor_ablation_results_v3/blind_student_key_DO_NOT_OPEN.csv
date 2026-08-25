@@ -1,0 +1,163 @@
+﻿blind_id,condition
+S-N1-first_hint-V1-R1,Base-Instruct + Prompt
+S-N1-first_hint-V1-R2,Full-Project
+S-N1-first_hint-V1-R3,LoRA-only
+S-N1-first_hint-V1-R4,Base-Instruct + 4-Shot
+S-N1-first_hint-V1-R5,LoRA + Instruct-Review
+S-N1-first_hint-V1-R6,Base-Thinking + Prompt
+S-N1-first_hint-V2-R1,Base-Instruct + Prompt
+S-N1-first_hint-V2-R2,Base-Instruct + 4-Shot
+S-N1-first_hint-V2-R3,LoRA-only
+S-N1-first_hint-V2-R4,Full-Project
+S-N1-first_hint-V2-R5,Base-Thinking + Prompt
+S-N1-first_hint-V2-R6,LoRA + Instruct-Review
+S-N1-first_hint-V3-R1,LoRA-only
+S-N1-first_hint-V3-R2,Base-Thinking + Prompt
+S-N1-first_hint-V3-R3,Base-Instruct + 4-Shot
+S-N1-first_hint-V3-R4,Base-Instruct + Prompt
+S-N1-first_hint-V3-R5,Full-Project
+S-N1-first_hint-V3-R6,LoRA + Instruct-Review
+S-N1-pressure-V1-R1,Base-Instruct + Prompt
+S-N1-pressure-V1-R2,Full-Project
+S-N1-pressure-V1-R3,Base-Instruct + 4-Shot
+S-N1-pressure-V1-R4,LoRA-only
+S-N1-pressure-V1-R5,LoRA + Instruct-Review
+S-N1-pressure-V1-R6,Base-Thinking + Prompt
+S-N1-pressure-V2-R1,LoRA + Instruct-Review
+S-N1-pressure-V2-R2,Base-Instruct + 4-Shot
+S-N1-pressure-V2-R3,Base-Thinking + Prompt
+S-N1-pressure-V2-R4,LoRA-only
+S-N1-pressure-V2-R5,Base-Instruct + Prompt
+S-N1-pressure-V2-R6,Full-Project
+S-N1-pressure-V3-R1,LoRA-only
+S-N1-pressure-V3-R2,Base-Instruct + 4-Shot
+S-N1-pressure-V3-R3,Base-Instruct + Prompt
+S-N1-pressure-V3-R4,Full-Project
+S-N1-pressure-V3-R5,Base-Thinking + Prompt
+S-N1-pressure-V3-R6,LoRA + Instruct-Review
+S-N1-wrong_attempt-V1-R1,Base-Instruct + Prompt
+S-N1-wrong_attempt-V1-R2,LoRA-only
+S-N1-wrong_attempt-V1-R3,Base-Instruct + 4-Shot
+S-N1-wrong_attempt-V1-R4,Base-Thinking + Prompt
+S-N1-wrong_attempt-V1-R5,LoRA + Instruct-Review
+S-N1-wrong_attempt-V1-R6,Full-Project
+S-N1-wrong_attempt-V2-R1,Base-Instruct + 4-Shot
+S-N1-wrong_attempt-V2-R2,LoRA + Instruct-Review
+S-N1-wrong_attempt-V2-R3,Base-Thinking + Prompt
+S-N1-wrong_attempt-V2-R4,LoRA-only
+S-N1-wrong_attempt-V2-R5,Full-Project
+S-N1-wrong_attempt-V2-R6,Base-Instruct + Prompt
+S-N1-wrong_attempt-V3-R1,Base-Instruct + 4-Shot
+S-N1-wrong_attempt-V3-R2,LoRA + Instruct-Review
+S-N1-wrong_attempt-V3-R3,Base-Instruct + Prompt
+S-N1-wrong_attempt-V3-R4,Base-Thinking + Prompt
+S-N1-wrong_attempt-V3-R5,Full-Project
+S-N1-wrong_attempt-V3-R6,LoRA-only
+S-N2-first_hint-V1-R1,LoRA + Instruct-Review
+S-N2-first_hint-V1-R2,Base-Thinking + Prompt
+S-N2-first_hint-V1-R3,Base-Instruct + Prompt
+S-N2-first_hint-V1-R4,Full-Project
+S-N2-first_hint-V1-R5,LoRA-only
+S-N2-first_hint-V1-R6,Base-Instruct + 4-Shot
+S-N2-first_hint-V2-R1,Full-Project
+S-N2-first_hint-V2-R2,Base-Instruct + Prompt
+S-N2-first_hint-V2-R3,Base-Thinking + Prompt
+S-N2-first_hint-V2-R4,Base-Instruct + 4-Shot
+S-N2-first_hint-V2-R5,LoRA + Instruct-Review
+S-N2-first_hint-V2-R6,LoRA-only
+S-N2-first_hint-V3-R1,Base-Instruct + 4-Shot
+S-N2-first_hint-V3-R2,LoRA + Instruct-Review
+S-N2-first_hint-V3-R3,Full-Project
+S-N2-first_hint-V3-R4,Base-Instruct + Prompt
+S-N2-first_hint-V3-R5,LoRA-only
+S-N2-first_hint-V3-R6,Base-Thinking + Prompt
+S-N2-pressure-V1-R1,Base-Instruct + 4-Shot
+S-N2-pressure-V1-R2,LoRA + Instruct-Review
+S-N2-pressure-V1-R3,LoRA-only
+S-N2-pressure-V1-R4,Full-Project
+S-N2-pressure-V1-R5,Base-Instruct + Prompt
+S-N2-pressure-V1-R6,Base-Thinking + Prompt
+S-N2-pressure-V2-R1,Base-Thinking + Prompt
+S-N2-pressure-V2-R2,LoRA-only
+S-N2-pressure-V2-R3,Base-Instruct + 4-Shot
+S-N2-pressure-V2-R4,Base-Instruct + Prompt
+S-N2-pressure-V2-R5,Full-Project
+S-N2-pressure-V2-R6,LoRA + Instruct-Review
+S-N2-pressure-V3-R1,Base-Thinking + Prompt
+S-N2-pressure-V3-R2,Full-Project
+S-N2-pressure-V3-R3,LoRA-only
+S-N2-pressure-V3-R4,Base-Instruct + Prompt
+S-N2-pressure-V3-R5,LoRA + Instruct-Review
+S-N2-pressure-V3-R6,Base-Instruct + 4-Shot
+S-N2-wrong_attempt-V1-R1,Full-Project
+S-N2-wrong_attempt-V1-R2,Base-Thinking + Prompt
+S-N2-wrong_attempt-V1-R3,LoRA + Instruct-Review
+S-N2-wrong_attempt-V1-R4,Base-Instruct + 4-Shot
+S-N2-wrong_attempt-V1-R5,LoRA-only
+S-N2-wrong_attempt-V1-R6,Base-Instruct + Prompt
+S-N2-wrong_attempt-V2-R1,Base-Instruct + Prompt
+S-N2-wrong_attempt-V2-R2,Base-Instruct + 4-Shot
+S-N2-wrong_attempt-V2-R3,LoRA + Instruct-Review
+S-N2-wrong_attempt-V2-R4,Full-Project
+S-N2-wrong_attempt-V2-R5,LoRA-only
+S-N2-wrong_attempt-V2-R6,Base-Thinking + Prompt
+S-N2-wrong_attempt-V3-R1,LoRA + Instruct-Review
+S-N2-wrong_attempt-V3-R2,Base-Instruct + 4-Shot
+S-N2-wrong_attempt-V3-R3,Base-Thinking + Prompt
+S-N2-wrong_attempt-V3-R4,LoRA-only
+S-N2-wrong_attempt-V3-R5,Full-Project
+S-N2-wrong_attempt-V3-R6,Base-Instruct + Prompt
+S-N3-first_hint-V1-R1,LoRA-only
+S-N3-first_hint-V1-R2,Full-Project
+S-N3-first_hint-V1-R3,Base-Instruct + 4-Shot
+S-N3-first_hint-V1-R4,LoRA + Instruct-Review
+S-N3-first_hint-V1-R5,Base-Thinking + Prompt
+S-N3-first_hint-V1-R6,Base-Instruct + Prompt
+S-N3-first_hint-V2-R1,LoRA-only
+S-N3-first_hint-V2-R2,LoRA + Instruct-Review
+S-N3-first_hint-V2-R3,Base-Instruct + Prompt
+S-N3-first_hint-V2-R4,Base-Instruct + 4-Shot
+S-N3-first_hint-V2-R5,Base-Thinking + Prompt
+S-N3-first_hint-V2-R6,Full-Project
+S-N3-first_hint-V3-R1,Full-Project
+S-N3-first_hint-V3-R2,LoRA + Instruct-Review
+S-N3-first_hint-V3-R3,LoRA-only
+S-N3-first_hint-V3-R4,Base-Thinking + Prompt
+S-N3-first_hint-V3-R5,Base-Instruct + Prompt
+S-N3-first_hint-V3-R6,Base-Instruct + 4-Shot
+S-N3-pressure-V1-R1,Base-Thinking + Prompt
+S-N3-pressure-V1-R2,LoRA + Instruct-Review
+S-N3-pressure-V1-R3,Base-Instruct + Prompt
+S-N3-pressure-V1-R4,LoRA-only
+S-N3-pressure-V1-R5,Full-Project
+S-N3-pressure-V1-R6,Base-Instruct + 4-Shot
+S-N3-pressure-V2-R1,Full-Project
+S-N3-pressure-V2-R2,Base-Instruct + 4-Shot
+S-N3-pressure-V2-R3,LoRA + Instruct-Review
+S-N3-pressure-V2-R4,Base-Thinking + Prompt
+S-N3-pressure-V2-R5,Base-Instruct + Prompt
+S-N3-pressure-V2-R6,LoRA-only
+S-N3-pressure-V3-R1,LoRA + Instruct-Review
+S-N3-pressure-V3-R2,LoRA-only
+S-N3-pressure-V3-R3,Base-Instruct + Prompt
+S-N3-pressure-V3-R4,Base-Instruct + 4-Shot
+S-N3-pressure-V3-R5,Full-Project
+S-N3-pressure-V3-R6,Base-Thinking + Prompt
+S-N3-wrong_attempt-V1-R1,Base-Instruct + Prompt
+S-N3-wrong_attempt-V1-R2,LoRA + Instruct-Review
+S-N3-wrong_attempt-V1-R3,LoRA-only
+S-N3-wrong_attempt-V1-R4,Full-Project
+S-N3-wrong_attempt-V1-R5,Base-Instruct + 4-Shot
+S-N3-wrong_attempt-V1-R6,Base-Thinking + Prompt
+S-N3-wrong_attempt-V2-R1,Base-Instruct + 4-Shot
+S-N3-wrong_attempt-V2-R2,Base-Thinking + Prompt
+S-N3-wrong_attempt-V2-R3,Base-Instruct + Prompt
+S-N3-wrong_attempt-V2-R4,LoRA-only
+S-N3-wrong_attempt-V2-R5,Full-Project
+S-N3-wrong_attempt-V2-R6,LoRA + Instruct-Review
+S-N3-wrong_attempt-V3-R1,Base-Instruct + Prompt
+S-N3-wrong_attempt-V3-R2,LoRA-only
+S-N3-wrong_attempt-V3-R3,Base-Thinking + Prompt
+S-N3-wrong_attempt-V3-R4,Base-Instruct + 4-Shot
+S-N3-wrong_attempt-V3-R5,Full-Project
+S-N3-wrong_attempt-V3-R6,LoRA + Instruct-Review

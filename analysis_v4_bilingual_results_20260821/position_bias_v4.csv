@@ -1,0 +1,6 @@
+﻿comparison_condition,position_consistency_rate,n_pairs
+Base-Instruct + 4-Shot,0.0,20
+Base-Instruct + Prompt,0.0,20
+Base-Thinking + Prompt,0.05,20
+LoRA + Instruct-Review,0.0,20
+LoRA-only,0.0,20

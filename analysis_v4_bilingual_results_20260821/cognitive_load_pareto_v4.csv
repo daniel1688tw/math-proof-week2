@@ -1,0 +1,7 @@
+﻿condition,difficulty,style_fidelity,task_accuracy,n_ratings
+Base-Instruct + 4-Shot,hard,4.0,3.0,1
+Base-Instruct + Prompt,hard,4.5,4.5,2
+Base-Thinking + Prompt,hard,1.0,1.0,2
+Full-Project,hard,4.8,4.6,5
+Full-Project,medium,5.0,5.0,1
+LoRA-only,medium,5.0,5.0,1

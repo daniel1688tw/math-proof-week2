@@ -1,0 +1,4 @@
+﻿condition,semantic_issue_hit,json_parse_rate,operational_success,n
+Base-Instruct reviewer,0.6666666666666666,1.0,0.6666666666666666,3
+Base-Thinking reviewer,0.6666666666666666,1.0,0.6666666666666666,3
+LoRA reviewer,0.6666666666666666,0.0,0.0,3

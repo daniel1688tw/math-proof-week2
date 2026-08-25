@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教你好，我這題想定義新函數 $g(t) = e^t - t - 1$，並打算對它在 $[0, x]$ 區間上套用均值定理。我的思路是因為 $g(0) = 0$，由均值定理可知存在 $c \\in (0, x)$ 使得 $\\frac{g(x)}{x} = g'(c) = e^c - 1$；只要說明當 $c > 0$ 時 $g'(c) > 0$，即可導出 $g(x) > 0$ 即 $e^x > 1 + x$。請問我這樣的方向正確嗎？可以請助教幫我依這個思路繼續完成詳細證明嗎？",
+    "reply": "你的方向完全正確，而且「定義差函數再均值」是極佳的路線。接下來要嚴謹地把「$g'(c)>0$」這個不等式算出來，你能自己完成嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教你好！我想改用「定積分」的方法來證明，並利用偶函數的對稱性簡化討論。因為對所有實數 $t$ 都有 $1 - \\cos t \\ge 0$，我打算先針對 $x \\ge 0$ 的情況，將這個不等式從 $0$ 到 $x$ 連續進行兩次定積分來導出目標不等式，最後再說明 $x < 0$ 時由偶函數性質自然成立。請問您可以幫我依照這個積分的方向，把詳細的推導步驟繼續寫下去嗎？",
+    "reply": "你的構思很清晰，我們就照著「積分 + 對稱性」的路線走。先看 $x\\ge0$：若把 $1-\\cos t$ 從 $0$ 积到 $x$，會得到什麼？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教你好，這題我想嘗試用「反證法」來證明。因為 $v_1, v_2$ 皆為非零向量，若假設兩者線性相依，則必定存在一個非零純量 $k$ 使得 $v_2 = k v_1$。我打算對這個等式兩邊同時左乘矩陣 $A$，再利用特徵向量的定義來尋找與 $\\lambda_1 \\neq \\lambda_2$ 的矛盾，請問助教我可以怎麼接著往下寫呢？",
+    "reply": "方向很好，反證法很乾淨。左乘 $A$ 後，你會得到什麼樣的關係式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教好，我想嘗試用反證法來證明：假設存在某個實數 $a$ 使得 $f(a) \\neq 0$。根據連續性的 $\\varepsilon$-$\\delta$ 定義，我們可以在 $a$ 周圍找到一個開區間 $(a-\\delta, a+\\delta)$，使得該區間內所有點的函數值都不為 $0$。然而根據有理數的稠密性，這個區間內必然包含某個有理數 $q$，這與題目「對所有有理數 $f(q)=0$」的條件產生矛盾。請問我這樣想方向是對的嗎？能不能麻煩助教依據這個方向，幫我把具體的 $\\varepsilon$-$\\delta$ 邏輯與推導完整寫出來？",
+    "reply": "方向完全正確，反證法是完全合法的路線。但要讓「$\\varepsilon$-$\\delta$ 給出開區間」這個前提成立，你必須先說明：這個 $\\delta$ 是針對哪個目標而被選出的？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "助教好，我想換個思路：先固定其中一個數 $a_1$，並考慮另外 $n$ 個數與它的差，記為 $d_k = a_k - a_1$（$k = 2, 3, \\dots, n+1$）。接著我打算分情況討論，如果這 $n$ 個差之中有任何一個能被 $n$ 整除，那就直接證明完畢；若都不能被整除，則這 $n$ 個差除以 $n$ 的餘數就只剩下 $1$ 到 $n-1$ 共 $n-1$ 種可能。請問我這個方向可行嗎？接下來該怎麼用鴿籠原理繼續完成證明呢？",
+    "reply": "方向完全可行，而且「固定一個參考點」正是這個題目的標準技巧。現在你已經把 $n$ 個差歸到同一個模 $n$ 的餘數系統裡了，那剩下的一步該怎麼說？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "助教好，我想嘗試將特徵值與特徵向量拆成實部與虛部來證明：假設特徵值 $\\lambda = a + bi$，對應的特徵向量 $v = x + iy$（其中 $a,b \\in \\mathbb{R}$，$x,y \\in \\mathbb{R}^n$）。\n將其代入 $Av = \\lambda v$ 並展開比較實部與虛部後，可以得到 $Ax = ax - by$ 與 $Ay = bx + ay$ 兩個式子。\n我打算分別對兩式左乘 $y^T$ 與 $x^T$，再利用 $A$ 為實對稱矩陣的性質（即 $y^T Ax = x^T Ay$）將兩式相減，從而導出虛部 $b = 0$。\n請問您可以幫我依這個方向繼續完成詳細的推導嗎？",
+    "reply": "你的想法很聰明，但要小心：把複向量拆成實部與虛部後，$Ax = ax - by$ 和 $Ay = bx + ay$ 是兩個實向量方程，各自成立。你打算「左乘 $y^T$ 與 $x^T$」，這一步需要先確認 $x,y$ 的範圍（實向量），這一步你會怎麼處理？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": false,
+      "issue": "學生已明確設定 $x,y \\in \\mathbb{R}^n$，助教卻多此一舉要求確認 $x,y$ 是否為實向量，提出不必要的質疑。"
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "Instead of applying the Mean Value Theorem directly to $f(t) = e^t$, I want to define an auxiliary function $g(t) = e^t - t - 1$ on the interval $[0, x]$. Since $g(0) = 0$, applying the Mean Value Theorem to $g(t)$ gives $\\frac{g(x)}{x} = g'(c) = e^c - 1$ for some $c \\in (0, x)$. Since $c > 0$, we have $g'(c) > 0$, which implies $g(x) > 0$ and thus $e^x > 1 + x$. Could you help me walk through and complete the proof using this approach to ensure all steps are rigorous?",
+    "reply": "The auxiliary function route is very clean. After applying the MVT to $g(t)$, what does $\\frac{g(x)}{x}=g'(c)$ give you directly — without first analyzing the sign of $g'$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "Hi! Instead of analyzing a single function $g(x)$ through its derivatives, I was thinking of using definite integration. Since $\\cos t \\le 1$ holds for all $t \\ge 0$, we can integrate both sides twice from $0$ to $x$ to get $\\sin x \\le x$ first, and then $\\cos x \\ge 1 - \\frac{x^2}{2}$. By using the fact that both sides are even functions, we can then handle $x < 0$. Could you help me write out the formal steps following this integration idea?",
+    "reply": "The integration route is completely valid — it's another elegant proof. Starting from $\\cos t\\le1$ on $[0,x]$, integrating once gives what?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "Hi TA, I'd like to try a proof by contradiction instead. Assuming $v_1$ and $v_2$ are linearly dependent, since $v_1 \\neq 0$, $v_2$ must be a scalar multiple of $v_1$, say $v_2 = k v_1$ for some non-zero scalar $k$. I plan to apply the matrix $A$ to both sides of this relation and compare the outcome with $A v_2 = \\lambda_2 v_2$ to derive a contradiction with $\\lambda_1 \\neq \\lambda_2$. Could you help me write out the remaining steps following this approach?",
+    "reply": "The route is clear — let's walk through it. Applying $A$ to $v_2=kv_1$, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "Instead of using sequential continuity, I would like to try a proof by contradiction using the $\\epsilon$-$\\delta$ definition. If we assume there exists some $a \\in \\mathbb{R}$ such that $f(a) \\neq 0$, we can choose $\\epsilon = |f(a)| / 2 > 0$ to get a neighborhood around $a$ where $f(x)$ is strictly non-zero. However, by the density of $\\mathbb{Q}$, there must be a rational number inside this neighborhood where $f$ evaluates to $0$, which gives a contradiction. Could you help me formalize the steps for this proof direction?",
+    "reply": "The skeleton is already complete — you've just sketched the whole proof yourself. To make it watertight, what must you say about the value of $f$ at that rational point, and how does it clash with the $\\epsilon$-$\\delta$ estimate?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I am trying to prove this using fractional parts and interval partitioning rather than standard integer remainder classes. If we divide all $n+1$ integers by $n$, their fractional parts $\\{a_i / n\\}$ must all lie in the interval $[0, 1)$. By partitioning $[0, 1)$ into $n$ subintervals $[k/n, (k+1)/n)$ for $k = 0, \\dots, n-1$, the Pigeonhole Principle guarantees that at least two numbers will have fractional parts falling into the exact same subinterval. Could you help me show why having fractional parts in the same subinterval implies their difference is an exact integer multiple of $n$, and guide me to complete the proof from here?",
+    "reply": "The fractional part of a number lies in $[0,1)$, so dividing by $n$ gives fractional parts in $[0,1)$. Partitioning $[0,1)$ into $n$ intervals of length $1/n$ is correct. If two numbers have fractional parts in the same subinterval, what is the difference between their actual values?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "Hi TA, instead of using the conjugate transpose, I'm thinking of decomposing the eigenvalue and eigenvector into real and imaginary components by writing $\\lambda = a + bi$ and $v = x + iy$ for real vectors $x$ and $y$. By expanding $A(x + iy) = (a + bi)(x + iy)$, we can separate the equation into two real system equations for $Ax$ and $Ay$. I plan to left-multiply them by $y^T$ and $x^T$ respectively, and then use matrix symmetry $y^T Ax = x^T Ay$ to show that $b = 0$. Could you help me go through the algebraic details following this direction?",
+    "reply": "The decomposition route works, but it's longer than the conjugate-transpose route. To finish, you need to verify the two real systems are actually equivalent — what must you prove first?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": false,
+      "issue": "學生的拆解方向完全正確可行；助教雖順著學生的方向回應，但提出了錯誤且不必要的數學要求（拆解出的兩個實數方程組無需證明等價，只需聯立運算即可）。"
+    }
+  }
+]

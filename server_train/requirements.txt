@@ -1,0 +1,9 @@
+# 與本機 lora_project 環境同版（CLAUDE.md），訓練行為可對照
+transformers==5.8.1
+peft==0.19.1
+bitsandbytes==0.49.2
+accelerate==1.13.0
+datasets==4.8.5
+safetensors==0.7.0
+sentencepiece==0.2.1
+huggingface_hub==1.14.0

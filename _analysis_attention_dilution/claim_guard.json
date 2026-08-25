@@ -1,0 +1,32 @@
+{
+  "terminology": "Behavioral context interference / instruction retention; not direct attention-weight evidence",
+  "instruct_checks": {
+    "neutral_long_context_drop_ge_20pp": true,
+    "conflict_long_context_drop_ge_20pp": true,
+    "prompt_refresh_recovery_ge_20pp": true,
+    "lora_advantage_ge_20pp": true
+  },
+  "instruct_verdict": "支持列為主要行為極限（仍須人工確認數學方向）",
+  "thinking_checks": {
+    "neutral_long_context_drop_ge_20pp": false,
+    "conflict_long_context_drop_ge_20pp": false,
+    "lora_advantage_ge_20pp": true
+  },
+  "thinking_verdict": "初步支持；需要更多題目或人工評分",
+  "rates": {
+    "base_short": 0.26666666666666666,
+    "base_long_neutral": 0.06666666666666667,
+    "base_long_conflict": 0.06666666666666667,
+    "refresh_long_conflict": 0.3333333333333333,
+    "lora_long_conflict": 0.9333333333333333,
+    "thinking_short": 0.6666666666666666,
+    "thinking_long_neutral": 0.7333333333333333,
+    "thinking_long_conflict": 0.6666666666666666
+  },
+  "invalid_inference": [
+    "自動規則成功率不等於數學正確率。",
+    "輸出截斷只能證明輸出預算／效率問題，不能單獨證明 Attention 稀釋。",
+    "若 Prompt Refresh 沒有恢復 Base-Instruct，不能把退化簡單歸因於前置規則被忘記。",
+    "若 LoRA 與 Base-Instruct 的長上下文差異不顯著，不能主張 LoRA 解決注意力稀釋。"
+  ]
+}

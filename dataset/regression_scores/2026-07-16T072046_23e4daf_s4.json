@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "老師，我想用輔助函數的方法來做。我打算定義 $g(x) = e^x - 1 - x$，然後對 $g$ 求導，觀察 $g'(x) = e^x - 1$ 在 $x>0$ 時的正負。由於 $g(0)=0$，而 $g$ 在 $(0,\\infty)$ 上嚴格遞增，就能得到 $g(x)>0$，也就是 $e^x>1+x$。這個方法好像沒有直接用到均值定理，但如果要嚴格說明 $g$ 遞增，似乎還是需要 MVT 的精神——老師，您能幫我沿著這個思路走，看看哪裡需要補充才算完整嗎？",
+    "reply": "你的輔助函數路線非常乾淨俐落。既然 $g'(x)=e^x-1$ 在 $x>0$ 為正，$g$ 就嚴格遞增，那 $g(x)>g(0)$ 能直接得出什麼？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用 Taylor 展開式的餘項估計來證明。我的思路是：把 $\\cos x$ 展開到第二項，也就是 $\\cos x = 1 - \\dfrac{x^2}{2} + R_2(x)$，然後利用 Lagrange 餘項公式證明 $R_2(x) \\ge 0$。具體來說，$R_2(x) = \\dfrac{\\cos\\xi}{4!} \\cdot x^4$……不對，讓我想想，$\\cos x$ 的 Maclaurin 展開餘項應該是 $R_2(x) = \\dfrac{f^{(4)}(\\xi)}{4!}x^4 = \\dfrac{\\cos\\xi}{24}x^4$，這個不一定非負。\n\n我想換一個角度：用積分的方式。把不等式改寫成 $\\cos x - 1 + \\dfrac{x^2}{2} \\ge 0$，然後嘗試從 $\\cos x$ 對 $x$ 積分兩次出發，利用 $|\\cos t| \\le 1$ 所以 $\\cos t \\ge -1$，一步一步積出下界。老師，你覺得這條路能走嗎？可以幫我看看，從 $\\cos t \\ge -1$ 積分之後，接下來該怎麼操控不等號方向？",
+    "reply": "積分路線可行，但會多一層估計。你現在已經知道餘項 $R_2(x)=\\frac{\\cos\\xi}{24}x^4$ 不一定非負，這說明什麼？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": true,
+      "issue": "助教雖口頭承認積分路線可行，但立刻把問題轉回 Taylor 餘項的死胡同，未順著學生的積分想法說明下一步應從 cos t ≤ 1（而非 cos t ≥ -1）出發積分兩次"
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "我想用反證法來做這題。假設 $\\{v_1, v_2\\}$ 線性相依，那麼其中一個向量可以寫成另一個的純量倍，也就是 $v_2 = kv_1$（$k \\neq 0$）。接著我打算對 $v_2$ 套用特徵值方程式，看看這個假設會不會跟 $\\lambda_1 \\neq \\lambda_2$ 產生矛盾。請問老師，這個方向可以繼續嗎？",
+    "reply": "很好，反證法是有效的路線。套用 $Av_2=\\lambda_2v_2$ 後，你能得到什麼關係式？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "我想用連續函數的「ε-δ 定義」直接來做。對任意實數 $a$ 和任意 $\\varepsilon > 0$，由 $f$ 在 $a$ 連續，存在 $\\delta > 0$ 使得 $|x - a| < \\delta$ 時 $|f(x) - f(a)| < \\varepsilon$。我打算在 $(a - \\delta, a + \\delta)$ 裡面找一個有理數 $q$（由稠密性保證存在），然後用 $f(q) = 0$ 和三角不等式來逼出 $|f(a)| < \\varepsilon$，因為 $\\varepsilon$ 任意小就得 $f(a) = 0$。可以請助教依這個 ε-δ 方向幫我引導下去嗎？",
+    "reply": "你的想法完全正確，而且 ε-δ 是最標準的路線。在 $(a-\\delta,a+\\delta)$ 找到有理數 $q$ 後，你打算怎麼把它用上？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "我想試試「排序加累積差」的方向，而不是直接看每個數除以 $n$ 的餘數。我打算先把 $n+1$ 個整數由小到大排成 $a_1 \\le a_2 \\le \\cdots \\le a_{n+1}$，若有兩個相等就差為零，直接成立；否則看 $n$ 個「逐步累積差」$s_0=0,\\, s_1=a_2-a_1,\\, s_2=a_3-a_1,\\,\\ldots,\\, s_n=a_{n+1}-a_1$，這樣我就有 $n+1$ 個非負整數，直覺告訴我它們對 $n$ 取模之後不可能全部不同。如果能從這 $n+1$ 個累積差裡找到兩個模 $n$ 相等的，比如 $s_j \\equiv s_i$，那 $a_{j+1}-a_{i+1}$ 就被 $n$ 整除了。請問助教覺得我這個思路可以往下走嗎？能不能幫我看看「$s_0, s_1, \\ldots, s_n$ 對 $n$ 取模後不可能全不同」這一步怎麼嚴格說清楚？",
+    "reply": "方向完全正確，而且比餘數版本更靈活。現在要嚴謹說明「$n+1$ 個非負整數對 $n$ 取模不可能全不同」。你能給出這些取模值的範圍限制嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "我想到另一個角度：既然 $A$ 是實對稱矩陣，它可以被視為一個從 $\\mathbb{R}^n$（或 $\\mathbb{C}^n$）到自身的自伴算子，而自伴算子關於它自身的內積會滿足 $\\langle Au, v\\rangle = \\langle u, Av\\rangle$。我打算直接用這個內積性質，對 $\\langle Av, v\\rangle$ 取複共軛，比較 $\\langle Av, v\\rangle$ 與 $\\overline{\\langle Av, v\\rangle}$ 是否相等，從而推出 $\\lambda$ 必須是實數——整個過程不顯式寫出 $v^*Av$ 的矩陣運算，而是走「算子自伴性 $\\Rightarrow$ 內積對稱 $\\Rightarrow$ 特徵值實」這條路。請問助教可以帶我沿這個方向走嗎？",
+    "reply": "完全正確，你已經掌握了「內積對稱性」這個更深刻的視角。那我們來嚴謹化你的想法：$\\langle Av,v\\rangle$ 取共軛後等於什麼，它與原式有何關係？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I'm thinking of applying MVT differently — instead of working with $f(t) = e^t$ directly, I'd define $g(t) = e^t - 1 - t$ and show it's strictly increasing for $t > 0$. I can verify $g(0) = 0$, then use MVT on $g$ over $[0, x]$ to conclude $g(x) - g(0) = g'(c)(x - 0)$ for some $c \\in (0, x)$. Since $g'(c) = e^c - 1 > 0$ and $x > 0$, this gives $g(x) > 0$, i.e. $e^x > 1 + x$. Could you help me make this argument more rigorous, especially the part where I invoke MVT on $g$?",
+    "reply": "The route works, but you skipped a step: why is $g$ increasing on $(0,\\infty)$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I'd like to try a Taylor series / integral remainder approach. My plan is to write $\\cos x$ as its degree-2 Taylor polynomial plus an integral remainder term — specifically, using the formula $\\cos x = 1 - \\frac{x^2}{2} + \\int_0^x \\frac{(x-t)^2}{2}\\cos t\\,dt$ (or a similar Lagrange/integral form) — and then argue that the remainder is non-negative because $\\cos t \\ge -1$ isn't quite enough, but actually the remainder term can be bounded below by zero directly. Could you help me make this precise? I think the key step I'm unsure about is how to set up and bound the integral remainder correctly.",
+    "reply": "That's a very clean route indeed — you're thinking in terms of the integral remainder. Can you write out the exact integral remainder formula for $\\cos x$'s Taylor expansion at $0$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I was thinking of approaching this by contradiction — assume $\\{v_1, v_2\\}$ is linearly dependent, which means one vector must be a scalar multiple of the other, say $v_1 = \\alpha v_2$ for some scalar $\\alpha \\neq 0$. Then I'd apply $A$ to both sides and use the eigenvector equations to derive that $\\lambda_1 = \\lambda_2$, contradicting our assumption. I feel like this sidesteps the \"set up $c_1 v_1 + c_2 v_2 = 0$ and solve for coefficients\" route entirely and goes straight at what linear dependence *means* geometrically. Could you help me flesh out the middle steps — specifically, what happens after I apply $A$ to $v_1 = \\alpha v_2$ and where exactly the contradiction about the eigenvalues pops out?",
+    "reply": "Exactly — that's a completely valid route. Applying $A$ gives $Av_1=\\lambda_1v_1$ and $Av_2=\\lambda_2v_2$; substituting $v_1=\\alpha v_2$ into the first, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "I'm thinking of a proof by contradiction: suppose $f(a) \\neq 0$ for some real $a$, say $f(a) = c \\neq 0$. Then by continuity, there's a $\\delta > 0$ such that $f(x)$ stays close to $c$ — specifically, $|f(x) - c| < |c|/2$ — for all $x \\in (a-\\delta, a+\\delta)$, which would force $f(x) \\neq 0$ throughout that whole interval. But the rationals are dense, so that interval must contain some rational $q$, and $f(q) = 0$, giving a contradiction. Could you help me make this argument more precise, especially the part where I use density to find that rational $q$?",
+    "reply": "Exactly. After fixing $c\\ne0$ and choosing $\\delta$, what guarantees you can find a rational inside $(a-\\delta,a+\\delta)$, and how does that give the contradiction?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I was thinking of fixing one of the integers — say call it $a_1$ — and then forming the $n$ differences $a_2 - a_1,\\ a_3 - a_1,\\ \\dots,\\ a_{n+1} - a_1$. If any of those differences is already divisible by $n$, we're done. Otherwise each difference has a remainder in $\\{1, 2, \\dots, n-1\\}$, which is only $n-1$ slots for $n$ differences, so two of them must share the same remainder — and their own difference would then be divisible by $n$. I think this avoids explicitly partitioning all integers into remainder classes from the start and instead builds the argument around one anchor element. Could you help me make this rigorous and check whether the two cases I split into actually cover everything?",
+    "reply": "The core idea is sound, but \"the differences have only $n-1$ slots\" is a miscount — the remainders of the differences themselves can still take $n$ values. Can you see what's wrong with that count?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "學生的計數正確：Case 2 前提已排除餘數為 0 的情況，n 個差值的餘數確實只落在 {1,…,n-1} 共 n-1 格；助教糾錯本身有誤，且未順學生方向引導。"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "I want to try a different approach using the **spectral theorem's proof via the characteristic polynomial and complex roots**. My idea is: the characteristic polynomial of $A$ has real coefficients (since $A$ is real), so any complex eigenvalues must come in conjugate pairs $\\lambda, \\bar\\lambda$. But a real symmetric matrix is also self-adjoint ($A^* = A$), and I think I can use this to show $\\lambda = \\bar\\lambda$ directly by considering the two eigenvalue equations $Av = \\lambda v$ and $A\\bar{v} = \\bar\\lambda \\bar{v}$ together, then taking an inner product to derive a contradiction if $\\lambda \\notin \\mathbb{R}$. Could you guide me along this path — specifically, how to set up the inner product argument using the conjugate eigenvector $\\bar{v}$?",
+    "reply": "Very clean — you're building a proof from first principles. Taking the conjugate eigenvector $\\bar{v}$ is exactly the right tool. What does the self-adjoint property give you when you take the inner product of $Av=\\lambda v$ with $\\bar{v}$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

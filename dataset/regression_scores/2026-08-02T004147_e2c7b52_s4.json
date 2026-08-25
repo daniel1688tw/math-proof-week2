@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教你好，我試著用均值定理做這題，但我想構造輔助函數 $g(t) = e^t - t - 1$ 來證明。我的思路是在 $[0, x]$ 上對 $g(t)$ 套用均值定理，利用 $g(0) = 0$ 以及在 $c \\in (0, x)$ 時 $g'(c) > 0$，進而推導出 $g(x) > 0$。請問我這樣的想法正確嗎？可以請助教幫我順著這個方向繼續完成證明嗎？",
+    "reply": "你的想法非常清楚，而且「用均值定理於 $g$」正是正確路線。接下來，套用均值定理後會得到什麼等式，你能把它整理成要的不等式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教您好，我想用「定積分的不等式」來證明。因為 $\\cos x$ 與 $x^2$ 都是偶函數，我們只需要討論 $x \\ge 0$ 的情況；而當 $t \\ge 0$ 時已知 $\\sin t \\le t$，若將此不等式對 $t$ 從 $0$ 到 $x$ 做定積分，應該就能直接導出結果。請問助教可以幫我依據這個思路繼續完成詳細的證明步驟嗎？",
+    "reply": "你的想法很清晰，而且「偶函數只需看正半軸」這一步完全正確。接下來，你打算如何把 $\\sin t\\le t$ 對 $t$ 從 $0$ 積到 $x$？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教你好，我打算用反證法來證明：先假設 $\\{v_1, v_2\\}$ 線性相依，因為特徵向量依定義非零，所以可以設 $v_2 = k v_1$（其中 $k \\ne 0$）。接著我打算從 $A v_2$ 出發，一方面利用 $v_2$ 是特徵向量算出 $\\lambda_2 v_2$，另一方面把 $v_2$ 替換成 $k v_1$ 來計算 $A(k v_1)$。希望比對兩者後能導出與「$\\lambda_1 \\ne \\lambda_2$」相悖的矛盾，請問這個思路正確嗎？可以請助教幫我依這個方向繼續推導嗎？",
+    "reply": "思路完全正確，而且「用特徵值相異製造矛盾」正是本題的精髓。我們先照你的想法走完，然後再回頭檢視每一步是否都站得住腳。既然 $v_2=kv_1$，那 $A(v_2)$ 能怎麼算？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教你好，我嘗試用反證法配合 $\\epsilon$-$\\delta$ 連續定義來思考：假設存在實數 $a$ 使得 $f(a) \\neq 0$。由連續性可知，取 $\\epsilon = \\frac{|f(a)|}{2}$ 時會存在 $\\delta > 0$，使得開區間 $(a-\\delta, a+\\delta)$ 內所有點的函數值都不為 $0$。但因為有理數具有稠密性，這個區間內一定能找到有理數 $q$ 滿足 $f(q)=0$，從而導出矛盾。請幫我依這個方向看看邏輯是否完備，並帶我把完整的證明過程寫出來，謝謝！",
+    "reply": "你的反證路線非常清楚，而且「稠密性提供反例」這一步正是核心。你能說說，為什麼稠密性保證能在那個 $\\delta$-鄰域內找到有理數嗎?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "助教好，我想嘗試從「函數與映射」的角度來證明，而不是直接用傳統的鴿籠原理。我的思路是定義一個映射 $f: S \\to \\mathbb{Z}_n$，將這 $n+1$ 個整數組成的集合 $S$ 映至模 $n$ 的同餘類集合 $\\mathbb{Z}_n$。因為定義域的大小 $|S| = n+1$ 大於對應域的大小 $|\\mathbb{Z}_n| = n$，根據有限集合的基數性質，這個映射必然不是單射（injective），因此存在相異兩數 $a, b$ 滿足 $f(a) = f(b)$，即 $a \\equiv b \\pmod n$。請問這樣的代數映射思路在邏輯上嚴謹嗎？可以請助教幫我依這個方向接下去完善完整的證明表達嗎？",
+    "reply": "你的「函數視角」非常乾淨利落，完全可行。要把它變成正式證明，先明確函數 $f$ 是如何定義的，你能給出它的明確定義式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "助教你好，我想嘗試把特徵值與特徵向量拆成實部與虛部來證明。設 $\\lambda = a + ib$ 且 $v = x + iy$（其中 $a,b \\in \\mathbb{R}$，$x,y \\in \\mathbb{R}^n$），展開 $A(x+iy) = (a+ib)(x+iy)$ 後可比較實部與虛部得到兩個實數向量等式。我打算分別左乘 $y^T$ 與 $x^T$，利用 $A$ 為實對稱矩陣所滿足的 $x^T A y = y^T A x$ 進行代換與比較，藉此導出 $b(\\|x\\|^2 + \\|y\\|^2) = 0$ 以說明虛部 $b=0$。請問這個方向可行嗎？可以請助教幫我依這個思路繼續完成推導嗎？",
+    "reply": "方向完全正確，而且「拆成實部虛部」正是處理複特徵值的標準技巧。你能說說，為什麼要特別強調 $A$ 是實對稱矩陣，這一步在你的等式比較中扮演什麼角色？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "Hi! Instead of applying the Mean Value Theorem directly to $f(t) = e^t$, I want to try using the auxiliary function $g(t) = e^t - t - 1$ on the interval $[0, x]$. Since $g(0) = 0$, the theorem implies that $\\frac{g(x)}{x} = g'(c)$ for some $c \\in (0, x)$. Since $g'(t) = e^t - 1$ and $c > 0$, we can see that $g'(c) > 0$. Could you help me complete the final steps of the proof based on this approach?",
+    "reply": "The route you've chosen is completely valid — you're using the auxiliary function method. From $\\frac{g(x)}{x}=g'(c)$, what does $g(x)$ equal, and how does the positivity of $g'(c)$ give the desired inequality?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "Instead of taking derivatives of a new function $g(x)$, I'm thinking of starting from the basic inequality $\\cos t \\le 1$ for all $t$. My plan is to integrate both sides twice from $0$ to $x$ for $x \\ge 0$, which should first yield $\\sin x \\le x$ and then lead directly to $1 - \\cos x \\le \\frac{x^2}{2}$. I can then handle the case for $x < 0$ using the fact that $\\cos x$ and $x^2$ are both even functions. Could you help me finish writing out this integration approach to make sure it's fully rigorous?",
+    "reply": "The route is completely valid — integrating twice is a very clean method. To make the first integral rigorous, what must you assume about the integrand so that the direction of the inequality is preserved during integration?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": "助教肯定學生的二次積分證法，並順著學生的思路提出適當的觀念引導，數學陳述正確。"
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "Hi TA, I want to try proving this by contradiction instead. Since eigenvectors are non-zero by definition, if $\\{v_1, v_2\\}$ were linearly dependent, $v_2$ would have to be a scalar multiple of $v_1$, so $v_2 = k v_1$ for some non-zero scalar $k$. My plan is to apply $A$ to both sides of $v_2 = k v_1$ and compare the result with $\\lambda_2 v_2$ to derive $\\lambda_1 = \\lambda_2$, which contradicts our premise. Could you help me fill in the exact steps to finalize this proof?",
+    "reply": "The direction is completely right — contradiction is a valid route. After applying $A$ to $v_2=kv_1$, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "Instead of using sequences, I want to try proving this by contradiction using the $\\epsilon$-$\\delta$ definition of continuity. If we assume there exists some real number $a$ such that $f(a) \\neq 0$, we can choose $\\epsilon = |f(a)| / 2$ to find a $\\delta$-neighborhood around $a$ where $f(x)$ cannot be zero. Since the rationals are dense in $\\mathbb{R}$, there must be a rational number $q$ inside this neighborhood, which leads to a contradiction because $f(q) = 0$. Could you help me write out and formalize the rest of this proof step by step?",
+    "reply": "The skeleton is already there — you've chosen the right route. To formalize the contradiction, what should you first say about the values of $f$ at points near $a$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "Instead of directly grouping the integers by their remainders modulo $n$, I want to try a proof by contradiction using prefix differences. If we order the $n+1$ integers as $a_1 \\le a_2 \\le \\dots \\le a_{n+1}$ and define $n$ differences $S_k = a_{k+1} - a_1$ for $1 \\le k \\le n$, we can assume for contradiction that no two original numbers have a difference divisible by $n$. Could you help me walk through how analyzing the possible remainders of these $S_k$ terms leads to a contradiction and completes the proof?",
+    "reply": "The prefix differences $S_k$ are all positive and their total sum equals $a_{n+1}-a_1$. What is the minimum possible value of this total sum?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "助教未順應學生分析餘數的方向進行引導，且錯誤宣稱 $S_k$ 的總和等於 $a_{n+1}-a_1$。"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "Hi TA! Instead of using the conjugate transpose $v^*$, I'm trying to prove this by decomposing the eigenvalue and eigenvector into real and imaginary parts, setting $\\lambda = a + bi$ and $v = x + iy$ for real scalars $a, b$ and real vectors $x, y$. Expanding $A(x+iy) = (a+bi)(x+iy)$ gives two real vector equations: $Ax = ax - by$ and $Ay = bx + ay$. My plan is to left-multiply them by $y^T$ and $x^T$ respectively and use $y^T Ax = x^T Ay$ to deduce that $b = 0$. Could you help me walk through the remaining steps using this setup?",
+    "reply": "Your decomposition is very clean. After multiplying the two equations by $y^T$ and $x^T$ respectively, what do you get?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

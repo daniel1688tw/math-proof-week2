@@ -1,0 +1,28 @@
+{
+  "source_result_dir": "D:\\math-proof-week2-main (main的前一版) - 複製 - 進行修改10 - 最成功版 - 複製\\analysis_results_v3_20260820_084002\\professor_ablation_results_v3",
+  "original_files_modified": false,
+  "model_inference_rerun": false,
+  "audit_method": "single_analyst_semantic_adjudication",
+  "formal_claim_status": "provisional_until_blind_independent_rating",
+  "known_limits": [
+    "The multi-turn export contains 3 turns, not 10.",
+    "The semantic correction is a single-analyst audit and is not blinded.",
+    "Thinking-specific superiority is not supported by this run.",
+    "TTFT was recorded per row but was not used as a corrected headline metric."
+  ],
+  "headline": {
+    "behavior": {
+      "Base-Instruct + 4-Shot": 0.48148148148148145,
+      "Base-Instruct + Prompt": 0.4444444444444444,
+      "Base-Thinking + Prompt": 0.5925925925925926,
+      "Full-Project": 1.0,
+      "LoRA + Instruct-Review": 1.0,
+      "LoRA-only": 0.8518518518518519
+    },
+    "reviewer_semantic_root_issue_rate": {
+      "Base-Instruct reviewer": 1.0,
+      "Base-Thinking reviewer": 1.0,
+      "LoRA reviewer": 1.0
+    }
+  }
+}

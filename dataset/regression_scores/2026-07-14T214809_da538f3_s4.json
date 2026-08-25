@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "我想用另一個方向來做：考慮函數 $g(x) = e^x - 1 - x$，然後對 $g$ 本身套均值定理——先算 $g(0)=0$，再對 $g'(x)=e^x-1$ 在 $[0,x]$ 上再套一次均值定理，說明 $g'$ 在 $(0,x)$ 上嚴格大於零，從而 $g$ 嚴格遞增，得到 $g(x)>g(0)=0$。這樣等於用均值定理兩層疊加，而不是直接對 $e^t$ 使用一次。老師，這個方向可以嗎？可以幫我看看第二步「$g'$ 嚴格大於零」應該怎麼嚴格說清楚？",
+    "reply": "可以，這其實是「均值定理 + 卷積」的變體。那 $g'(c)=e^c-1$，要嚴格大於零，靠的是 $c$ 的什麼性質？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "老師，我想試試用「積分兩次」的方向來做。我的出發點是最基本的事實 $\\cos t \\le 1$，也就是 $1 - \\cos t \\ge 0$。我打算把這個不等式從 $0$ 積分到 $x$，得到 $x - \\sin x \\ge 0$（先處理 $x \\ge 0$ 的情況），再把 $\\sin t \\le t$ 這個結果再積分一次，就能推出 $1 - \\cos x \\le \\dfrac{x^2}{2}$，也就是目標不等式。負數的 $x$ 我想用 $\\cos x = \\cos(-x)$ 的對稱性來補。這個方向可行嗎？可以請老師帶我一步一步檢查積分的細節嗎？",
+    "reply": "思路很清晰，但「把 $\\sin t\\le t$ 再積分一次」會得到什麼樣的量？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "老師，我想用反證法來做這題。我假設 $\\{v_1, v_2\\}$ 線性相依，那麼其中一個向量可以寫成另一個的純量倍，也就是 $v_2 = kv_1$（$k\\ne 0$）。接下來我打算對 $v_2$ 套用特徵值的定義，把 $Av_2$ 分別用 $\\lambda_2$ 和 $\\lambda_1$ 兩種方式展開，看看能不能導出矛盾。請問這個方向可以走嗎？老師可以幫我往下引導嗎？",
+    "reply": "可以，這是個很自然的方向。既然 $v_2=kv_1$，那 $Av_2$ 可以怎麼寫？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I'm thinking of applying MVT to a different function — let me define $g(x) = e^x - 1 - x$ and show it's strictly increasing on $(0, \\infty)$ by examining its derivative, then use MVT on $g$ itself on the interval $[0, x]$ to get the inequality. Since $g(0) = 0$ and MVT would give me $g(x) - g(0) = g'(c) \\cdot x$ for some $c \\in (0, x)$, and $g'(c) = e^c - 1 > 0$ for $c > 0$, I think that closes it. Could you guide me through whether this approach is rigorous and what I might be missing?",
+    "reply": "Your idea is very close to the standard proof. You correctly apply MVT to $g(x)=e^x-1-x$ on $[0,x]$. But to use MVT on $g$, you need $g$ to satisfy the theorem's hypotheses. What are those two conditions, and which one does $g$ satisfy?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I want to try an approach using iterated integration rather than analyzing a helper function. I know that $\\cos t \\le 1$ for all real $t$, and I'm thinking I can integrate that inequality twice — first to get a bound on $\\sin x$, then integrate again to get a bound on $\\cos x$ itself. I'm a bit unsure how to handle the direction of the inequality when integrating over a negative interval (when $x < 0$), and I'm not sure whether I need to treat the two cases $x \\ge 0$ and $x < 0$ separately or if there's a cleaner way to unify them. Could you guide me through how to set up and execute those two integration steps carefully?",
+    "reply": "That's a very promising idea. Let's start with the first integration: integrate the inequality $\\cos t \\le 1$ from $0$ to $x$ to get a bound on $\\sin x$. What do you get, and what sign do you expect for this expression when $x<0$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I'm thinking of approaching this by contradiction but from a different angle — instead of starting with a linear combination equal to zero, I want to directly assume $v_2$ is a scalar multiple of $v_1$, say $v_2 = k v_1$, and then apply $A$ to both sides to derive a contradiction with $\\lambda_1 \\ne \\lambda_2$. My intuition is that if they were dependent, $v_2$ would have to be an eigenvector for $\\lambda_1$ as well, which would force the two eigenvalues to be equal. Could you guide me through how to make this argument rigorous — specifically, what happens when I apply $A$ to $v_2 = k v_1$ and how I connect that back to the eigenvalue equations?",
+    "reply": "That's a very clean approach! Let's see where it leads. If $v_2=kv_1$, then $A v_2 = A(kv_1)=kA v_1$. But $A v_2$ is also equal to $\\lambda_2 v_2$ because $v_2$ is an eigenvector. So equating these two expressions gives $kA v_1 = \\lambda_2 v_2$. What's the left-hand side in terms of $v_1$, and how can we now solve for $k$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

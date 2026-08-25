@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "老師，我想試試一個不一樣的切入點——我不想直接對 $e^t$ 用均值定理，我想改對 $\\ln t$ 下手。\n\n我的想法是：把 $e^x > 1+x$ 等價改寫成「對所有 $y>1$，$\\ln y < y-1$」（令 $y=e^x$），然後對 $f(t)=\\ln t$ 在區間 $[1,y]$ 上用均值定理，得到某個 $c\\in(1,y)$ 滿足 $\\ln y - \\ln 1 = \\frac{1}{c}(y-1)$，再因為 $c>1$ 所以 $\\frac{1}{c}<1$，從而 $\\ln y < y-1$，這樣就反推出原不等式。\n\n請問老師，我這個等價改寫這步——從 $e^x>1+x$ 換成 $\\ln y < y-1$——需要特別說明什麼條件嗎？能不能請老師帶我確認一下這裡有沒有漏掉什麼？",
+    "reply": "換元等價要保證雙向可逆。這裡 $y=e^x$ 是單射，所以方向性沒問題。但我們還得確認 $c$ 的範圍能保證 $\\frac1c<1$，你覺得 $c$ 落在哪個區間才夠？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用 Taylor 展開式加上積分餘項來處理這題。具體來說，就是把 cos x 寫成帶 Lagrange 餘項或積分型餘項的展開式，直接讀出 cos x 與 1 − x²/2 的差值，然後說明那個餘項非負。我還沒確定要用 Lagrange 餘項還是積分型，請問助教可以帶我從哪個餘項切入比較乾淨？",
+    "reply": "兩者都能，但哪一種讓「餘項非負」這個判斷最自然？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "我想用反證法來做這題。假設 $\\{v_1, v_2\\}$ 線性相依，那麼其中一個向量可以寫成另一個的純量倍，也就是 $v_2 = kv_1$（$k \\neq 0$）。然後我打算對這個關係式兩邊同乘 $A$，分別用兩個特徵值展開，看看能不能導出 $\\lambda_1 = \\lambda_2$ 這個矛盾。老師，請問我這個方向能走得通嗎？如果可以，接下來對 $v_2 = kv_1$ 左乘 $A$ 之後，我應該怎麼整理那個等式？",
+    "reply": "方向完全正確。左乘 $A$ 後，你會得到 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$。接著用 $v_2=kv_1$ 代入，你能消掉 $v_1$ 得到什麼樣的方程？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": false,
+      "issue": "助教把參考解的步驟（c1λ1v1+c2λ2v2=0）直接貼入，與學生的 v2=kv1 反證路線毫無關聯；正確的引導應是：左乘 A 得 λ2(kv1)=kλ1v1，整理出 k(λ2−λ1)v1=0，再問學生能導出什麼矛盾。"
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I'm thinking of applying MVT to $g(t) = e^t - 1 - t$ instead of directly to $e^t$. I'd show $g(0) = 0$ and then argue that $g'(t) = e^t - 1 > 0$ for all $t > 0$ via MVT on $e^t$ itself, so $g$ is strictly increasing on $(0, \\infty)$, giving $g(x) > g(0) = 0$. Could you guide me through how to make the MVT step for $g'(t) > 0$ rigorous?",
+    "reply": "The derivative $g'(t)=e^t-1$ is positive for $t>0$, but we need to justify this without circularity. Can you apply MVT to $e^t$ on $[0,t]$ to get an expression for $e^t-1$, and use that to show $e^t>1+t$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": false,
+      "math_ok": true,
+      "issue": "助教建議對 e^t 在 [0,t] 用 MVT，最後卻要學生「show e^t>1+t」，實際上把論證引回參考解的直接路線，而非留在學生的框架裡完成「g'(t)>0 → g 嚴格遞增 → g(x)>0」的收尾。"
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I'd like to try a Taylor series / integral remainder approach. My plan is to write the cosine as its Taylor series and use the Lagrange (or integral) form of the remainder to get an explicit error bound showing the truncation error is non-negative. Specifically, I'll expand $\\cos x$ around $0$ up to the $x^2$ term and show the remainder term $R_2(x)$ satisfies $R_2(x) \\geq 0$, which directly gives the inequality. Could you guide me through setting up that remainder and bounding it?",
+    "reply": "That's a solid alternative. For the Taylor expansion of $\\cos x$ around $0$, the general term is $\\frac{f^{(n)}(c)}{n!}x^n$. What's the value of $n$ in this case, and what's the derivative we need to plug into the remainder formula?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": false,
+      "issue": "助教將 Taylor 展開一般項寫成 f^(n)(c)/n! · xⁿ，把 Lagrange 餘項中的中間點 c 混入了一般項公式；一般項應為 f^(n)(0)/n! · xⁿ（在 0 點求值），含 c 的才是餘項 R_n(x) = f^(n+1)(c)/(n+1)! · xⁿ⁺¹"
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I want to try a proof by contradiction — I'll assume $\\{v_1, v_2\\}$ is linearly *dependent*, which means one is a scalar multiple of the other, say $v_2 = k v_1$ for some scalar $k$. Then I can apply $A$ to both sides and use the eigenvector equations to force a contradiction involving $\\lambda_1 \\neq \\lambda_2$. I think this avoids the two-equation elimination step entirely and feels more direct to me. Could you guide me through whether my setup is right and what contradiction I should be aiming for?",
+    "reply": "That's a very solid approach — the contradiction route is often more intuitive than the elimination method. Your setup looks correct. When you apply $A$ to both sides of $v_2=kv_1$, you get $\\lambda_2v_2=\\lambda_1(kv_1)$. Now substitute $v_2=kv_1$ into this equation. What do you get, and how does this relate to the eigenvalue assumption $\\lambda_1\\ne\\lambda_2$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

@@ -1,0 +1,4 @@
+﻿condition,semantic_root_issue_rate,semantic_accuracy_rate,json_parse_rate,audited_operational_success,median_latency_s,p95_latency_s,mean_output_tokens,n
+Base-Instruct reviewer,1.0,1.0,1.0,1.0,5.078202749499951,14.026305852799954,101.91666666666667,12
+Base-Thinking reviewer,1.0,1.0,1.0,1.0,43.761649100499994,55.00799070860003,6777.75,12
+LoRA reviewer,1.0,0.9166666666666666,0.0,0.0,6.124977898999987,9.16852601995006,47.916666666666664,12

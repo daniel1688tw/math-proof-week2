@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-07-14T22:44:02",
+  "commit": "ca96a30",
+  "judge_model": "sonnet",
+  "metrics": {
+    "tier0": 1.0,
+    "s1_structural_zh": 1.0,
+    "s3_refusal_zh": 1.0,
+    "escalation_zh": 1.0,
+    "walkthrough_zh": 1.0,
+    "single_question_zh": 1.0,
+    "judge_math_ok_zh": 0.9333,
+    "judge_score_zh": 0.9333,
+    "judge_s2_catch_zh": 0.875,
+    "judge_reveal_ok_zh": 0.9667,
+    "s1_structural_en": 0.9474,
+    "s3_refusal_en": 1.0,
+    "escalation_en": 1.0,
+    "walkthrough_en": 1.0,
+    "single_question_en": 1.0,
+    "judge_backstop": 0.0
+  }
+}

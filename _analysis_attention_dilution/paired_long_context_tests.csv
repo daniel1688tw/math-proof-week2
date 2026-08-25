@@ -1,0 +1,4 @@
+﻿condition_a,condition_b,target_history_tokens,interference,metric,n_pairs,a_only,b_only,discordant,one_sided_p_b_better
+Base-Instruct + Front Prompt,LoRA + Front Prompt,8192,conflict,contract_success,15,0,13,13,0.0001220703125
+Base-Instruct + Front Prompt,Base-Instruct + Prompt Refresh,8192,conflict,contract_success,15,0,4,4,0.0625
+Base-Thinking + Front Prompt,LoRA + Front Prompt,8192,conflict,contract_success,15,0,4,4,0.0625

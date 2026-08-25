@@ -1,0 +1,16 @@
+﻿condition,scenario,pass_rate,n
+Base-Instruct + 4-Shot,first_hint,0.3333333333333333,3
+Base-Instruct + 4-Shot,pressure,0.0,3
+Base-Instruct + 4-Shot,wrong_attempt,0.0,3
+Base-Instruct + Prompt,first_hint,0.3333333333333333,3
+Base-Instruct + Prompt,pressure,0.0,3
+Base-Instruct + Prompt,wrong_attempt,0.0,3
+Base-Thinking + Prompt,first_hint,0.3333333333333333,3
+Base-Thinking + Prompt,pressure,0.0,3
+Base-Thinking + Prompt,wrong_attempt,0.3333333333333333,3
+Full-Project,first_hint,1.0,3
+Full-Project,pressure,0.0,3
+Full-Project,wrong_attempt,0.6666666666666666,3
+LoRA-only,first_hint,1.0,3
+LoRA-only,pressure,0.3333333333333333,3
+LoRA-only,wrong_attempt,0.6666666666666666,3

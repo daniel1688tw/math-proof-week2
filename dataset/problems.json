@@ -1,0 +1,352 @@
+[
+  {
+    "id": "A1",
+    "topic": "極限",
+    "difficulty": "中等",
+    "statement": "證明 $\\lim_{n\\to\\infty}\\sqrt[n]{n}=1$。",
+    "reference_proof": "令 $a_n=\\sqrt[n]{n}-1\\ge 0$（因 $n\\ge 1$ 時 $\\sqrt[n]{n}\\ge 1$）。則 $n=(1+a_n)^n$。\n由二項式定理，當 $n\\ge 2$ 時，\n$$n=(1+a_n)^n\\ge \\binom{n}{2}a_n^2=\\frac{n(n-1)}{2}a_n^2.$$\n因此 $a_n^2\\le \\dfrac{2}{n-1}$，即 $0\\le a_n\\le \\sqrt{\\dfrac{2}{n-1}}$。\n當 $n\\to\\infty$ 時右端 $\\to 0$，由夾擠定理 $a_n\\to 0$，故 $\\sqrt[n]{n}=1+a_n\\to 1$。$\\blacksquare$"
+  },
+  {
+    "id": "A2",
+    "topic": "極限",
+    "difficulty": "中等",
+    "statement": "用 $\\varepsilon$-$\\delta$ 定義證明 $\\lim_{x\\to 2}x^2=4$。",
+    "reference_proof": "要證：對任意 $\\varepsilon>0$，存在 $\\delta>0$，使得 $0<|x-2|<\\delta \\Rightarrow |x^2-4|<\\varepsilon$。\n先做因式分解：$|x^2-4|=|x-2|\\,|x+2|$。\n先限制 $|x-2|<1$，則 $1<x<3$，於是 $|x+2|<5$。\n故當 $|x-2|<1$ 時 $|x^2-4|<5|x-2|$。\n取 $\\delta=\\min\\{1,\\varepsilon/5\\}$。則 $0<|x-2|<\\delta$ 時 $|x^2-4|<5\\cdot\\frac{\\varepsilon}{5}=\\varepsilon$。$\\blacksquare$"
+  },
+  {
+    "id": "A3",
+    "topic": "極限",
+    "difficulty": "中等",
+    "statement": "設 $\\lim_{n\\to\\infty}a_n=L$、$\\lim_{n\\to\\infty}b_n=M$，證明 $\\lim_{n\\to\\infty}(a_n+b_n)=L+M$。",
+    "reference_proof": "要證：對任意 $\\varepsilon>0$，存在 $N$，使得 $n\\ge N \\Rightarrow |(a_n+b_n)-(L+M)|<\\varepsilon$。\n關鍵不等式（三角不等式）：$|(a_n+b_n)-(L+M)|\\le |a_n-L|+|b_n-M|$。\n由 $a_n\\to L$：存在 $N_1$ 使 $n\\ge N_1 \\Rightarrow |a_n-L|<\\varepsilon/2$。\n由 $b_n\\to M$：存在 $N_2$ 使 $n\\ge N_2 \\Rightarrow |b_n-M|<\\varepsilon/2$。\n取 $N=\\max\\{N_1,N_2\\}$，則 $n\\ge N$ 時兩式同時成立，故和 $<\\varepsilon/2+\\varepsilon/2=\\varepsilon$。$\\blacksquare$"
+  },
+  {
+    "id": "A4",
+    "topic": "極限",
+    "difficulty": "基礎",
+    "statement": "證明 $\\lim_{n\\to\\infty}\\dfrac{\\sin n}{n}=0$。",
+    "reference_proof": "對所有 $n$，$|\\sin n|\\le 1$，故 $0\\le \\left|\\dfrac{\\sin n}{n}\\right|\\le \\dfrac{1}{n}$。\n當 $n\\to\\infty$ 時 $\\dfrac{1}{n}\\to 0$。由夾擠定理，$\\left|\\dfrac{\\sin n}{n}\\right|\\to 0$，因此 $\\dfrac{\\sin n}{n}\\to 0$。$\\blacksquare$"
+  },
+  {
+    "id": "A5",
+    "topic": "極限",
+    "difficulty": "基礎",
+    "statement": "用 $\\varepsilon$-$N$ 定義證明 $\\lim_{n\\to\\infty}\\dfrac{1}{n}=0$。",
+    "reference_proof": "要證：對任意 $\\varepsilon>0$，存在 $N$，使得 $n\\ge N \\Rightarrow \\left|\\dfrac{1}{n}-0\\right|<\\varepsilon$。\n$\\left|\\dfrac1n\\right|=\\dfrac1n<\\varepsilon \\iff n>\\dfrac1\\varepsilon$。\n由阿基米德性質，存在正整數 $N>\\dfrac1\\varepsilon$。則 $n\\ge N$ 時 $\\dfrac1n\\le\\dfrac1N<\\varepsilon$。$\\blacksquare$"
+  },
+  {
+    "id": "A6",
+    "topic": "極限",
+    "difficulty": "中等",
+    "statement": "證明 $\\lim_{n\\to\\infty}\\dfrac{n}{2^n}=0$。",
+    "reference_proof": "對 $n\\ge 1$，由二項式定理 $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$（$n\\ge 2$）。\n故 $0\\le \\dfrac{n}{2^n}\\le \\dfrac{n}{n(n-1)/2}=\\dfrac{2}{n-1}$。\n當 $n\\to\\infty$ 時 $\\dfrac{2}{n-1}\\to 0$，由夾擠定理得 $\\dfrac{n}{2^n}\\to 0$。$\\blacksquare$"
+  },
+  {
+    "id": "A7",
+    "topic": "極限",
+    "difficulty": "中等",
+    "statement": "證明：收斂數列必有界。",
+    "reference_proof": "設 $a_n\\to L$。取 $\\varepsilon=1$，存在 $N$ 使 $n\\ge N \\Rightarrow |a_n-L|<1$，\n故 $n\\ge N$ 時 $|a_n|\\le |L|+1$。\n其餘有限項 $a_1,\\dots,a_{N-1}$ 只有有限個，令 $M=\\max\\{|a_1|,\\dots,|a_{N-1}|,\\,|L|+1\\}$。\n則對所有 $n$，$|a_n|\\le M$，故數列有界。$\\blacksquare$"
+  },
+  {
+    "id": "A8",
+    "topic": "極限",
+    "difficulty": "基礎",
+    "statement": "設 $\\lim_{n\\to\\infty}a_n=L$，證明 $\\lim_{n\\to\\infty}|a_n|=|L|$。",
+    "reference_proof": "由反向三角不等式 $\\big||a_n|-|L|\\big|\\le |a_n-L|$。\n給定 $\\varepsilon>0$，由 $a_n\\to L$ 存在 $N$ 使 $n\\ge N \\Rightarrow |a_n-L|<\\varepsilon$。\n則 $n\\ge N$ 時 $\\big||a_n|-|L|\\big|\\le|a_n-L|<\\varepsilon$，故 $|a_n|\\to|L|$。\n（注意逆命題不成立，例如 $a_n=(-1)^n$。）$\\blacksquare$"
+  },
+  {
+    "id": "A9",
+    "topic": "極限",
+    "difficulty": "基礎",
+    "statement": "用 $\\varepsilon$-$\\delta$ 定義證明 $\\lim_{x\\to 1}(2x+1)=3$。",
+    "reference_proof": "$|(2x+1)-3|=|2x-2|=2|x-1|$。\n給定 $\\varepsilon>0$，要 $2|x-1|<\\varepsilon$，即 $|x-1|<\\varepsilon/2$。\n取 $\\delta=\\varepsilon/2$。則 $0<|x-1|<\\delta \\Rightarrow |(2x+1)-3|=2|x-1|<2\\cdot\\frac{\\varepsilon}{2}=\\varepsilon$。$\\blacksquare$"
+  },
+  {
+    "id": "A10",
+    "topic": "極限",
+    "difficulty": "中等",
+    "statement": "證明 $\\lim_{x\\to 0}x\\sin\\dfrac{1}{x}=0$。",
+    "reference_proof": "對 $x\\ne 0$，$\\left|\\sin\\dfrac1x\\right|\\le 1$，故 $0\\le\\left|x\\sin\\dfrac1x\\right|\\le |x|$。\n給定 $\\varepsilon>0$，取 $\\delta=\\varepsilon$。則 $0<|x|<\\delta$ 時 $\\left|x\\sin\\dfrac1x-0\\right|\\le|x|<\\varepsilon$。\n（等價地由夾擠定理，因 $-|x|\\le x\\sin\\frac1x\\le|x|$ 且兩端 $\\to 0$。）$\\blacksquare$"
+  },
+  {
+    "id": "B1",
+    "topic": "連續性",
+    "difficulty": "中等",
+    "statement": "設 $f$ 在 $[a,b]$ 連續且 $f(a)f(b)<0$，證明存在 $c\\in(a,b)$ 使 $f(c)=0$。",
+    "reference_proof": "不妨設 $f(a)<0<f(b)$。令 $S=\\{x\\in[a,b]:f(x)<0\\}$。\n$S$ 非空（含 $a$）且有上界 $b$，由實數完備性 $c=\\sup S$ 存在，且 $c\\in[a,b]$。\n斷言 $f(c)=0$：\n（i）若 $f(c)>0$，由連續性存在 $\\delta>0$ 使 $(c-\\delta,c]$ 上 $f>0$，則 $c-\\delta$ 亦為 $S$ 上界，與 $c=\\sup S$ 矛盾。\n（ii）若 $f(c)<0$，則 $c<b$，由連續性存在 $\\delta>0$ 使 $[c,c+\\delta)$ 上 $f<0$，則 $S$ 中有大於 $c$ 的點，矛盾。\n故 $f(c)=0$，且因 $f(a),f(b)\\ne 0$ 得 $c\\in(a,b)$。$\\blacksquare$"
+  },
+  {
+    "id": "B2",
+    "topic": "連續性",
+    "difficulty": "進階",
+    "statement": "證明 $[a,b]$ 上的連續函數 $f$ 必達到最大值（最大值定理）。",
+    "reference_proof": "第一步（有界）：若 $f$ 無上界，則存在 $x_n\\in[a,b]$ 使 $f(x_n)>n$。由 Bolzano-Weierstrass，$\\{x_n\\}$ 有收斂子列 $x_{n_k}\\to x^*\\in[a,b]$。由連續性 $f(x_{n_k})\\to f(x^*)$（有限），與 $f(x_{n_k})>n_k\\to\\infty$ 矛盾。故 $f$ 有上界。\n第二步（達到）：令 $M=\\sup_{[a,b]}f$（存在且有限）。取 $y_n\\in[a,b]$ 使 $f(y_n)\\to M$。由 B-W 取收斂子列 $y_{n_k}\\to y^*\\in[a,b]$，由連續性 $f(y^*)=\\lim f(y_{n_k})=M$。\n故 $f$ 在 $y^*$ 達到最大值 $M$。$\\blacksquare$"
+  },
+  {
+    "id": "B3",
+    "topic": "連續性",
+    "difficulty": "進階",
+    "statement": "證明 $[a,b]$ 上的連續函數 $f$ 為一致連續（Heine-Cantor 定理）。",
+    "reference_proof": "反證法。假設 $f$ 不一致連續，則存在 $\\varepsilon_0>0$，對每個 $n$ 存在 $x_n,y_n\\in[a,b]$ 使\n$$|x_n-y_n|<\\tfrac1n \\quad\\text{但}\\quad |f(x_n)-f(y_n)|\\ge \\varepsilon_0.$$\n由 Bolzano-Weierstrass，$\\{x_n\\}$ 有收斂子列 $x_{n_k}\\to x^*\\in[a,b]$。\n因 $|x_{n_k}-y_{n_k}|<\\frac{1}{n_k}\\to 0$，故 $y_{n_k}\\to x^*$ 亦成立。\n由 $f$ 在 $x^*$ 連續，$f(x_{n_k})\\to f(x^*)$ 且 $f(y_{n_k})\\to f(x^*)$，\n於是 $|f(x_{n_k})-f(y_{n_k})|\\to 0$，與 $\\ge\\varepsilon_0$ 矛盾。$\\blacksquare$"
+  },
+  {
+    "id": "B4",
+    "topic": "連續性",
+    "difficulty": "中等",
+    "statement": "證明 $f(x)=x^2$ 在 $\\mathbb{R}$ 上不一致連續。",
+    "reference_proof": "要證：存在 $\\varepsilon_0>0$，對任意 $\\delta>0$ 都能找到 $x,y$ 使 $|x-y|<\\delta$ 但 $|f(x)-f(y)|\\ge\\varepsilon_0$。\n取 $\\varepsilon_0=1$。對任意 $\\delta>0$，令 $x=n+\\dfrac{\\delta}{2}$、$y=n$（$n$ 為待定大整數）。\n則 $|x-y|=\\dfrac{\\delta}{2}<\\delta$，而\n$$|x^2-y^2|=|x-y|\\,|x+y|=\\frac{\\delta}{2}\\Big(2n+\\frac{\\delta}{2}\\Big)\\ge \\delta n.$$\n取 $n$ 足夠大使 $\\delta n\\ge 1$，即得 $|f(x)-f(y)|\\ge 1$。故不一致連續。\n（本質原因：$|x+y|$ 無界，使同樣的 $\\delta$ 無法通用。）$\\blacksquare$"
+  },
+  {
+    "id": "B5",
+    "topic": "連續性",
+    "difficulty": "基礎",
+    "statement": "用 $\\varepsilon$-$\\delta$ 定義證明 $f(x)=x^2$ 在任一點 $x=a$ 連續。",
+    "reference_proof": "要證：對任意 $\\varepsilon>0$，存在 $\\delta>0$，使 $|x-a|<\\delta \\Rightarrow |x^2-a^2|<\\varepsilon$。\n$|x^2-a^2|=|x-a|\\,|x+a|$。先限制 $|x-a|<1$，則 $|x+a|\\le |x-a|+2|a|<1+2|a|$。\n故 $|x^2-a^2|<(1+2|a|)|x-a|$。\n取 $\\delta=\\min\\Big\\{1,\\dfrac{\\varepsilon}{1+2|a|}\\Big\\}$，則 $|x-a|<\\delta$ 時 $|x^2-a^2|<\\varepsilon$。$\\blacksquare$"
+  },
+  {
+    "id": "B6",
+    "topic": "連續性",
+    "difficulty": "中等",
+    "statement": "設 $f$ 在 $x_0$ 連續。證明：對任意數列 $x_n\\to x_0$，皆有 $f(x_n)\\to f(x_0)$（連續的序列準則）。",
+    "reference_proof": "給定 $\\varepsilon>0$。由 $f$ 在 $x_0$ 連續，存在 $\\delta>0$ 使 $|x-x_0|<\\delta \\Rightarrow |f(x)-f(x_0)|<\\varepsilon$。\n由 $x_n\\to x_0$，對此 $\\delta$ 存在 $N$ 使 $n\\ge N \\Rightarrow |x_n-x_0|<\\delta$。\n於是 $n\\ge N$ 時 $|f(x_n)-f(x_0)|<\\varepsilon$，即 $f(x_n)\\to f(x_0)$。$\\blacksquare$"
+  },
+  {
+    "id": "B7",
+    "topic": "連續性",
+    "difficulty": "中等",
+    "statement": "證明任一奇次實係數多項式 $p(x)=x^{2k+1}+c_{2k}x^{2k}+\\cdots+c_0$ 至少有一實根。",
+    "reference_proof": "$p$ 為多項式，在 $\\mathbb{R}$ 上連續。考慮 $x\\to\\pm\\infty$ 的行為：\n因最高次項為奇次 $x^{2k+1}$，$\\lim_{x\\to+\\infty}p(x)=+\\infty$，$\\lim_{x\\to-\\infty}p(x)=-\\infty$。\n故存在 $b$ 使 $p(b)>0$，存在 $a<b$ 使 $p(a)<0$。\n$p$ 在 $[a,b]$ 連續且 $p(a)<0<p(b)$，由介值定理存在 $c\\in(a,b)$ 使 $p(c)=0$。$\\blacksquare$"
+  },
+  {
+    "id": "B8",
+    "topic": "連續性",
+    "difficulty": "進階",
+    "statement": "證明 $[a,b]$ 上的連續函數必有界（有界性定理）。",
+    "reference_proof": "反證法。假設 $f$ 無界，則對每個 $n$ 存在 $x_n\\in[a,b]$ 使 $|f(x_n)|>n$。\n$\\{x_n\\}\\subset[a,b]$ 有界，由 Bolzano-Weierstrass 有收斂子列 $x_{n_k}\\to x^*$，\n且因 $[a,b]$ 為閉集，$x^*\\in[a,b]$。\n由 $f$ 在 $x^*$ 連續，$f(x_{n_k})\\to f(x^*)$，故 $\\{f(x_{n_k})\\}$ 收斂因而有界；\n但 $|f(x_{n_k})|>n_k\\to\\infty$ 無界，矛盾。故 $f$ 有界。$\\blacksquare$"
+  },
+  {
+    "id": "B9",
+    "topic": "連續性",
+    "difficulty": "中等",
+    "statement": "設 $g$ 在 $x_0$ 連續、$f$ 在 $g(x_0)$ 連續，證明 $f\\circ g$ 在 $x_0$ 連續。",
+    "reference_proof": "令 $y_0=g(x_0)$。給定 $\\varepsilon>0$。\n由 $f$ 在 $y_0$ 連續，存在 $\\eta>0$ 使 $|y-y_0|<\\eta \\Rightarrow |f(y)-f(y_0)|<\\varepsilon$。\n由 $g$ 在 $x_0$ 連續，對此 $\\eta$ 存在 $\\delta>0$ 使 $|x-x_0|<\\delta \\Rightarrow |g(x)-y_0|<\\eta$。\n於是 $|x-x_0|<\\delta \\Rightarrow |g(x)-y_0|<\\eta \\Rightarrow |f(g(x))-f(y_0)|<\\varepsilon$，即 $f\\circ g$ 在 $x_0$ 連續。$\\blacksquare$"
+  },
+  {
+    "id": "B10",
+    "topic": "連續性",
+    "difficulty": "進階",
+    "statement": "設 $f$ 在 $[0,1]$ 連續且 $f(0)=f(1)$，證明存在 $c\\in[0,\\tfrac12]$ 使 $f(c)=f(c+\\tfrac12)$。",
+    "reference_proof": "定義 $g(x)=f(x+\\tfrac12)-f(x)$，$g$ 在 $[0,\\tfrac12]$ 連續。\n計算端點：$g(0)=f(\\tfrac12)-f(0)$，$g(\\tfrac12)=f(1)-f(\\tfrac12)$。\n兩者相加：$g(0)+g(\\tfrac12)=f(1)-f(0)=0$，故 $g(\\tfrac12)=-g(0)$。\n若 $g(0)=0$，取 $c=0$。否則 $g(0)$ 與 $g(\\tfrac12)$ 異號，由介值定理存在 $c\\in(0,\\tfrac12)$ 使 $g(c)=0$，\n即 $f(c)=f(c+\\tfrac12)$。$\\blacksquare$"
+  },
+  {
+    "id": "C1",
+    "topic": "微分",
+    "difficulty": "基礎",
+    "statement": "證明：若 $f$ 在 $x_0$ 可微，則 $f$ 在 $x_0$ 連續。",
+    "reference_proof": "要證 $\\lim_{x\\to x_0}f(x)=f(x_0)$，即 $\\lim_{x\\to x_0}\\big(f(x)-f(x_0)\\big)=0$。\n對 $x\\ne x_0$ 恆等變形：\n$$f(x)-f(x_0)=\\frac{f(x)-f(x_0)}{x-x_0}\\cdot (x-x_0).$$\n當 $x\\to x_0$，第一因子 $\\to f'(x_0)$（可微假設，有限），第二因子 $\\to 0$。\n由極限乘積律，$\\lim_{x\\to x_0}\\big(f(x)-f(x_0)\\big)=f'(x_0)\\cdot 0=0$。故 $f$ 在 $x_0$ 連續。$\\blacksquare$"
+  },
+  {
+    "id": "C2",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "證明 Rolle 定理：$f$ 在 $[a,b]$ 連續、$(a,b)$ 可微且 $f(a)=f(b)$，則存在 $c\\in(a,b)$ 使 $f'(c)=0$。",
+    "reference_proof": "$f$ 在 $[a,b]$ 連續，由最大值定理達到最大值 $M$ 與最小值 $m$。\n情形一：$M=m$，則 $f$ 為常數，$(a,b)$ 上 $f'\\equiv 0$，任取 $c$ 即可。\n情形二：$M>m$。由 $f(a)=f(b)$，最大或最小值至少有一個在內部點 $c\\in(a,b)$ 取得。\n在該內部極值點，由費馬定理 $f'(c)=0$。$\\blacksquare$"
+  },
+  {
+    "id": "C3",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "證明 Lagrange 均值定理：$f$ 在 $[a,b]$ 連續、$(a,b)$ 可微，則存在 $c$ 使 $f'(c)=\\dfrac{f(b)-f(a)}{b-a}$。",
+    "reference_proof": "構造輔助函數，消去端點差以套用 Rolle：\n$$g(x)=f(x)-f(a)-\\frac{f(b)-f(a)}{b-a}(x-a).$$\n$g$ 在 $[a,b]$ 連續、$(a,b)$ 可微。驗證端點：$g(a)=0$，且\n$g(b)=f(b)-f(a)-\\dfrac{f(b)-f(a)}{b-a}(b-a)=0$。\n由 Rolle 定理存在 $c\\in(a,b)$ 使 $g'(c)=0$。而 $g'(x)=f'(x)-\\dfrac{f(b)-f(a)}{b-a}$，\n故 $f'(c)=\\dfrac{f(b)-f(a)}{b-a}$。$\\blacksquare$"
+  },
+  {
+    "id": "C4",
+    "topic": "微分",
+    "difficulty": "進階",
+    "statement": "證明 Cauchy 均值定理：$f,g$ 在 $[a,b]$ 連續、$(a,b)$ 可微且 $g'\\ne 0$，則存在 $c$ 使 $\\dfrac{f'(c)}{g'(c)}=\\dfrac{f(b)-f(a)}{g(b)-g(a)}$。",
+    "reference_proof": "先注意 $g(b)\\ne g(a)$：否則由 Rolle 存在點使 $g'=0$，與假設矛盾。\n構造輔助函數\n$$h(x)=\\big(f(b)-f(a)\\big)\\,g(x)-\\big(g(b)-g(a)\\big)\\,f(x).$$\n$h$ 在 $[a,b]$ 連續、$(a,b)$ 可微。計算 $h(a)=f(b)g(a)-g(b)f(a)=h(b)$（展開可驗證相等）。\n由 Rolle 存在 $c$ 使 $h'(c)=0$，即 $\\big(f(b)-f(a)\\big)g'(c)=\\big(g(b)-g(a)\\big)f'(c)$。\n除以 $g'(c)\\big(g(b)-g(a)\\big)\\ne 0$ 得結論。$\\blacksquare$"
+  },
+  {
+    "id": "C5",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "證明：若 $f$ 在區間 $I$ 上可微且 $f'\\equiv 0$，則 $f$ 在 $I$ 上為常數。",
+    "reference_proof": "任取 $x_1<x_2\\in I$。$f$ 在 $[x_1,x_2]$ 連續、$(x_1,x_2)$ 可微，由 Lagrange 均值定理\n存在 $c\\in(x_1,x_2)$ 使\n$$f(x_2)-f(x_1)=f'(c)(x_2-x_1).$$\n由 $f'(c)=0$ 得 $f(x_2)=f(x_1)$。因 $x_1,x_2$ 任取，$f$ 在 $I$ 上取同一值，即為常數。$\\blacksquare$"
+  },
+  {
+    "id": "C6",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "證明：若 $f$ 在區間 $I$ 上可微且 $f'>0$，則 $f$ 在 $I$ 上嚴格遞增。",
+    "reference_proof": "任取 $x_1<x_2\\in I$。由 Lagrange 均值定理，存在 $c\\in(x_1,x_2)$ 使\n$$f(x_2)-f(x_1)=f'(c)(x_2-x_1).$$\n因 $f'(c)>0$ 且 $x_2-x_1>0$，右端 $>0$，故 $f(x_2)>f(x_1)$。\n因 $x_1<x_2$ 任取，$f$ 嚴格遞增。$\\blacksquare$"
+  },
+  {
+    "id": "C7",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "證明費馬定理：若 $f$ 在內部點 $c$ 取得局部極大且 $f'(c)$ 存在，則 $f'(c)=0$。",
+    "reference_proof": "設 $c$ 為局部極大，則存在 $\\delta>0$，$|h|<\\delta$ 時 $f(c+h)\\le f(c)$。\n右導數（$h\\to 0^+$）：差商 $\\dfrac{f(c+h)-f(c)}{h}\\le 0$，故 $f'(c)=\\lim_{h\\to0^+}\\le 0$。\n左導數（$h\\to 0^-$）：分子 $\\le 0$、分母 $<0$，差商 $\\ge 0$，故 $f'(c)\\ge 0$。\n因 $f'(c)$ 存在（左右導數相等），同時 $\\le 0$ 與 $\\ge 0$，故 $f'(c)=0$。$\\blacksquare$"
+  },
+  {
+    "id": "C8",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "設 $f$ 在區間 $I$ 可微且 $|f'(x)|\\le M$，證明 $|f(x)-f(y)|\\le M|x-y|$（$f$ 為 Lipschitz）。",
+    "reference_proof": "任取 $x,y\\in I$，不妨 $x\\ne y$。由 Lagrange 均值定理，存在介於 $x,y$ 之間的 $c$ 使\n$$f(x)-f(y)=f'(c)(x-y).$$\n取絕對值並用 $|f'(c)|\\le M$：\n$$|f(x)-f(y)|=|f'(c)|\\,|x-y|\\le M|x-y|.$$\n$x=y$ 時兩端皆為 $0$，不等式亦成立。$\\blacksquare$"
+  },
+  {
+    "id": "C9",
+    "topic": "微分",
+    "difficulty": "中等",
+    "statement": "證明對所有實數 $x,y$，$|\\sin x-\\sin y|\\le |x-y|$。",
+    "reference_proof": "令 $f(t)=\\sin t$，則 $f'(t)=\\cos t$，$|f'(t)|\\le 1$。\n對 $x\\ne y$，由 Lagrange 均值定理存在 $c$ 使\n$$\\sin x-\\sin y=\\cos c\\,(x-y).$$\n取絕對值：$|\\sin x-\\sin y|=|\\cos c|\\,|x-y|\\le |x-y|$。$x=y$ 時等式顯然成立。$\\blacksquare$"
+  },
+  {
+    "id": "C10",
+    "topic": "微分",
+    "difficulty": "進階",
+    "statement": "證明對所有 $x>0$，$\\dfrac{x}{1+x}<\\ln(1+x)<x$。",
+    "reference_proof": "令 $f(t)=\\ln(1+t)$，在 $[0,x]$ 連續、$(0,x)$ 可微，$f'(t)=\\dfrac{1}{1+t}$。\n由 Lagrange 均值定理存在 $\\xi\\in(0,x)$ 使\n$$\\ln(1+x)-\\ln 1=\\frac{1}{1+\\xi}\\,x,\\qquad\\text{即 } \\ln(1+x)=\\frac{x}{1+\\xi}.$$\n因 $0<\\xi<x$，有 $1<1+\\xi<1+x$，故 $\\dfrac{1}{1+x}<\\dfrac{1}{1+\\xi}<1$。\n乘以 $x>0$：$\\dfrac{x}{1+x}<\\dfrac{x}{1+\\xi}=\\ln(1+x)<x$。$\\blacksquare$"
+  },
+  {
+    "id": "D1",
+    "topic": "積分",
+    "difficulty": "中等",
+    "statement": "設 $f$ 在 $[a,b]$ 連續、$f\\ge 0$ 且 $\\int_a^b f(x)\\,dx=0$，證明 $f\\equiv 0$。",
+    "reference_proof": "反證法。假設存在 $x_0\\in[a,b]$ 使 $f(x_0)>0$。\n由連續性，取 $\\varepsilon=\\dfrac{f(x_0)}{2}>0$，存在子區間 $[c,d]\\subset[a,b]$（含 $x_0$，長度 $d-c>0$）使其上 $f(x)>\\dfrac{f(x_0)}{2}$。\n因 $f\\ge 0$，\n$$\\int_a^b f\\ge \\int_c^d f\\ge \\frac{f(x_0)}{2}(d-c)>0,$$\n與 $\\int_a^b f=0$ 矛盾。故對所有 $x$，$f(x)=0$。$\\blacksquare$"
+  },
+  {
+    "id": "D2",
+    "topic": "積分",
+    "difficulty": "進階",
+    "statement": "證明微積分基本定理（第一部分）：$f$ 在 $[a,b]$ 連續，$F(x)=\\int_a^x f(t)\\,dt$，則 $F'(x)=f(x)$。",
+    "reference_proof": "固定 $x\\in[a,b]$。對 $h\\ne 0$，\n$$\\frac{F(x+h)-F(x)}{h}=\\frac{1}{h}\\int_x^{x+h}f(t)\\,dt.$$\n與 $f(x)$ 作差並利用 $\\frac1h\\int_x^{x+h}f(x)\\,dt=f(x)$：\n$$\\left|\\frac{F(x+h)-F(x)}{h}-f(x)\\right|=\\left|\\frac1h\\int_x^{x+h}\\big(f(t)-f(x)\\big)\\,dt\\right|\\le \\sup_{|t-x|\\le|h|}|f(t)-f(x)|.$$\n由 $f$ 在 $x$ 連續，當 $h\\to 0$ 時右端 $\\to 0$。故 $F'(x)=f(x)$。$\\blacksquare$"
+  },
+  {
+    "id": "D3",
+    "topic": "積分",
+    "difficulty": "中等",
+    "statement": "證明積分第一中值定理：$f$ 在 $[a,b]$ 連續，則存在 $c\\in[a,b]$ 使 $\\int_a^b f(x)\\,dx=f(c)(b-a)$。",
+    "reference_proof": "$f$ 在 $[a,b]$ 連續，由最大值定理達到最小值 $m$ 與最大值 $M$，即 $m\\le f(x)\\le M$。\n積分保序得 $m(b-a)\\le\\int_a^b f\\le M(b-a)$，故平均值\n$$\\mu=\\frac{1}{b-a}\\int_a^b f\\in[m,M].$$\n由介值定理（連續函數取遍 $[m,M]$），存在 $c\\in[a,b]$ 使 $f(c)=\\mu$，即 $\\int_a^b f=f(c)(b-a)$。$\\blacksquare$"
+  },
+  {
+    "id": "D4",
+    "topic": "積分",
+    "difficulty": "基礎",
+    "statement": "設 $f,g$ 在 $[a,b]$ 可積且 $f(x)\\le g(x)$，證明 $\\int_a^b f\\le \\int_a^b g$（積分保序）。",
+    "reference_proof": "令 $h=g-f\\ge 0$，$h$ 在 $[a,b]$ 可積。\n對任意分割 $P$，因 $h\\ge 0$，其下和 $L(h,P)=\\sum m_i\\Delta x_i\\ge 0$（每個 $m_i=\\inf h\\ge 0$）。\n故 $\\int_a^b h=\\sup_P L(h,P)\\ge 0$。\n由積分線性，$\\int_a^b g-\\int_a^b f=\\int_a^b h\\ge 0$，即 $\\int_a^b f\\le\\int_a^b g$。$\\blacksquare$"
+  },
+  {
+    "id": "D5",
+    "topic": "積分",
+    "difficulty": "基礎",
+    "statement": "設 $f$ 在 $[a,b]$ 可積，證明 $\\left|\\int_a^b f\\right|\\le \\int_a^b |f|$。",
+    "reference_proof": "對所有 $x$ 有 $-|f(x)|\\le f(x)\\le |f(x)|$。\n由積分保序分別積分：\n$$-\\int_a^b|f|\\le \\int_a^b f\\le \\int_a^b|f|.$$\n一個實數同時 $\\le A$ 且 $\\ge -A$（其中 $A=\\int_a^b|f|\\ge0$），等價於 $\\left|\\int_a^b f\\right|\\le A=\\int_a^b|f|$。$\\blacksquare$"
+  },
+  {
+    "id": "D6",
+    "topic": "積分",
+    "difficulty": "中等",
+    "statement": "證明微積分基本定理（第二部分／Newton-Leibniz）：$f$ 在 $[a,b]$ 連續、$F'=f$，則 $\\int_a^b f=F(b)-F(a)$。",
+    "reference_proof": "令 $G(x)=\\int_a^x f(t)\\,dt$。由 FTC 第一部分，$G'=f=F'$ 於 $[a,b]$。\n故 $(G-F)'\\equiv 0$，由「導數恆零則為常數」得 $G-F\\equiv C$（常數）。\n代入 $x=a$：$G(a)=0$，故 $C=-F(a)$，即 $G(x)=F(x)-F(a)$。\n代入 $x=b$：$\\int_a^b f=G(b)=F(b)-F(a)$。$\\blacksquare$"
+  },
+  {
+    "id": "D7",
+    "topic": "積分",
+    "difficulty": "進階",
+    "statement": "證明 $[a,b]$ 上的連續函數 $f$ 為黎曼可積。",
+    "reference_proof": "由 Heine-Cantor，$f$ 在 $[a,b]$ 一致連續。給定 $\\varepsilon>0$，存在 $\\delta>0$ 使\n$|s-t|<\\delta \\Rightarrow |f(s)-f(t)|<\\dfrac{\\varepsilon}{b-a}$。\n取分割 $P$ 使每個子區間長 $\\Delta x_i<\\delta$。在閉子區間上 $f$ 達到最大 $M_i$、最小 $m_i$（最大值定理），\n且對應點距離 $<\\delta$，故 $M_i-m_i\\le \\dfrac{\\varepsilon}{b-a}$。於是\n$$U(f,P)-L(f,P)=\\sum_i (M_i-m_i)\\Delta x_i\\le \\frac{\\varepsilon}{b-a}\\sum_i \\Delta x_i=\\varepsilon.$$\n由黎曼可積準則（上下和之差可任意小），$f$ 可積。$\\blacksquare$"
+  },
+  {
+    "id": "D8",
+    "topic": "積分",
+    "difficulty": "基礎",
+    "statement": "證明 $\\dfrac{1}{2}\\le \\int_0^1 \\dfrac{dx}{1+x^2}\\le 1$。",
+    "reference_proof": "對 $x\\in[0,1]$，$0\\le x^2\\le 1$，故 $1\\le 1+x^2\\le 2$，取倒數得\n$$\\frac{1}{2}\\le \\frac{1}{1+x^2}\\le 1.$$\n在 $[0,1]$（長度 $1$）上對此不等式積分（積分保序）：\n$$\\frac12\\cdot 1\\le \\int_0^1\\frac{dx}{1+x^2}\\le 1\\cdot 1,$$\n即 $\\dfrac12\\le\\int_0^1\\dfrac{dx}{1+x^2}\\le 1$。（實際值 $\\pi/4\\approx 0.785$，落在區間內。）$\\blacksquare$"
+  },
+  {
+    "id": "D9",
+    "topic": "積分",
+    "difficulty": "中等",
+    "statement": "證明廣義積分 $\\int_1^\\infty \\dfrac{dx}{x^p}$ 收斂當且僅當 $p>1$。",
+    "reference_proof": "考慮 $\\int_1^R x^{-p}\\,dx$，令 $R\\to\\infty$。\n情形 $p\\ne 1$：$\\int_1^R x^{-p}\\,dx=\\dfrac{R^{1-p}-1}{1-p}$。\n  - 若 $p>1$，則 $1-p<0$，$R^{1-p}\\to 0$，極限為 $\\dfrac{1}{p-1}$（有限），收斂。\n  - 若 $p<1$，則 $1-p>0$，$R^{1-p}\\to\\infty$，發散。\n情形 $p=1$：$\\int_1^R \\dfrac{dx}{x}=\\ln R\\to\\infty$，發散。\n綜合：收斂 $\\iff p>1$。$\\blacksquare$"
+  },
+  {
+    "id": "D10",
+    "topic": "積分",
+    "difficulty": "進階",
+    "statement": "證明積分型 Cauchy-Schwarz 不等式：$f,g$ 在 $[a,b]$ 連續，則 $\\left(\\int_a^b fg\\right)^2\\le \\left(\\int_a^b f^2\\right)\\left(\\int_a^b g^2\\right)$。",
+    "reference_proof": "若 $\\int_a^b g^2=0$，由 D1（$g^2\\ge0$ 連續積分為 $0$）得 $g\\equiv 0$，兩端皆 $0$，成立。\n否則令 $A=\\int g^2>0$。對任意實數 $\\lambda$，$(f-\\lambda g)^2\\ge 0$，積分得\n$$0\\le \\int_a^b (f-\\lambda g)^2=\\int f^2-2\\lambda\\int fg+\\lambda^2\\int g^2.$$\n這是關於 $\\lambda$ 的二次式且恆非負，故判別式 $\\le 0$：\n$$\\Big(2\\int fg\\Big)^2-4\\Big(\\int g^2\\Big)\\Big(\\int f^2\\Big)\\le 0,$$\n整理即 $\\left(\\int fg\\right)^2\\le \\left(\\int f^2\\right)\\left(\\int g^2\\right)$。$\\blacksquare$"
+  },
+  {
+    "id": "E1",
+    "topic": "級數",
+    "difficulty": "中等",
+    "statement": "證明單調有界定理：若數列 $\\{a_n\\}$ 遞增且有上界，則 $\\{a_n\\}$ 收斂。",
+    "reference_proof": "集合 $\\{a_n\\}$ 非空且有上界，由實數完備性（最小上界公理）$L=\\sup\\{a_n\\}$ 存在。\n斷言 $a_n\\to L$。給定 $\\varepsilon>0$，因 $L-\\varepsilon$ 不是上界，存在 $N$ 使 $a_N>L-\\varepsilon$。\n由 $\\{a_n\\}$ 遞增，$n\\ge N$ 時 $a_n\\ge a_N>L-\\varepsilon$；又 $a_n\\le L<L+\\varepsilon$。\n故 $n\\ge N$ 時 $|a_n-L|<\\varepsilon$，即 $a_n\\to L$。$\\blacksquare$"
+  },
+  {
+    "id": "E2",
+    "topic": "級數",
+    "difficulty": "基礎",
+    "statement": "證明：收斂數列必為 Cauchy 數列。",
+    "reference_proof": "設 $a_n\\to L$。給定 $\\varepsilon>0$，存在 $N$ 使 $n\\ge N \\Rightarrow |a_n-L|<\\dfrac{\\varepsilon}{2}$。\n對任意 $m,n\\ge N$，由三角不等式\n$$|a_n-a_m|\\le |a_n-L|+|L-a_m|<\\frac{\\varepsilon}{2}+\\frac{\\varepsilon}{2}=\\varepsilon.$$\n故 $\\{a_n\\}$ 為 Cauchy 數列。$\\blacksquare$"
+  },
+  {
+    "id": "E3",
+    "topic": "級數",
+    "difficulty": "基礎",
+    "statement": "證明：若級數 $\\sum a_n$ 收斂，則 $a_n\\to 0$。",
+    "reference_proof": "設部分和 $S_n=\\sum_{k=1}^n a_k$，由 $\\sum a_n$ 收斂知 $S_n\\to S$（某有限值）。\n則 $S_{n-1}\\to S$ 亦成立。於是\n$$a_n=S_n-S_{n-1}\\to S-S=0.$$\n（注意逆命題不成立，如調和級數 $a_n=1/n\\to0$ 但 $\\sum 1/n$ 發散。）$\\blacksquare$"
+  },
+  {
+    "id": "E4",
+    "topic": "級數",
+    "difficulty": "中等",
+    "statement": "證明 $\\sum_{n=1}^\\infty \\dfrac{1}{n^2}$ 收斂。",
+    "reference_proof": "部分和 $S_n=\\sum_{k=1}^n \\dfrac{1}{k^2}$ 為遞增數列（每項為正）。\n對 $k\\ge 2$，用裂項上界 $\\dfrac{1}{k^2}\\le \\dfrac{1}{k(k-1)}=\\dfrac{1}{k-1}-\\dfrac{1}{k}$。故\n$$S_n\\le 1+\\sum_{k=2}^n\\Big(\\frac{1}{k-1}-\\frac1k\\Big)=1+\\Big(1-\\frac1n\\Big)<2.$$\n$\\{S_n\\}$ 遞增且有上界 $2$，由單調有界定理收斂。$\\blacksquare$"
+  },
+  {
+    "id": "E5",
+    "topic": "級數",
+    "difficulty": "中等",
+    "statement": "證明調和級數 $\\sum_{n=1}^\\infty \\dfrac{1}{n}$ 發散。",
+    "reference_proof": "設部分和 $S_n$。考慮\n$$S_{2n}-S_n=\\sum_{k=n+1}^{2n}\\frac1k.$$\n此和共 $n$ 項，每項 $\\ge \\dfrac{1}{2n}$，故 $S_{2n}-S_n\\ge n\\cdot\\dfrac{1}{2n}=\\dfrac12$。\n若 $\\{S_n\\}$ 收斂則為 Cauchy 數列，$S_{2n}-S_n\\to 0$，與 $\\ge\\frac12$ 矛盾。\n故 $\\{S_n\\}$ 不收斂，即 $\\sum \\frac1n$ 發散。$\\blacksquare$"
+  },
+  {
+    "id": "E6",
+    "topic": "級數",
+    "difficulty": "進階",
+    "statement": "證明比值判別法：若 $a_n\\ne0$ 且 $\\lim_{n\\to\\infty}\\left|\\dfrac{a_{n+1}}{a_n}\\right|=L<1$，則 $\\sum a_n$ 絕對收斂。",
+    "reference_proof": "取 $r$ 使 $L<r<1$。由極限定義，存在 $N$ 使 $n\\ge N \\Rightarrow \\left|\\dfrac{a_{n+1}}{a_n}\\right|<r$。\n遞推得對 $n\\ge N$，$|a_n|\\le |a_N|\\,r^{\\,n-N}$。\n比較幾何級數：$\\sum_{n\\ge N}|a_N|r^{n-N}=|a_N|\\cdot\\dfrac{1}{1-r}<\\infty$（因 $0<r<1$）。\n由比較判別法，$\\sum |a_n|$ 收斂，即 $\\sum a_n$ 絕對收斂。$\\blacksquare$"
+  },
+  {
+    "id": "E7",
+    "topic": "級數",
+    "difficulty": "中等",
+    "statement": "證明：絕對收斂的級數必收斂（$\\sum|a_n|$ 收斂 $\\Rightarrow \\sum a_n$ 收斂）。",
+    "reference_proof": "令 $b_n=a_n+|a_n|$，則 $0\\le b_n\\le 2|a_n|$。\n因 $\\sum 2|a_n|$ 收斂，由比較判別法 $\\sum b_n$ 收斂（非負項級數）。\n而 $a_n=b_n-|a_n|$，為兩個收斂級數之差，故 $\\sum a_n=\\sum b_n-\\sum|a_n|$ 收斂。$\\blacksquare$"
+  },
+  {
+    "id": "E8",
+    "topic": "級數",
+    "difficulty": "進階",
+    "statement": "證明 Leibniz 交錯級數判別法：若 $b_n\\ge0$ 遞減且 $b_n\\to0$，則 $\\sum(-1)^{n+1}b_n$ 收斂。",
+    "reference_proof": "設部分和 $S_n$。考慮偶數項與奇數項子列。\n$S_{2n+2}-S_{2n}=b_{2n+1}-b_{2n+2}\\ge0$（遞減），故 $\\{S_{2n}\\}$ 遞增；\n$S_{2n+1}-S_{2n-1}=-b_{2n}+b_{2n+1}\\le0$，故 $\\{S_{2n+1}\\}$ 遞減。\n又 $S_{2n+1}-S_{2n}=b_{2n+1}\\ge0$，故 $S_{2n}\\le S_{2n+1}\\le S_1$、$S_{2n}\\ge S_2$，兩子列皆單調有界故收斂。\n因 $S_{2n+1}-S_{2n}=b_{2n+1}\\to0$，兩子列同極限 $S$，故 $S_n\\to S$，級數收斂。$\\blacksquare$"
+  },
+  {
+    "id": "E9",
+    "topic": "級數",
+    "difficulty": "進階",
+    "statement": "證明數列 $a_n=\\left(1+\\dfrac1n\\right)^n$ 收斂（即極限 $e$ 存在）。",
+    "reference_proof": "由二項式定理，\n$$a_n=\\sum_{k=0}^n\\binom{n}{k}\\frac{1}{n^k}=\\sum_{k=0}^n\\frac{1}{k!}\\prod_{j=0}^{k-1}\\Big(1-\\frac{j}{n}\\Big).$$\n（遞增）由 $n$ 增大時每個因子 $1-\\frac{j}{n}$ 增大、且項數增多，故 $a_{n+1}\\ge a_n$。\n（有上界）每個乘積 $\\le1$，故 $a_n\\le\\sum_{k=0}^n\\dfrac{1}{k!}\\le 1+\\sum_{k=1}^n\\dfrac{1}{2^{k-1}}<1+2=3$。\n$\\{a_n\\}$ 遞增且有上界 $3$，由單調有界定理收斂。$\\blacksquare$"
+  },
+  {
+    "id": "E10",
+    "topic": "級數",
+    "difficulty": "基礎",
+    "statement": "證明比較判別法：若 $0\\le a_n\\le b_n$ 且 $\\sum b_n$ 收斂，則 $\\sum a_n$ 收斂。",
+    "reference_proof": "設 $A_n=\\sum_{k=1}^n a_k$、$B_n=\\sum_{k=1}^n b_k$。因各項非負，兩者皆遞增。\n由 $\\sum b_n$ 收斂，$B_n\\to B$ 且 $B_n\\le B$。由 $a_k\\le b_k$ 得 $A_n\\le B_n\\le B$。\n故 $\\{A_n\\}$ 遞增且有上界 $B$，由單調有界定理收斂，即 $\\sum a_n$ 收斂。$\\blacksquare$"
+  }
+]

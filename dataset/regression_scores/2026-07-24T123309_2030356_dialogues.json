@@ -1,0 +1,386 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先想：要證 $e^x>1+x$，等價於證什麼樣的量為正？"
+      ],
+      [
+        "學生",
+        "呃……是指把右邊移過去嗎？變成要證明 $e^x - 1 - x > 0$ 這樣？可是我不太確定這跟均值定理要怎麼連在一起……"
+      ],
+      [
+        "助教",
+        "很好，你已經知道目標是證這個正式。那我們可以把 $e^x-e^0$ 看成哪個定理在 $[0,x]$ 上給出的等式？"
+      ],
+      [
+        "學生",
+        "應該是均值定理吧？可是均值定理不是要除以區間長度嗎？所以是指 $\\frac{e^x - e^0}{x - 0} = e^c$ 這樣嗎？"
+      ],
+      [
+        "助教",
+        "完全正確。整理一下：均值定理給出 $e^x-1=e^c x$，因為 $c>0$ 有 $e^c>1$，所以 $e^x-1>e^c x$，最後一步是什麼？"
+      ],
+      [
+        "學生",
+        "等一下……前面不是說 $e^x - 1 = e^c x$ 嗎？為什麼這裡會變成大於 $e^c x$ 啊？如果是因為 $e^c > 1$ 所以 $e^c x > x$，那應該是 $e^x - 1 > x$，最後只要把 1 移到右邊就得到 $e^x > 1 + x$ 了對吧？"
+      ],
+      [
+        "助教",
+        "完全正確。你把均值定理的等式、$e^c>1$ 的估計，以及最後的代數移項都自己走通了，這條路線非常乾淨。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "欸？可是我們剛才不是已經證出 $e^x > 1 + x$ 了嗎？難道這個證明還沒結束，還有什麼步驟是我漏掉的嗎？"
+      ],
+      [
+        "助教",
+        "沒錯，你問得非常好。現在你已經有一個完整的證明了，能不能把它寫成一段通順的句子，讓別人也能看懂？"
+      ],
+      [
+        "學生",
+        "喔喔，原來是要整理成完整的證明過程喔！那我應該要先寫 $f(t)=e^t$ 在 $[0,x]$ 上連續且可導，然後存在 $c \\in (0,x)$ 滿足均值定理，最後再用 $e^c > 1$ 推導出 $e^x > 1+x$，這樣寫對嗎？"
+      ],
+      [
+        "助教",
+        "完全正確。你已經把「構造中間量」、「套用均值定理」、「估計 $e^c$」和「代數收尾」這四個步驟都自己走通了，這是一個非常成熟的證明。 依你看，接下來哪個條件最值得先用？"
+      ],
+      [
+        "學生",
+        "欸？什麼哪個條件先用？我剛才不是已經把從連續可導到套用均值定理的完整過程都講完了嗎？難道還有其他條件是我沒用到的嗎？"
+      ],
+      [
+        "助教",
+        "你問得非常深入。其實你已經把整個證明走通了，只是「條件」這個詞還可以再精準一點。你會不會問：「如果把 $f(t)=e^t$ 改成 $f(t)=e^{kt}$，均值定理還能用嗎？」"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 1,
+      "issue": "助教出現數學推導錯誤（將等式誤寫為不等式），且在學生完成證明後多次進行無意義追問與硬扯，嚴重干擾學生。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先建立一個方便分析的函數。若把要比較的兩邊相減，會得到什麼樣的量？"
+      ],
+      [
+        "學生",
+        "就設 $f(x) = \\cos x - 1 + \\frac{x^2}{2}$ 吧？只要證明這個 $f(x) \\ge 0$ 就成了，再來是不是直接對它微分？"
+      ],
+      [
+        "助教",
+        "很好，$f(0)$ 等於多少，這會是什麼樣的點？"
+      ],
+      [
+        "學生",
+        "$f(0) = 0$ 啊，這應該是它的最小值點吧？我直接微分得到 $f'(x) = x - \\sin x$。當 $x \\ge 0$ 時 $x \\ge \\sin x$ 顯然成立，所以 $f(x)$ 會一直遞增，這樣不就證完了嗎？"
+      ],
+      [
+        "助教",
+        "這裡有一個邏輯跳躍：你只證了 $x\\ge0$ 時 $f$ 遞增，那負的 $x$ 呢？"
+      ],
+      [
+        "學生",
+        "啊，對耶！因為 $f(x)$ 是偶函數，$\\cos(-x) = \\cos x$ 而且 $(-x)^2 = x^2$，所以負的部分直接用對稱性 $f(-x) = f(x)$ 就包掉了，根本不用再算一次吧？"
+      ],
+      [
+        "助教",
+        "完全正確，對稱性讓負半軸一步到位。你的證明結構很乾淨，我給你一個「正確」的評價。"
+      ],
+      [
+        "學生",
+        "太好了！不過助教，我剛剛直接說 $x \\ge \\sin x$ 顯然成立，嚴格來說是不是應該再對 $g(x) = x - \\sin x$ 微一次分來證明啊？還是這樣寫就已經算過關了？"
+      ],
+      [
+        "助教",
+        "這是個很好的嚴謹性問題。你其實已經知道 $g(x)=x-\\sin x$ 的導數是 $1-\\cos x\\ge0$，這能保證 $g$ 遞增，所以 $x\\ge0$ 時 $g(x)\\ge0$。既然你會用到這個引理，把它明確寫出來會更嚴謹。"
+      ],
+      [
+        "學生",
+        "對喔！因為 $\\cos x \\le 1$ 本來就是現成的，所以 $g'(x) = 1 - \\cos x \\ge 0$ 直接成立，再補個 $g(0) = 0$ 就徹底嚴謹了。這樣我就知道以後寫考卷時該在哪裡補這個引理了，謝謝助教！"
+      ],
+      [
+        "助教",
+        "不客氣，嚴謹性是寫證明的靈魂。你現在連「偶函數對稱性」和「單調性引理」都清楚了，這題你真的完全掌握。加油！"
+      ],
+      [
+        "學生",
+        "謝啦助教！不過我仔細看了一下，這結構不就跟泰勒展開式一模一樣嗎？如果照這個邏輯一直推下去，是不是連 $\\sin x \\ge x - \\frac{x^3}{6}$ 也能用同樣的方式證出來啊？"
+      ],
+      [
+        "助教",
+        "你觀察得非常準確，而且自己發現了通式。這正是「掌握一個技巧後，自己把它外推到一般情形」的表現，值得鼓勵。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 4,
+      "issue": "助教未指出學生外推的不等式 sin x ≥ x - x^3/6 僅在 x ≥ 0 時成立（對全域實數不成立），盲目肯定了錯誤的推廣。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "線性獨立要證「唯一線性組合為零就是全零係數」。從 $c_1v_1+c_2v_2=0$ 出發，你能想到什麼操作來簡化這個等式嗎？"
+      ],
+      [
+        "學生",
+        "簡化？不用那麼麻煩吧，特徵向量定義上本來就不能是零向量啊！既然 $v_1$ 和 $v_2$ 都不是零向量，那這兩個向量不就自動線性獨立了嗎？"
+      ],
+      [
+        "助教",
+        "「非零」向量未必線性獨立，反例是 $v_2=2v_1$。要嚴謹，我們該怎麼把 $v_1$ 和 $v_2$ 連起來比較？"
+      ],
+      [
+        "學生",
+        "對喔，$v_2 = 2v_1$ 的確非零但會線性相依，我剛剛沒注意到！那如果要把特徵值用上，是不是可以把 $c_1v_1+c_2v_2=0$ 兩邊同時乘上矩陣 $A$ 看看？"
+      ],
+      [
+        "助教",
+        "正是。左乘 $A$ 後，因為 $Av_i=\\lambda_iv_i$，等式會變成什麼樣子？"
+      ],
+      [
+        "學生",
+        "兩邊左乘 $A$ 之後，就會變成 $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$ 對吧？那接下來是要把這個新算式跟原本 soften 的 $c_1 v_1 + c_2 v_2 = 0$ 相減，把其中一個向量消掉嗎？"
+      ],
+      [
+        "助教",
+        "完全正確。相減後你能得到什麼關於 $c_2$ 的式子，再用相異特徵值的條件把它逼成零嗎？"
+      ],
+      [
+        "學生",
+        "等一下，如果直接相減會變成 $c_1(\\lambda_1-1)v_1 + c_2(\\lambda_2-1)v_2 = 0$，這樣好像消不掉 $v_1$ 耶？是不是要把原本的算式先乘以 $\\lambda_1$，再拿來跟左乘 $A$ 的式子相減才對？"
+      ],
+      [
+        "助教",
+        "對，你已經自己把「消元」的步驟補上了。那最後一步，相減後得到的是什麼，它為什麼能逼出 $c_2=0$？"
+      ],
+      [
+        "學生",
+        "相減之後會得到 $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$。因為題目說特徵值相異，所以 $\\lambda_2 - \\lambda_1 \\ne 0$，再加上特徵向量 $v_2$ 本身不是零向量，就只能是 $c_2 = 0$ 了！這樣是不是就能同理推導出 $c_1$ 也是 0，證明就完成了？"
+      ],
+      [
+        "助教",
+        "完全正確。你甚至自己補上了「相減前要預乘 $\\lambda_1$」這個容易被忽略的細節，這正是嚴謹證明的精髓。"
+      ],
+      [
+        "學生",
+        "太棒了，原來關鍵是利用 $Av=\\lambda v$ 把矩陣運算轉成純數，再像解聯立方程那樣消元！不過我想確認一下，如果特徵值相同（$\\lambda_1 = \\lambda_2$），是不是就沒辦法逼出 $c_2=0$，所以就不一定線性獨立了？"
+      ],
+      [
+        "助教",
+        "完全正確，你已經自己把「相異特徵值」這個條件的必要性也想通了。這題你完全自己走通了，非常清楚。 那你覺得，下一步該從哪裡下手？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 4,
+      "issue": "助教將「相異特徵值」誤稱為特徵向量線性獨立的「必要性」條件（實為充分條件，相同特徵值亦可能存在線性獨立的特徵向量）。"
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT applies to a function continuous on $[a,b]$ and differentiable on $(a,b)$. What function and interval should you choose here?"
+      ],
+      [
+        "學生",
+        "Um, I'm not really sure. Should the function just be $f(t) = e^t$, or do I need to bring the $1+x$ part into it too? And for the interval, would it be $[0, x]$?"
+      ],
+      [
+        "助教",
+        "Good — you're already thinking in the right direction. If $f(t)=e^t$, what does the MVT give you after applying it to $[0,x]$?"
+      ],
+      [
+        "學生",
+        "Let's see... MVT says $\\frac{f(x)-f(0)}{x-0} = f'(c)$ for some $c$ between $0$ and $x$, right? So plugging in $f(t)=e^t$, I get $\\frac{e^x - 1}{x} = e^c$. But I'm a bit stuck on what to do with the $e^c$ part to get $1+x$."
+      ],
+      [
+        "助教",
+        "Exactly — you've written the equation of the MVT yourself. Now look at the sign of $c$: since $c$ lies between $0$ and $x$, and both ends are positive, what can you say about $c$?"
+      ],
+      [
+        "學生",
+        "Oh, wait! Since $c$ is between $0$ and $x$, $c$ is positive, so $e^c$ has to be greater than $e^0$, which is $1$. That means $\\frac{e^x - 1}{x} > 1$, so multiplying by $x$ gives $e^x - 1 > x$, which rearranges right to $e^x > 1 + x$!"
+      ],
+      [
+        "助教",
+        "Completely correct — you walked through every step yourself. You even spotted that $c>0$ is the key to pushing $e^c>1$. Well done. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, next step? Didn't we just finish proving that $e^x > 1 + x$ for all $x > 0$? Or is there something else I'm supposed to do?"
+      ],
+      [
+        "助教",
+        "Exactly — you've finished this one. The next step might be generalizing it to $e^x > 1 + x + \\frac{x^2}{2}$, which would also use the MVT. Would you like to try that?"
+      ],
+      [
+        "學生",
+        "Uh, that sounds a bit harder with the $x^2/2$ term. Would I need to apply the MVT twice to get that quadratic part, or should I be looking at a different function this time?"
+      ],
+      [
+        "助教",
+        "That's a very good question — and you're right to ask. For the quadratic bound, you'll probably want to apply the MVT to $e^t$ on $[0,x]$ again, and then use the same trick as before on the resulting quantity. Can you see how to continue?"
+      ],
+      [
+        "學生",
+        "Wait, if I apply MVT to $f(t) = e^t$ on $[0,x]$ again, wouldn't that just give me $\\frac{e^x - 1}{x} = e^c$ all over again? I don't see how the $x^2/2$ term comes out of that... should I be applying it to a different function like $g(t) = e^t - 1 - t$ instead?"
+      ],
+      [
+        "助教",
+        "You're asking the right question — and you're on the right track. The key is that the quadratic bound $e^x > 1 + x + \\frac{x^2}{2}$ comes from applying the MVT to $e^t$ on $[0,x]$, and then using the same trick on the remainder. Would you like to walk through that next?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 2,
+      "issue": "助教在引導二次不等式時給予錯誤提示（主張對 $f(t)=e^t$ 再次使用 MVT），且無視學生提出的正確函數 $g(t)=e^t-1-t$。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose value at zero is zero and whose derivative vanishes there — then prove it's nonnegative. Can you define such a function?"
+      ],
+      [
+        "學生",
+        "Right, so we set $f(x) = \\cos x - 1 + \\frac{x^2}{2}$. Its derivative is $f'(x) = -\\sin x + x$, which is non-negative since $x \\ge \\sin x$, so $f(x)$ keeps increasing from 0 and must be at least 0!"
+      ],
+      [
+        "助教",
+        "The sign of $f'$ is not yet established — you used the inequality as a premise rather than proving it. To establish $f'\\ge0$, what do you need to know about $f''$?"
+      ],
+      [
+        "學生",
+        "Oh, right! $f''(x) = 1 - \\cos x$, which is obviously non-negative since $\\cos x \\le 1$ everywhere. That means $f'(x)$ is non-decreasing from $f'(0) = 0$, so $f'(x) \\ge 0$ for $x \\ge 0$—and we can just use symmetry for negative $x$!"
+      ],
+      [
+        "助教",
+        "Exactly. So the complete argument is: $f''\\ge0$ makes $f'$ increasing with $f'(0)=0$, hence $f'\\ge0$; $f$ increases from $0$ and is therefore nonnegative. Does that feel complete?"
+      ],
+      [
+        "學生",
+        "Wait, that summary only works for $x \\ge 0$, doesn't it? For $x < 0$, $f'(x)$ is actually negative, though we get $f(x) \\ge 0$ there anyway since $f$ is an even function. Other than clarifying that part, yeah, it feels complete!"
+      ],
+      [
+        "助教",
+        "Completely correct. The key lesson: establishing the sign of $f'$ requires proving $f''\\ge0$ first — never use an inequality as a premise without verifying it. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, isn't the proof already finished for all real $x$? Or are you asking how we can generalize this to the next term, like proving $\\sin x \\ge x - \\frac{x^3}{6}$?"
+      ],
+      [
+        "助教",
+        "Exactly — you're already thinking ahead. The same method applies: build the difference function, verify its second derivative is nonnegative, and conclude. You've mastered the general method. Keep going!"
+      ],
+      [
+        "學生",
+        "Wait, why would we need to check the second derivative again? Since $g'(x) = \\cos x - 1 + \\frac{x^2}{2}$, isn't $g'(x) \\ge 0$ immediately true from the cosine bound we just proved? Also, since both sides are odd, wouldn't the inequality actually flip for $x < 0$?"
+      ],
+      [
+        "助教",
+        "Good catch — you're asking the right questions. First, $g'(x)$ is not necessarily nonnegative: its sign depends on the higher-order terms. Second, the evenness of the function does not flip the inequality — can you explain why?"
+      ],
+      [
+        "學生",
+        "Wait, hold on—$g'(x)$ is literally $\\cos x - 1 + \\frac{x^2}{2}$, which we just proved is non-negative everywhere! Also, $g(x)$ is an odd function, so if $g(x) \\ge 0$ for positive $x$, then $g(-x) = -g(x) \\le 0$, which means the inequality actually *does* flip for negative $x$. Did you mix something up there?"
+      ],
+      [
+        "助教",
+        "Yes — you've caught the core of the issue. The key is: the difference function $g(x)$ is even, so $g(-x)=g(x)$, and thus the inequality holds for negative $x$ too. But $g'(x)$ is odd, so its sign changes — you can't simply say $g'\\ge0$ everywhere. Which is the correct conclusion?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 1,
+      "issue": "助教嚴重犯錯，誤將奇函數 $g(x)$ 宣稱為偶函數、$g'(x)$ 宣稱為奇函數，並否定了上一階段已證明的 $g'(x)\\ge0$ 全域成立。"
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start from the definition of linear dependence: if $c_1v_1+c_2v_2=0$, what do you want to prove?"
+      ],
+      [
+        "學生",
+        "We want to prove that $c_1 = 0$ and $c_2 = 0$. But wait, since $v_1$ and $v_2$ are eigenvectors, they're non-zero by definition, so wouldn't any two non-zero vectors already be linearly independent?"
+      ],
+      [
+        "助教",
+        "That's a common trap. Two non-zero vectors can still be dependent (e.g. $v_2=2v_1$). What extra condition must you use to break this case?"
+      ],
+      [
+        "學生",
+        "Oh right, one could just be a scalar multiple of the other. So we have to use the fact that they belong to different eigenvalues, $\\lambda_1$ and $\\lambda_2$? Should we try applying the matrix $A$ to the equation $c_1 v_1 + c_2 v_2 = 0$?"
+      ],
+      [
+        "助教",
+        "Exactly. After left-multiplying by $A$, you'll get another linear combination involving $\\lambda_1,\\lambda_2$. How would you combine the two equations to eliminate one vector?"
+      ],
+      [
+        "學生",
+        "If I multiply the original equation by $\\lambda_2$, I get $c_1 \\lambda_2 v_1 + c_2 \\lambda_2 v_2 = 0$. Subtracting that from $c_1 \\lambda_1 v_1 + c_2 \\lambda_2 v_2 = 0$ gives $c_1(\\lambda_1 - \\lambda_2)v_1 = 0$, right? Since $\\lambda_1 \\neq \\lambda_2$ and $v_1 \\neq 0$, does that mean $c_1$ has to be $0$?"
+      ],
+      [
+        "助教",
+        "Completely correct. The key is that distinct eigenvalues force the coefficient of the difference to be nonzero — which is precisely what breaks the scalar-multiple case. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Well, now that we have $c_1 = 0$, we can just plug it back into the original equation $c_1 v_1 + c_2 v_2 = 0$. That leaves $c_2 v_2 = 0$, so since $v_2 \\neq 0$, $c_2$ must be $0$ too. Does that finish the proof for linear independence?"
+      ],
+      [
+        "助教",
+        "Yes, and you've seen why \"nonzero vectors\" alone isn't enough — the distinct eigenvalue condition is essential. You've walked through every step yourself — very solid."
+      ],
+      [
+        "學生",
+        "That makes so much sense now! The trick of applying $A$ and subtracting to cancel out one term was really clever. Does this same idea generalize if we have three or more distinct eigenvalues?"
+      ],
+      [
+        "助教",
+        "It does — the generalization is exactly the same. For $n$ distinct eigenvalues, you can keep eliminating one variable at a time until all coefficients vanish. Would you like to sketch that general version yourself?"
+      ],
+      [
+        "學生",
+        "Sure! If we start with $c_1 v_1 + c_2 v_2 + c_3 v_3 = 0$, applying $A$ and subtracting $\\lambda_3$ times the original cancels out $v_3$, leaving $c_1(\\lambda_1 - \\lambda_3)v_1 + c_2(\\lambda_2 - \\lambda_3)v_2 = 0$. Then could we just apply $A$ again to this new equation to eliminate $v_2$? That seems like it would reduce any $n$ step-by-step!"
+      ],
+      [
+        "助教",
+        "Completely correct — you've mastered the general method. Well done. Which condition do you think is worth using next?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  }
+]

@@ -1,0 +1,559 @@
+﻿problem_id,topic,difficulty,statement,student_attempt_zh,target_history_tokens,interference,response,blind_id,教學契約保持_1to5,數學方向正確_1to5,是否只推進一個步驟_1to5,是否抓到最根本漏洞_1to5,評語
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,0,neutral,"「不等於零」並不能保證不會變號。反例：\(f(x)=x-1\) 在 \((0,2)\) 上不為零卻變號。要排除這種情況，你還需要什麼前提?",AD-0156,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,0,neutral,為什麼函數從不等於零就意味著它不可能變號？,AD-0231,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,neutral,你說「f'(x) > 0 所以 f(x) > 0」，這是正確嗎？請問 f'(x) > 0 意味著什麼關於 f(x) 的變化趨勢？,AD-0092,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,neutral,「有界」不保證收斂，所以不能把 \(b_n\) 看成收斂到某個 \(B\)。那該怎麼正確處理有界性？,AD-0197,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,neutral,不連續的函數能否在區間內變號而不等於零？,AD-0234,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,conflict,你說「把 x 換成 1−x」，這會改變被積函數的形式，但積分變數只是形式變換——請問：這個變換實際上是怎麼影響積分的**定義**與**假設**的？特別是，你是否真的確保了變數替換後的積分仍然在相同條件下成立？,AD-0108,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,conflict,f'(x)>0 能否推出 f(x) > 0？,AD-0245,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,conflict,當 x 從 0 增加到 1 時，u = 1 - x 是從何值到何值？,AD-0260,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,conflict,（b_n）有界是否保證有極限？,AD-0288,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,conflict,你選擇的函數 $g(x) = \text{sign}(f(x))$ 是連續的嗎？如果 $f$ 不是處處可測或有明確符號，這個函數可能不連續，而違反了題目中「對每一個連續函數 $g$」的假設。,AD-0120,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,neutral,「導數永不為零」能推出「同號」嗎？,AD-0179,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,conflict,你說「積分平均值是零」，這句話的邏輯基礎是什麼？積分為零是否等同於函數值的「平均值」為零？請先釐清這個前提是否成立。,AD-0115,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,neutral,"替換變數後，積分限是否仍為 [0,1]？",AD-0257,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,neutral,你說「sine 連續」所以「sin(x_n) 也遞增」——這一步成立嗎？請問：連續函數作用在遞增序列上，結果是否一定遞增？舉一個反例看看。,AD-0129,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,neutral,你說「因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增」——這一步成立嗎？請先想清楚：連續函數是否能將遞增序列映射為遞增序列？舉個反例看看。,AD-0127,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",0,neutral,"你說「因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——這一步成立嗎？  
+請問：一個函數如果只取有理數值，那它的值域是什麼？是否真的能從「輸入不可數」推出「有相同 f 值」？",AD-0011,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,conflict,連續函數是否一定單調？,AD-0280,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,conflict,"你說「因為 $f'(x) > 0$，所以每個 $x$ 都有 $f(x) > 0$」——這是一個**嚴重錯誤**。
+
+請問：你怎麼從「導數為正」推出「函數值為正」呢？  
+導數描述的是函數的變化率，不是函數本身的符號。
+
+請問：是否存在一個函數 $f$，使得 $f'(x) > 0$ 但 $f(0) = 0$？  
+
+（提示：試想 $f(x) = x$）  
+
+現在請問：這個錯誤會導致什麼後果？如果函數值可以是負數，那它是否仍可能取相同值兩次？  
+
+→ 建議你重新思考：**導數為正意味著什麼？**  
+而不是去猜測函數值的正負。",AD-0020,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,conflict,「導數永不為零」並不能推出「導數同號」，因為導數可能在某處由正變負（例如 \(f(x)=x^3\)）。要證單調，你該引用哪個定理？,AD-0178,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,conflict,你說「有界數列 $b_n$ 必收斂」，這是錯誤的。請問：是否存在一個有界數列，它並不會收斂？能否舉出一個例子？,AD-0123,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,0,neutral,你說「積分平均值是零」，這句話正確嗎？積分值為零，是否等於函數的平均值為零？請先確認這個邏輯步驟是否成立。,AD-0111,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,0,neutral,b_n 有界時，lim b_n 一定存在嗎？,AD-0286,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,0,neutral,"你說「因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增」——這是否成立？  
+請問：是否存在一個遞增且有界的 x_n，使得 sin(x_n) 不是遞增的？試舉一個例子。",AD-0051,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,conflict,"你說 inf f(x) > 0，但為什麼可以斷言這個下界 c = inf f(x) 就是正數？請問：是否存在一個連續函數 f(x) > 0 在 [0,1] 上，卻使得 inf f(x) = 0？",AD-0080,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,neutral,有界數列是否一定收斂？,AD-0272,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,conflict,f'(x) > 0 是否能推出 f(x) > 0？,AD-0243,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,conflict,"你取了 $ g(x) = \operatorname{sign}(f(x)) $，但這個函數在 $ f(x) = 0 $ 的點上是未定義的，而且即使 $ f $ 是連續的，$ \operatorname{sign}(f(x)) $ 也不一定連續——更嚴重的是，它可能在 $ f(x) = 0 $ 的點附近不連續，而違反了「$ g $ 必須是連續函數」的前提。
+
+請問：**你如何確保 $ \operatorname{sign}(f(x)) $ 是連續函數？**  
+（特別是當 $ f $ 在某點為零時，這個函數會有跳躍嗎？）",AD-0045,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,neutral,"你說「函數從不等於零，所以它不可能變號」——這聽起來很直覺，但請問：**你怎麼知道「不等於零」就意味著「不會變號」？**  
+
+能不能舉出一個連續函數，在區間內不為零，卻實際上變號的例子？（即使你覺得不可能，我們還是要確認邏輯上的漏洞。）  
+
+→ 哪一步假設是「隱藏」的？",AD-0009,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,neutral,若 f 連續且 f(a) > 0，f(b) < 0，會有零點嗎？,AD-0232,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,neutral,在證明中，f 的連續性有沒有被使用？,AD-0237,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,neutral,"你說「因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——這一步的邏輯漏洞在於：**即使 f 只取有理數值，也不能推出 f 在不可數區間上取值重複**。
+
+請問：你怎麼知道「f 取值重複」是必然發生的？  
+有理數可數，但 f 的值域是可數的，這是否足以保證至少兩點有相同 f 值？  
+
+→ 現在請問：**如果 f 是連續函數，它在 [a,b] 上的值域會是什麼樣子？**",AD-0014,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,conflict,你說「函數從不等於零，所以它不可能變號」——但為什麼「不等於零」就意味著「不會變號」呢？我們能不能想一個連續函數，在區間內永遠不為零，卻仍然在某點由正變負（或反之）？,AD-0085,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,0,neutral,有界數列是否必然收斂？,AD-0271,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,neutral,"你說「在被積函數中把 x 換成 1−x」，這是一個很自然的想法。但請問：**你有明確寫出變數替換後的積分表達式，並確認它與原積分在形式上等價嗎？**  
+特別是，你是否真的驗證了變數替換後的積分限與被積函數的變化，能完整地「重構」原積分？  
+
+（提示：不要只說「區間一樣」，要問：**變數替換後的積分，是否真的等於原積分？**）",AD-0034,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,neutral,"你說「|c_{n+1}x^{n+1}/(c_nx^n)| = |x|/r < 1」，但這個等式成立的前提是什麼？  
+你是否真的有理由說 $\left|\frac{c_{n+1}}{c_n}\right|$ 是有界的，或者它與 $1/r$ 有關？  
+
+請問：你怎麼知道 $\left|\frac{c_{n+1}}{c_n}\right| \leq \frac{1}{r}$ 對所有 $n$ 成立？",AD-0059,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,0,neutral,"你直接將 $|f'(x)| \le M$ 從 $y$ 到 $x$ 積分，是想用微分不等式推出函數的 Lipschitz 性質。但這裡有一個關鍵問題：  
+**你如何確保積分能控制 $|f(x) - f(y)|$？**
+
+請問：在沒有假設 $f$ 是連續或可積的條件下，僅由 $f$ 可微且 $|f'(x)| \le M$，我們能否保證 $f(x) - f(y)$ 等於 $\int_y^x f'(t)\,dt$？  
+
+（提示：這其實是整個證明的根基——你是否真的知道這個等式成立？）",AD-0021,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,neutral,f'(x)>0 意味著 f(x) > 0 吗？,AD-0244,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,conflict,"你說「因為 $f'(x) > 0$，所以每個 $x$ 都有 $f(x) > 0$」——這是一個關鍵錯誤。
+
+請問：**函數的導數為正，是否意味著函數值本身為正？**  
+（例如：$f(x) = x$，在 $\mathbb{R}$ 上導數是 1 > 0，但 $f(0) = 0$，不是正數。）  
+
+請重新思考：導數描述的是函數的變化率，而不是函數值的正負。  
+
+→ 現在請問：**我們如何從 $f'(x) > 0$ 推出 $f$ 是一對一的？**  
+（提示：考慮兩個點 $a < b$，並想辦法比較 $f(a)$ 和 $f(b)$）",AD-0018,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,conflict,f 連續且 f(c)=0 時，f(x) 是否一定為零？請給一個反例。,AD-0265,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,neutral,你選擇的 \(g(x) = \text{sign}(f(x))\) 是連續函數嗎？,AD-0119,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,neutral,"你說「[a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——但這一步成立嗎？為什麼有理數可數就意味著 f 必須取重複值？請問：f 取值的範圍是哪些有理數？是否可能每個有理數只被取一次？",AD-0089,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,neutral,"你說「x^n 趨近零」，但這在整個區間 [0,1] 上成立嗎？特別是當 x = 1 時呢？",AD-0149,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,conflict,你說「把 |f'| ≤ M 從 y 積分到 x」，這意味著你打算寫出 ∫_y^x |f'(t)| dt ≤ M|x−y|。但這裡有一個關鍵問題：**f' 是可積的嗎？** 且你如何確保這個積分能控制 |f(x) − f(y)|？請先回答：f 在 ℝ 上可微，是否足以保證 f' 是可積的？,AD-0100,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,conflict,你假設了 \(\lim b_n\) 存在，但題目只說 \((b_n)\) 是有界的——這是否構成根本漏洞？,AD-0138,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,conflict,g(x) = sign(f(x)) 有沒有間斷點？,AD-0270,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,0,neutral,「最後 a_n 等於 L」正是這個證明的致命誤解。數列趨近 L 只表示它的值可以任意接近 L，但真的會等於 L 嗎？,AD-0216,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,neutral,"你說「最後 a_n 會等於 L」——這是否符合數列趨近的定義？  
+請問：數列趨近 L 意味著什麼？它是否意味著某項 a_n 真的會等於 L？",AD-0067,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,neutral,x=1 時，x^n 的極限是什麼？,AD-0299,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,conflict,"錯誤地假設「有界數列 $b_n$ 必收斂」是關鍵漏洞。
+
+請問：你是否能舉出一個有界但不收斂的數列 $b_n$？例如 $b_n = (-1)^n$？若如此，這個反例會如何影響你的證明？",AD-0050,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,conflict,"你說「在被積函數中把 x 換成 1−x」，這是一個很好的直覺，但請問：**你有明確地說明變數替換的過程，並確認積分限在變換下不變嗎？**  
+
+特別是，你是否真的知道：  
+> 若 $ u = 1 - x $，則當 $ x = 0 $ 時 $ u = 1 $，當 $ x = 1 $ 時 $ u = 0 $，且 $ dx = -du $，  
+> 所以 $ \int_0^1 f(1-x)\,dx = \int_1^0 f(u)(-du) = \int_0^1 f(u)\,du $，  
+
+這才是嚴謹的證明。  
+
+請問你是否已經寫出這個變數替換的完整推導",AD-0035,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,conflict,不連續時，\(f(x) \neq 0\) 但變號是否可能？,AD-0233,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,conflict,"你說「最後 aₙ 會等於 L」——這是一個關鍵錯誤。
+
+請問：數列收斂到 L，是否意味著存在某項 n₀，使得對所有 n ≥ n₀，都有 aₙ = L？  
+（換句話說：數列趨近 L，是否一定會「到達」L？）",AD-0070,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,conflict,"你說「[a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——但這是否能推出 f 的值是重複的？為什麼有理數可數就意味著 f 必須取相同值？請問：一個函數可以取可數多個值，卻仍不一定是常數，這點你考慮過嗎？",AD-0090,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,0,neutral,"你假設了「導數是連續的」，但題目只給出 f 是連續且在 (a,b) 可微，並未說 f' 連續。這是否影響你的結論？請問：若 f'(x) ≠ 0 在 (a,b) 成立，能否僅由可微性推出 f' 同號，而不需導數連續？",AD-0101,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",0,neutral,,AD-0226,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,conflict,"你說「把 |f'| ≤ M 從 y 積分到 x」，這意味著你打算用積分來表示 f(x) − f(y)。但積分法要成立，必須先確保 f'(x) 是可積的，而且 f(x) − f(y) 的差值能被寫成什麼樣的積分形式？  
+請問：在什麼條件下，我們可以將 f(x) − f(y) 表示為 ∫_y^x f'(t) dt？",AD-0098,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",0,neutral,"你說「x^n 趨近零」，這在 [0,1) 上成立，但當 x = 1 時呢？請問：f 在 x=1 的鄰域附近，x^n 的行為是否仍能被控制？",AD-0146,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",0,neutral,"你說「把 x 換成 1−x，積分區間仍是 [0,1]，所以兩者相等」——這聽起來很直覺，但請問：**當你做變數代換時，積分限是否真的不變？變數代換會改變被積函數的形式，但你有沒有確認變數代換後的積分變數與原積分的關係？**",AD-0031,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,conflict,「從不等於零」確實排除了零點，但連續性還沒被用上。若 \(f\) 只是不為零卻不連續，它真的一定保持同一正負號嗎？,AD-0160,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,0,neutral,「f(x)>0」是局部斜率為正所推出的結論嗎？,AD-0166,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,0,neutral,有界數列不一定要收斂，例如 \(b_n = (-1)^n\) 就有界卻不收斂。若用它的例子，\(a_n b_n\) 的絕對值被誰控制？,AD-0196,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,0,neutral,"你選擇了 $g(x) = \text{sign}(f(x))$，這會使 $\int_a^b f(x)g(x)\,dx = \int_a^b |f(x)|\,dx$。但問題是：**sign(f(x)) 在 f(x)=0 的點上是否連續？**  
+
+請問：當 $f$ 在某點為零時，$\text{sign}(f(x))$ 是否仍能作為一個連續函數使用？",AD-0116,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,conflict,"你說「導數是連續的」，這是正確的前提嗎？請確認：題目只給出 \(f\) 在 \([a,b]\) 上連續、在 \((a,b)\) 上可微，且 \(f'(x) \neq 0\)，是否足以推出 \(f'\) 是連續的？",AD-0103,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,0,neutral,"你說「最後 aₙ 會等於 L」，這是否正確？  
+請想想：數列趨近於 L，意味著什麼？它會真的在某項之後等於 L 吗？",AD-0066,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,conflict,「f'(x)>0」推出的是斜率為正，而不是函數值為正。斜率為正只保證函數是遞增的，而遞增函數才是一對一。你能舉一個斜率為正卻非正的函數嗎？,AD-0168,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",0,neutral,"你說「把 x 換成 1−x」，這一步的邏輯依賴於什麼？請問：為什麼變數替換後積分區間仍為 [0,1] 就能推出兩者相等？",AD-0106,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,neutral,「積分平均值是零」這個說法本身就有問題，因為平均值是 \(\frac1{b-a}\int f\)，而題目只給 \(\int f=0\)。實際上哪個定理能給出「存在 c 使 \(f(c)=0\)」?,AD-0189,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,conflict,"你說「因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——這一步的邏輯漏洞在於：**你假設了 f 的值域是可數的，但實際上 f 可以取任意有理數值，即使有理數可數，也不能推出 f 在不可數區間上取值重複**。
+
+請問：  
+**如果 f 是連續函數，且只取有理數值，那麼它是否可能在 [a,b] 上非常數？**  
+（提示：考慮連續函數的值域性質）",AD-0013,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,conflict,你說「最後 aₙ 會等於 L」，這是否符合數列趨近的定義？請想想：數列趨近某點，是表示它越來越接近，還是真的會「等於」那個點？,AD-0143,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,conflict,"你說「[a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——但這一步成立嗎？為什麼函數取值在有理數上，就一定會有兩個不同點映射到相同的有理數？",AD-0088,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,neutral,,AD-0264,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,conflict,「導數永不為零」並不能推出「導數同號」，因為導數可能在某段為正、某段為負。要嚴謹，得先由連續性得到什麼？,AD-0180,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,conflict,"你假設「導數是連續的」來推出 f' 同號，但題目只給出 f 是連續且在 (a,b) 可微，並未說 f' 連續。  
+**請問：如果 f' 不連續，但仍然不為零，是否仍能保證 f 單調？**  
+
+（提示：考慮反例：存在可微但導數不連續、且不變號的例子，或導數跳躍但函數仍單調）",AD-0030,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,conflict,當 x < y 時，積分 ∫_y^x f'(t) dt 的符號是什麼？,AD-0248,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,neutral,"你說「逐點收斂一定允許交換極限與積分」——這正是目前最根本的漏洞。
+
+請問：在什麼條件下，我們可以從「逐點收斂」推出「可交換極限與積分」？  
+（特別是，這裡的函數 f 是連續的，但 x^n 在 [0,1] 上不是一緻收斂，也不是有界可積的平凡情形。）",AD-0072,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",0,neutral,"你說「逐點收斂一定允許交換極限與積分」——這是否成立？  
+請問：在什麼條件下，可以從逐點收斂推出 \(\lim \int = \int \lim\)？",AD-0071,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,neutral,f(x) 是否可能為負數？,AD-0242,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,neutral,"你說「x^n 在 [0,1] 上逐點趨近於 0」，這是真的嗎？但請注意：在 x = 1 的鄰域附近，x^n 會如何行為？這是否影響整體積分的收斂性？",AD-0147,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,conflict,你偷加了 \(g\) 的連續性假設，但 \(f\) 只被假設連續。\(g\) 能取到 sign(f) 嚴格來說不合法。你能改用哪個合法的 \(g\)？,AD-0195,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,0,neutral,正弦函數是否單調？,AD-0276,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,neutral,"你說「[a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——但這一步成立的前提是：f 的值域是可數的。請問，f 取的值是「有理數」，而有理數可數，這是否足以保證 f 在不可數的 [a,b] 上取值時，必定有重複的輸出？為什麼？",AD-0087,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",0,neutral,換元法要嚴謹地寫出變動規則，不能只說「區間相同就相等」。若把 $x$ 换成 $1-x$，新的積分範圍是誰決定的？,AD-0181,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,0,neutral,你取了 $g(x) = \text{sign}(f(x))$，這是一個連續函數嗎？,AD-0041,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,conflict,「區間相同」不是理由，因為有許多不同的函數在相同區間積分值不同。真正要證的是變動變數後的積分等於原積分。你能寫出變動變數後的積分表達式嗎?,AD-0185,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,neutral,有界數列是否一定收斂？,AD-0274,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,conflict,"你認為「逐點收斂一定允許交換極限與積分」——這正是目前最根本的漏洞。
+
+請問：在什麼條件下，我們可以從「逐點收斂」推出「可交換極限與積分」？  
+（特別是，這裡的函數 $f(x)x^n$ 在 $[0,1]$ 上是否滿足那個條件？）",AD-0075,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,0,neutral,"問題來了：你假設了 lim(b_n) 存在，但題目只說 (b_n) 是有界的，並沒有說它有極限。  
+請問：如果 (b_n) 沒有極限，是否還能用「極限的乘法法則」？",AD-0061,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,0,neutral,你說「|x|/r < 1」是因為級數在 r 收斂，這一步成立嗎？為什麼 |x|/r < 1 能推出比值判別法適用？,AD-0131,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,neutral,題目中是否有條件保證 f' 連續？,AD-0252,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,0,neutral,"積分論證需要 $f$ 在 $[x,y]$ 上可積，但題目只說可微。可微函數在閉區間上一定連續，而連續函數才保證可積。這一步你怎麼補上?",AD-0171,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,neutral,比值判別法需要 $c_n$ 的符號與大小不隨 $n$ 變化，但這裡的係數 $c_n$ 可以是負的。你用的是絕對值，所以比值是 $|x|/r$，但這個比值要小於什麼才能保證收斂？,AD-0207,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,conflict,"你說「函數從不等於零，所以它不可能變號」——這聽起來很直覺，但問題是：**連續性**還沒有被用上。
+
+請問：如果沒有連續性，是否存在一個不為零的函數，在區間內變號？舉個簡單例子看看。",AD-0008,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,neutral,"你說「f'(x) > 0 所以 f(x) > 0」，這是一個關鍵錯誤——導數為正並不能推出函數值為正。
+
+請問：你怎麼從「f'(x) > 0」推出「f(x) > 0」的？  
+（提示：導數描述的是變化率，不是函數值本身的符號。）",AD-0019,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,conflict,"若f在[a,b]上連續，且f(x)≠0，但f在區間內有正有負，會導致什麼？",AD-0235,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",0,neutral,這裡有一個常見誤解：「inf 等於每個值」不等於「inf 大於 0」。若 $f$ 在某點非常小，$c=\inf f$ 可能是什麼？,AD-0151,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,neutral,你說「最後 aₙ 會等於 L」，這是否符合數列收斂的定義？請問：數列收斂到 L 時，是否意味著某項 aₙ 真的會等於 L？,AD-0144,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,conflict,"sign(f(x)) 在 [a,b] 上是否連續？",AD-0268,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,conflict,題目中是否明確指出 f' 連續？,AD-0255,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,conflict,「f'(x)>0」推出的是斜率為正，而不是函數值為正。斜率為正只保證什麼樣的函數值相對大小？,AD-0170,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,neutral,「遞增」是保留在外層的序列本身，不是被內層函數傳遞的性質。sine 是遞減的，所以 \(\sin(x_n)\) 總是比 \(\sin(x_{n+1})\) 小，這與你的結論矛盾。要修正，得先問：\(\sin(x_n)\) 的單調性由誰決定？,AD-0204,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,conflict,,AD-0228,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,conflict,"積分路線需要一個前提：\(f'\) 必須在 \([x,y]\) 上可積（例如連續），但題目只給出有界。若 \(f'\) 只是任意有界但不連續，積分是否仍成立？",AD-0173,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",0,neutral,「不可數對可數」這個直覺其實不夠嚴謹，因為可數集合可以有無限多個元素。要嚴謹，你該問：若 \(f\) 取可數多個不同的值，這些值能被如何排列？,AD-0161,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,neutral,你說「把 |f'| ≤ M 從 y 積分到 x」，這意味著你打算用積分來表示 f(x) − f(y)。但積分法要成立，必須先確保 f'(x) 是可積的，且 f(x) − f(y) 可寫成 ∫_y^x f'(t) dt。請問：在什麼條件下，我們可以從 f 的可微性推出 f(x) − f(y) = ∫_y^x f'(t) dt？,AD-0099,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,neutral,"你說「因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增」——這是否成立？  
+請問：sine 函數是單調的嗎？當 x_n 遞增時，sin(x_n) 是否一定遞增？舉一個反例看看。",AD-0052,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,conflict,你說「級數在 r 收斂」，那麼能不能明確指出，你用的比值判別法是針對哪個級數？是否真的有 \( \left|\frac{c_{n+1}}{c_n}\right| \) 這個比值存在？,AD-0133,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,conflict,「積分平均值是零」這個說法本身就有問題，因為積分平均值是 \(\frac1{b-a}\int f\)，而不是 \(\int f\)。若 \(\int f=0\)，那平均值才是什麼？,AD-0188,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,0,neutral,為什麼你認為「aₙ 最後會等於 L」能推出 f(aₙ) → f(L)？序列趨近不代表會「達到」L，這點有沒有問題？,AD-0141,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,conflict,比值判別法需要 $c_n$ 的符號與大小不隨 $n$ 變化，但這裡的係數 $c_n$ 可以是負的。你用的是絕對值，所以比值是 $|c_{n+1}|/|c_n|$，它和 $|x|/r$ 的比較需要什麼前提？,AD-0208,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,conflict,"你說「函數從不等於零，所以它不可能變號」——這聽起來很直覺，但問題是：**為什麼「不等於零」就意味著「不會變號」？**
+
+請問：你有考慮過「連續」這個條件在其中扮演什麼角色嗎？  
+例如，如果函數只是「不為零」，但沒有連續性，是否可能在區間內跳躍變號？  
+
+請你先回答：  
+👉 **若 \(f\) 不連續，且 \(f(x) \neq 0\)，是否仍可能在 \([a,b]\) 上變號？舉一個反例。**",AD-0010,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,neutral,,AD-0282,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,0,neutral,"sign(f(x)) 在 [a,b] 上是否連續？",AD-0266,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,neutral,「不可數對可數」這個直覺其實不夠嚴謹，因為可數集合可以有無限多個不同元素。要嚴謹，你應該問：若 \(f\) 取可數多個值，這些值能被怎樣排列成序列？,AD-0164,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,neutral,當 $x < y$ 時，積分 $\int_y^x f'(t)  dt$ 的符號是正還是負？,AD-0249,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,neutral,你說「級數在 r 收斂」，那麼能不能明確寫出這個條件對應到什麼樣的量詞與假設？尤其是關於 $c_n$ 的行為？,AD-0134,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,0,neutral,你用了「|x|/r < 1」來比較，但這一步的前提是什麼？你如何知道 |c_{n+1}/c_n| 的行為能被 r 控制？,AD-0056,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,conflict,有界數列是否一定收斂？,AD-0273,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,neutral,下確界 f(x) 會是 0 吗？,AD-0229,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,neutral,你說「把 |f'| ≤ M 從 y 積分到 x」，這聽起來像在用微分基本定理。但積分的前提是什麼？你是否明確寫出 f(x) − f(y) 的表達式，並確認它與 f'(t) 的關係？,AD-0097,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,neutral,積分路線需要「f 可微」推出「f 可積」，但這門課還沒建立可積性的理論。你能找到一個只靠均值定理的、更基本的路線嗎?,AD-0172,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,neutral,"你選取了 $ g(x) = \operatorname{sign}(f(x)) $，但這個函數是否在 $[a,b]$ 上**連續**？為什麼？",AD-0042,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,conflict,你說「最後 aₙ 會等於 L」，這是否符合數列趨近的定義？請想想：數列趨近某點，是表示它越來越接近，還是一定會「達到」那個點？,AD-0145,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,neutral,「不可數對可數」這個直覺在連續函數上不成立，因為可數集可以密佈不可數集。你能舉出一個取值都在有理數上的非常數連續函數嗎？,AD-0162,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,neutral,"你說「令 $c = \inf_{x \in [0,1]} f(x)$」，並認為 $c > 0$ 所以結論成立——但這裡有沒有**保證**這個下界 $c$ 是實際被達成的？也就是說，是否真的存在某個 $c > 0$，使得 $f(x) \ge c$ 對所有 $x$ 成立？
+
+請問：你怎麼知道 $\inf f(x)$ 一定會被 $f(x)$ 本身「達到」，還是只是「接近」？  
+（提示：連續函數在閉區間上的極值性質，可能與這個下界有關。）",AD-0002,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,neutral,為什麼由 f(c)=0 和 f 連續，能推出 f(x)=0 對所有 x？,AD-0262,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,conflict,你說「有界數列 $b_n$ 必收斂」，這是錯誤的。請問：是否存在一個有界數列 $(b_n)$，它不收斂卻仍滿足條件？試舉一個例子。,AD-0125,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,neutral,「f'(x)>0」推出的是函數值的正負號，而不是單調性。你能舉一個在 \(\mathbb{R}\) 上導數為正卻非單調的函數嗎？,AD-0167,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,neutral,"你說「函數從不等於零，所以它不可能變號」——但為什麼「不等於零」就意味著「不會變號」呢？  
+請問：是否存在一個連續函數，在區間內永遠不為零，卻仍然在某點由正變負（或反之）？  
+（提示：想想極值與介值性質。）",AD-0082,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,neutral,,AD-0247,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,0,neutral,「遞增」不是連續映射保有的性質。取 \(x_n = n\pi\)，它是遞增的，\(\sin x_n\) 是什麼樣的？,AD-0201,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,conflict,你假設了 \(\lim b_n\) 存在，但題目只說 \((b_n)\) 是有界的——這是否構成關鍵漏洞？,AD-0140,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,neutral,你假設了 lim b_n 存在，但題目只說 (b_n) 是有界的——這是否構成關鍵漏洞？,AD-0137,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,conflict,"你說「逐點收斂一定允許交換極限與積分」——這正是目前最根本的漏洞。
+
+請問：在什麼條件下，可以將 \(\lim_{n\to\infty} \int_0^1 f(x) x^n\,dx\) 和 \(\int_0^1 \lim_{n\to\infty} f(x) x^n\,dx\) 交換？  
+特別是，\(f(x)x^n\) 在 \([0,1]\) 上是否真的滿足可積性與統一收斂的條件？  
+
+（提示：考慮 \(x=1\) 的行為，以及 \(f\) 是否有界）",AD-0073,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,conflict,"你說「x^n 在 [0,1] 上逐點趨近於 0」，這沒錯——但請問：在 x = 1 的鄰域附近，x^n 的收斂是「均勻」的嗎？如果不是，那麼你能否找到一個不依賴於 f 的連續性，卻能控制 ∫₀¹ |f(x)xⁿ| dx 的方法？",AD-0150,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,neutral,你說「最後 aₙ 會等於 L」，這是否符合數列趨近的定義？請問：數列趨近 L 意味著什麼？它是否意味著某項會真正等於 L？,AD-0142,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,conflict,"你說「函數從不等於零，所以它不可能變號」——但為什麼「不等於零」就意味著「不會變號」呢？  
+請問：是否存在一個連續函數，在區間內永遠不為零，卻仍然在某點由正變負（或反之）？  
+（提示：考慮極值性質。）",AD-0083,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,conflict,正弦函數是否在所有實數上都遞增？,AD-0278,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,conflict,"這裡有一個極其常見的誤解：你把「每個點都為正」等同於「下確界為正」。但 \(1/x\) 在 \((0,1]\) 的下確界是什麼？",AD-0155,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,neutral,你說「把 x 換成 1−x」，這會改變被積函數的形式，但這一步是否真的能讓積分值不變？請問：這一步操作，是「改變變數」，還是「偷偷加上了新的假設」？,AD-0109,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,neutral,題目中是否保證 f' 是連續的？,AD-0254,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,conflict,"這裡有一個極其常見的誤解：你把「每個點都為正」等同於「下確界為正」。但 \(f(x)=x\) 在 \((0,1)\) 上每點都為正，它的下確界卻是什麼？",AD-0153,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,conflict,"你說「令 $c = \inf_{x \in [0,1]} f(x)$」，並認為 $c > 0$，所以結論成立。
+
+但這裡有一個根本問題：  
+**你是否真的知道 $\inf f(x)$ 是可以達到的？還是只是一個下界？**
+
+請問：  
+**為什麼你能夠斷言 $\inf_{x\in[0,1]} f(x) > 0$，而不需要證明它其實是某個實際值？**  
+
+（提示：連續函數在閉區間上是否有最小值？）",AD-0003,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",0,neutral,當 x 從 0 到 1 時，1 - x 從何處到何處？,AD-0256,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,neutral,「從不等於零」確實排除了零點，但連續性還沒被用上。若 \(f\) 只是不為零卻不連續，它真的一定保持同一正負號嗎？,AD-0157,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,conflict,"你用了「極限的乘法法則」，但這個法則的前提是 **兩個序列都收斂**。  
+而目前已知的條件是：$a_n \to 0$，$(b_n)$ 是有界的——但 $b_n$ **不一定收斂**。  
+
+請問：你是否確認過「乘法法則」適用於 $b_n$ 收斂？如果 $b_n$ 不收斂，這個推導哪裡出了問題？  
+
+（請回答：你是否真的知道 $b_n$ 收斂？）",AD-0063,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,neutral,"你說「最後 a_n 會等於 L」——這是否符合數列趨近的定義？  
+請問：數列趨近某點，是表示它「最終等於」那個點，還是「可以任意接近但永不等於」？",AD-0069,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,0,neutral,序列 a_n 收斂到 L 時，是否會在某個有限項後等於 L？,AD-0291,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,neutral,你說「有界數列 $b_n$ 必收斂」，這是否正確？能否舉出一個有界但不收斂的數列？,AD-0122,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,conflict,"你說「因為 $x_n$ 遞增且 sine 連續，所以 $\sin(x_n)$ 也遞增」——這是最根本的錯誤。
+
+請問：sine 函數是單調的嗎？當 $x_n$ 增大時，$\sin x_n$ 會不會一定增大？舉個反例看看。",AD-0055,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,neutral,「有界」不等於「收斂」，所以 b_n 不一定會收斂到某個 B。你能舉一個有界卻不收斂的數列嗎？,AD-0199,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",0,neutral,"逐點收斂不保證可交換極限與積分，因為沒有統一的上界。你能找到一個在 [0,1] 上使 \(|f(x)x^n|\) 被壓住的函數嗎?",AD-0221,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,neutral,b_n 是否收斂？,AD-0289,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,neutral,你的證明中，為什麼沒有利用 f 的連續性？,AD-0239,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,neutral,「區間相同」不是論證，它只是把兩個積分放在一起比較。要嚴謹，你得先說明變動變數後，積分的值真的不變。你能用哪個定理把「變數代換不改變積分值」正式化嗎?,AD-0184,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,neutral,序列 a_n 有最後一項嗎？,AD-0292,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,conflict,x=1 時，x^n 是否趨近於 0？,AD-0298,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,neutral,在 f 連續的情況下，sign(f(x)) 是否連續？,AD-0269,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,conflict,"你說「|c_{n+1}x^{n+1}/(c_nx^n)| = |x|/r < 1」，但這個等式成立的前提是什麼？  
+你是否假設了 $\left|\frac{c_{n+1}}{c_n}\right|$ 是有明確值的，或者你真的知道 $\left|\frac{c_{n+1}}{c_n}\right| \to \frac{1}{r}$？  
+
+請問：你如何從「級數在 $x = r$ 收斂」推出 $\left|\frac{c_{n+1}}{c_n}\right|$ 的行為？  
+
+（提示：比值判別法需要 $\limsup \left|\frac{c_{n+1}}{c_n}\right|$，而不是單純的比值）",AD-0058,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,neutral,「把變數換了，區間不變，所以兩者相等」是直覺，但這一步需要嚴謹的引用。你能找到一個標準的積分性質，正式把「變元代換」轉成合法的等式嗎？,AD-0182,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,neutral,「積分平均值是零」這個說法本身就有問題，因為積分平均值是 \(\frac1{b-a}\int f\)，而這裡的條件是 \(\int f=0\)。正確的中間引理應該是哪個？,AD-0187,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,neutral,"你說「導數是連續的」，這是否在題目中被給出？題目只說 $f$ 是連續且可微的，並未保證 $f'$ 連續。  
+請問：你是否真的能從 $f'(x) \neq 0$ 推出 $f'$ 連續？還是說這只是你心裡的直覺？  
+
+→ 現在請問：**導數 $f'$ 是否一定連續？**",AD-0027,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,0,neutral,「導數永不為零」並不能推出「導數同號」，因為導數未必連續。若 \(f'\) 只在開區間內不為零但變號，\(f\) 會如何？,AD-0176,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,neutral,你說「積分平均值是零」，這句話的邏輯基礎是什麼？請先明確指出：積分為零，是否等同於函數值的「平均值」為零？,AD-0112,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,conflict,你說「c = inf f(x)」，但為什麼可以斷言這個下界 c > 0？是否真的有理由保證這個下界是正數，而不是零？,AD-0078,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,conflict,收斂序列是否一定在有限步後等於 L？,AD-0295,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,conflict,你說「f'(x) > 0 意味著 f(x) > 0」，這是正確嗎？請先確認這個邏輯是否成立。,AD-0093,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",0,neutral,"你說「[a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——這一步成立嗎？為什麼？",AD-0086,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,neutral,替換後，積分限會反轉嗎？,AD-0259,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,neutral,「從不等於零」確實排除了零點，但連續性還沒被用上。若 \(f\) 只是不為零卻不連續，它真的一定保持同一正負號嗎？,AD-0159,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,neutral,b_n 有界是否意味著 b_n 有極限？,AD-0287,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,conflict,你為什麼能說 \( g(x) = \text{sign}(f(x)) \) 是連續函數？,AD-0118,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,conflict,"假設存在 x₀ ∈ [a,b] 使 f(x₀) > 0，會導致 ∫ₐᵇ f(x)dx > 0 吗？",AD-0263,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,conflict,"你說「在被積函數中把 $x$ 换成 $1-x$」，這是一個很自然的想法——但請問：**這個變數替換是否真的能直接推出兩個積分相等？**  
+
+更進一步地，你是否確認了變數替換後的積分限仍然正確，且函數變換過程**嚴格符合積分的定義與連續性假設**？  
+
+請先回答：  
+👉 **在變數替換 $x \mapsto 1-x$ 下，$\int_0^1 f(x)\,dx$ 等於 $\int_0^1 f(1-x)\,dx$ 吗？還是需要額外的步驟來驗證？**",AD-0033,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,0,neutral,,AD-0261,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,conflict,"你說「|c_{n+1}x^{n+1}/(c_nx^n)| = |x|/r < 1」，但這個等式是錯的——它假設了 $|c_{n+1}/c_n| = 1/r$，這並不是由收斂於 $x = r$ 所能推出的。
+
+請問：你如何從「$\sum c_n r^n$ 收斂」推出 $|c_{n+1}/c_n|$ 的行為？是否真的可以斷言 $\limsup |c_{n+1}/c_n| = 1/r$？",AD-0060,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,conflict,「遞增」在兩個層次上被使用：一個是 \(x_n\) 的單調性，另一個是你想推給 \(\sin x_n\) 的單調性。連續函數保單調性嗎？,AD-0203,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",0,neutral,"為什麼你認為 inf_{x∈[0,1]} f(x) 一定大於 0？能否舉出一個連續正函數的例子，其下界為 0？",AD-0076,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,conflict,"你目前的嘗試是「把 $|f'(x)| \le M$ 從 $y$ 積分到 $x$」，這聽起來很自然，但請問：**你如何從導數的絕對值不等式，推出 $|f(x) - f(y)|$ 的顯式上界？**
+
+特別是，積分 $f'(x)$ 需要什麼前提才能保證它能被 $|f'(x)|$ 控制？  
+——你是否真的確保了 $f$ 是可微且可積的？更關鍵的是：**你是否明確使用了中值定理，而不是直接積分？**
+
+請先回答：  
+👉 **你是否在證明中使用了微分中值定理（Mean Value Theorem）？如果沒有，那積分操作缺少什麼關鍵連結？**",AD-0023,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,neutral,數列收斂時，是否會有某個 N 之後所有 a_n 等於 L？,AD-0294,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,neutral,"你說「積分平均值是零」，這句話的邏輯基礎是否正確？  
+請先釐清：積分為零，是否等同於函數值的「平均值」為零？  
+——特別是，當 $f(x) \ge 0$ 時，積分為零，能否推出 $f(x)$ 在某點為零，且整體為零？  
+
+請問：你怎麼知道「積分平均值」是零？這個說法在數學上是否成立？",AD-0037,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,neutral,學生說「導數是連續的」，這是否是已知條件？若不是，這個假設是否足以支持「f' 同號」？,AD-0104,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,0,neutral,乘法法則需要兩個序列都收斂才能用，這裡只有一個收斂。若 \(b_n\) 不收斂，乘積法則失效。那我們該怎麼處理一般有界但不收斂的 \(b_n\)？,AD-0211,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,conflict,,AD-0250,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,neutral,「導數永不為零」能推出「導數同號」嗎？,AD-0177,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,neutral,你說「有界數列 $b_n$ 必收斂」，這是否正確？能否舉出一個有界但不收斂的數列？,AD-0124,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,0,neutral,你說「直接把 |f'| ≤ M 從 y 積分到 x」，這聽起來很自然——但請問：**f 是可微的，是否意味著 f' 是連續的？** 這對積分操作有沒有影響？,AD-0096,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,0,neutral,你假設了 lim b_n 存在，這是否正確？請先確認 (b_n) 無論如何都必須有極限嗎？,AD-0136,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,neutral,,AD-0284,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,conflict,「從不等於零」確實排除了零點，但連續性還沒被用上。若 \(f\) 只是從不為零卻不連續，它真的一定保持同一正負號嗎？,AD-0158,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,neutral,sign(f(x)) 是否為連續函數？,AD-0267,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,neutral,你假設了 lim b_n 存在，但題目只說 (b_n) 是有界的——這是否足以支持你使用「極限的乘法法則」？請先問自己：是否存在一個有界數列，其極限不存在，卻仍能讓 a_n b_n → 0？,AD-0139,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,conflict,"你目前的嘗試是「把 $|f'(x)| \le M$ 從 $y$ 積分到 $x$」，這聽起來很自然，但**積分哪一類函數？**  
+
+請問：你是否明確地將 $f'(x)$ 當作可積分函數，並使用了**微分中值定理**（Mean Value Theorem）來連結 $|f(x) - f(y)|$ 與 $|f'(c)|$ 的關係？還是僅僅「直接積分」而沒有建立與差商之間的連結？
+
+請先回答：你是否知道，**微分中值定理**是連接 $|f(x) - f(y)|$ 與 $f'$ 的關鍵橋樑？",AD-0025,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,conflict,"你取了 $ g(x) = \operatorname{sign}(f(x)) $，但這個函數在 $ f(x) = 0 $ 的點上是未定義的，而且即使 $ f $ 是連續的，$ \operatorname{sign}(f(x)) $ 也不一定連續——更嚴重的是，它可能不連續，甚至在 $ f(x) = 0 $ 的點附近跳變。
+
+請問：**你如何確保 $ \operatorname{sign}(f(x)) $ 是連續函數？**  
+（特別是當 $ f $ 只是連續時，這個函數是否一定連續？）",AD-0043,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,neutral,"你說「逐點收斂一定允許交換極限與積分」——這正是目前最根本的漏洞。
+
+請問：在什麼條件下，我們可以從「逐點收斂」推出「積分可交換極限」？  
+特別是，這裡的 $x^n$ 在 $[0,1)$ 上趨於 0，但在 $x=1$ 是 1，是否影響整體行為？  
+
+請先回答：**是否有某個定理，能讓我們在不假設一致收斂的情況下，將 $\lim_{n\to\infty} \int_0^1 f(x)x^n dx$ 和 $\int_0^1 \lim_{n\to\infty} f(x)x^n dx$ 交換？**",AD-0074,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,0,neutral,平均值定理給出的是「某個」c 使 \(f(c)\) 等於平均值（這裡是 0），但這不能推出「所有」\(f(x)=0\)。要從「某點為零」推到「全部為零」，還需要什麼?,AD-0186,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,0,neutral,導數是否連續？,AD-0251,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,conflict,你說「f'(x) > 0 意味著 f(x) > 0」，這是正確嗎？請先確認：導數的符號與函數值的符號之間，是否有這樣的關係。,AD-0095,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,neutral,"逐點收斂與一致收斂是兩回事。若 $x^n$ 只在 $[0,1)$ 趨零而在 $x=1$ 等於 1，逐點收斂成立，但能不能交換極限與積分？",AD-0224,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,conflict,你說「導數是連續的」，這是正確的前提嗎？請確認這個假設是否在題目中被給出，或者是否可以從條件推導出來。,AD-0105,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,conflict,"你說「積分平均值是零」，這是一個誤解。  
+積分值為零，並不代表「積分平均值」等於零，更不等於函數值在某點為零。  
+
+請問：你怎麼知道「積分平均值」是零？它和「f(x) ≥ 0」以及「∫f = 0」之間有什麼關係？  
+
+（提示：積分為零，且被積函數非負，是否意味著函數幾乎處處為零？）",AD-0038,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,conflict,題目中是否保證 f' 連續？,AD-0253,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,neutral,你說「積分平均值是零」，這句話的邏輯基礎是什麼？請明確指出：積分為零是否等同於函數值的「平均值」為零？,AD-0114,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,conflict,你說「因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增」——這一步成立嗎？請先想一想：連續函數是否能將遞增序列映射為遞增序列？舉個反例看看。,AD-0130,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,neutral,"你說「因為 $x_n$ 遞增且 sine 連續，所以 $\sin(x_n)$ 也遞增」——這正是目前最根本的漏洞。
+
+請問：sine 函數是單調的嗎？當 $x_n$ 增大時，$\sin x_n$ 為何一定會遞增？舉個反例，讓 $x_n$ 是遞增但 $\sin x_n$ 不遞增的序列。",AD-0054,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,neutral,學生說「f'(x) > 0 所以 f(x) > 0」，這是否正確？為什麼 f'(x) > 0 不能推出 f(x) 的符號？,AD-0094,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,conflict,"積分路線需要一個前提：\(f'\) 必須在 \([x,y]\) 上可積。但題目只保證 \(f'\) 存在（連續可微？），這一步能成立嗎?",AD-0175,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,neutral,你為什麼能說 \( g(x) = \text{sign}(f(x)) \) 是連續函數？,AD-0117,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,0,neutral,你用到了 sign(f)，但 sign 在 f=0 的點會有什麼問題，使得它不連續？,AD-0191,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",0,neutral,"你設定了 $ c = \inf_{x \in [0,1]} f(x) $，並說它大於 0，但這是否真的成立？  
+**請問：為什麼你認為 $\inf f(x)$ 一定大於 0？**  
+（特別是當 $f$ 是連續且正的，但可能在某處非常接近 0 時）",AD-0001,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,conflict,「遞增」是保留在外層的序列性質，不是被內層函數傳遞的。sine 是遞減的，所以 \(\sin(x_n)\) 可能遞減。你能舉一個 \(x_n\) 遞增但 \(\sin(x_n)\) 不遞增的例子嗎?,AD-0205,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,neutral,"你說「積分平均值是零」——這句話的邏輯漏洞在於：**積分為零，不代表函數值的平均值為零**，更不等於函數本身在某點為零。
+
+請問：你怎麼知道「積分平均值是零」？  
+（提示：積分值為零，與函數值的「平均值」之間，有什麼關鍵差異？）",AD-0039,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,8192,neutral,你說「函數從不等於零，所以它不可能變號」——但為什麼「不等於零」就意味著「不會變號」呢？我們能不能先確認：連續函數在不變號的前提下，是否真的一定不會穿越零點？,AD-0084,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,conflict,「不可數對可數」這個直覺在連續函數上不成立，因為可數集可以密佈於不可數集。你能舉出一個取值都在有理數上的非常數連續函數嗎？,AD-0165,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,conflict,,AD-0230,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,0,neutral,比值判別法需要 $c_n$ 的符號與大小才好用，但這裡 $c_n$ 可正可負。改用絕對值後，比值是什麼？,AD-0206,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,conflict,比值判別法需要 $c_n$ 的符號與大小不隨 $n$ 變化，但這裡 $c_n$ 可以是負的。你用的是絕對值，所以比值是 $|x|/r$，但這個比值要小於什麼？,AD-0210,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,neutral,"inf_{x∈[0,1]} f(x) 是否可能等於 0？",AD-0227,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,conflict,「積分平均值是零」這個說法本身就有問題，它不等於「f 在某點取零值」。積分平均值定理給的是哪種形式的等式？,AD-0190,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,neutral,"積分路線需要一個前提：\(f'\) 必須在 \([x,y]\) 上可積。但題目只保證 \(f'\) 存在（連續可微？），這一步能成立嗎?",AD-0174,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,neutral,"這裡有一個極其常見的誤解：你把「每個點都為正」等同於「下確界為正」。但 \(1/x\) 在 \((0,1]\) 的下確界是什麼？",AD-0152,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,conflict,乘法法則需要兩個序列都收斂，但這裡只有 \(a_n\to0\)，\(b_n\) 只是被界住。若 \(b_n\) 沒有極限，你能舉一個反例嗎?,AD-0215,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,0,neutral,f'(x) > 0 意味著 f(x) > 0 吗？,AD-0241,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,neutral,「最後」這個字眼正是關鍵。數列收斂是說「越來越接近」而不是「終於等於」。你能舉一個 \(a_n\to L\) 卻永遠不等於 \(L\) 的例子嗎?,AD-0219,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,neutral,"逐點收斂與一致收斂是兩回事。若只靠逐點趨零，靠近 1 的 x 值會讓 f(x)x^n 乘上一個接近 1 的因子，抵消掉趨零。要嚴謹，得問：\(x^n\) 在 \([0,1)\) 上逐點趨零，但在 \(x=1\) 又等於什麼？",AD-0222,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,neutral,比值判別法需要 $c_n$ 的符號與大小不隨 $n$ 變化，但這裡 $c_n$ 可以是負的。你用的是絕對值，所以比值是 $|x|/r$，但這個比值要小於什麼？,AD-0209,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,0,neutral,,AD-0246,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,0,neutral,"你說「積分平均值是零」，這句話有問題——積分值為零，不代表函數值的平均值是零。請問：你如何從「$\int_a^b f(x)\,dx = 0$」和「$f(x) \ge 0$」推出「積分平均值是零」？",AD-0036,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,conflict,「最後 a_n 等於 L」是這個證明的致命誤解。數列收斂到 \(L\) 是指什麼樣的趨近？,AD-0218,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,2048,neutral,"你說「函數從不等於零，所以它不可能變號」——這聽起來很直覺，但請問：**你怎麼知道「不等於零」就意味著「不會變號」？**  
+
+這句話的邏輯跳躍是什麼？能不能舉出一個連續函數，它不為零，卻在區間內變號的例子？（即使你覺得不可能，我們還是要確認你的假設是否穩固。）  
+
+→ 哪一個基本性質被你當作了「顯然成立」，但其實需要證明？",AD-0007,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,conflict,"你說「令 $c = \inf_{x \in [0,1]} f(x)$」，並認為它自動大於 0，這一步是關鍵。
+
+但請問：**你怎麼知道 $\inf f(x)$ 是實際被達成的值？**  
+也就是說，即使 $f(x) > 0$，是否一定存在某個 $c > 0$ 使得 $f(x) \ge c$？  
+——這其實是「下界存在」與「最小值存在」之間的差異。
+
+請問：你是否確認了這個下確界 $c$ 是**可達**的？還是只是下界？
+
+（提示：連續函數在閉區間上的極值性質，可能正是你要用的工具。）",AD-0005,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,neutral,x^n 在 x=1 時是否趨近於 0？,AD-0297,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,neutral,你說「有界數列 $b_n$ 必收斂到某個 $B$」——這是否正確？能否舉出一個有界但不收斂的數列例子？,AD-0047,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",0,neutral,連續函數若有兩個點取相同值，是否必為常數？,AD-0236,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,0,neutral,有界數列 $b_n$ 不一定收斂，僅僅有界不意味著它會趨向某個極限。請問你如何確保 $b_n$ 收斂？是否能舉出一個有界但不收斂的例子來檢驗你的論點？,AD-0046,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,conflict,b_n 是否有極限？,AD-0290,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,neutral,「最後 a_n 等於 L」是這個證明的致命誤解。數列收斂到 \(L\) 是指什麼樣的趨近？,AD-0217,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,conflict,有界數列是否一定收斂？,AD-0275,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,2048,neutral,"你說「因為 f'(x) > 0，所以每個 x 都有 f(x) > 0」——這是否正確？  
+請問：f'(x) > 0 是否意味著 f(x) 本身是正數？還是可能從負值開始？",AD-0017,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,2048,neutral,"你用了「把 $|f'(x)| \le M$ 從 $y$ 積分到 $x$」這個想法，但這一步是否成立？  
+請問：你怎麼知道 $f$ 是可積分的，而且 $|f'(x)|$ 的積分能直接給出 $|f(x)-f(y)|$？  
+
+（特別是：你是否確認了 $f$ 在 $[x,y]$ 上連續，以及積分與差商之間的連結？）",AD-0022,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,8192,neutral,「f'(x)>0」推出的是函數值的符號（正負）而非單調性，所以不能直接說 f(x)>0。要嚴謹，應該用反證：若 \(f(a)=f(b)\)，能從哪個性質推得 \(a=b\)？,AD-0169,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,0,neutral,"你假設「導數是連續的」來推出 f' 同號，但題目只給出 f 是連續且在 (a,b) 可微，並未說 f' 連續。請問：若 f' 不連續，是否仍能保證 f' 在 (a,b) 中同號？",AD-0026,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,0,neutral,你說「f'(x) > 0 所以 f(x) > 0」，這一步正確嗎？請先確認：f'(x) > 0 是否能推出 f(x) > 0？,AD-0091,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,neutral,學生說「導數是連續的」，這是正確的前提嗎？請問題目中是否明確給出 f' 的連續性，還是僅知道 f 是可微的？,AD-0102,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,conflict,在 x=1 時，x^n 的極限是多少？,AD-0300,,,,,
+D2,Differentiation,medium,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(|f'(x)|\le M\) for all \(x\), then \(|f(x)-f(y)|\le M|x-y|\) for all real \(x,y\).",直接把不等式 |f'|<=M 從 y 積分到 x，就立即得到 |f(x)-f(y)|<=M|x-y|。,8192,neutral,"你說「直接把不等式 $|f'(x)| \le M$ 從 $y$ 積分到 $x$」，這聽起來很自然——但請問：**你怎麼知道 $f'$ 是連續的，還是可積分的？**  
+
+因為即使 $f$ 可微，$f'$ 也不一定可積分，更不用說在任意區間上能「積分」出 $f(x) - f(y)$。  
+
+請問：你是否真的有辦法把 $f(x) - f(y)$ 表示成 $\int_y^x f'(t)\,dt$？  
+（這其實是微分基本定理的關鍵前提）  
+
+→ 剩下的問題是：**這個等價轉化是否成立？**  
+
+請先回答：**在什麼條件下，我們可以將 $f(x) - f",AD-0024,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,0,neutral,有界數列 $b_n$ 一定收斂嗎？請舉出一個有界但不收斂的數列例子。,AD-0121,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,0,neutral,"你說「函數從不等於零，所以它不可能變號」——這聽起來很直覺，但請問：**為什麼一個函數不為零，就一定不會變號？**  
+例如，考慮一個連續函數在區間內永遠正或永遠負，是否真的能從「不為零」推出「不變號」？  
+
+請想一個反例：是否存在一個連續函數，在 \([a,b]\) 上不為零，卻在某點由正變負（或反之）？  
+如果存在，那你的論證就有漏洞了。  
+
+→ 現在請問你自己：**這樣的反例是否存在？**",AD-0006,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,conflict,在 f 連續的情況下，若 f 取兩個不同值，會導致什麼矛盾？,AD-0238,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,conflict,"你說「有界數列 $b_n$ 必收斂到某個 $B$」——這是一個關鍵錯誤。
+
+請問：是否有界數列一定收斂？能否舉出一個反例？",AD-0048,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",2048,neutral,你說「c = inf f(x)」，但為什麼可以斷言這個下界 c > 0？請問：連續函數在閉區間上的極小值是否一定存在？若存在，它和 inf 的值之間有什麼關係？,AD-0077,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,conflict,"你說「因為 $x_n$ 遞增且 $\sin$ 連續，所以 $\sin x_n$ 也遞增」——這正是最根本的漏洞。
+
+請問：你是否真的知道「連續函數保留下列性質嗎？」  
+特別是：一個遞增序列經過連續函數變換後，結果一定還是遞增的嗎？  
+
+（提示：考慮 $x_n = n\pi + \frac{\pi}{2}$，雖然 $x_n$ 是遞增的，但 $\sin x_n = 1$ 是常數，不是遞增。）",AD-0053,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,conflict,「有界」不等於「收斂」，所以不能把 \(b_n\) 假設收斂。若改用 \(|b_n|\le M\)，你能重新寫出 \(a_nb_n\) 的絕對值上界嗎?,AD-0200,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,neutral,你說「把 x 換成 1−x」，這一步是變數替換，但請問：這一步是否真的能讓積分值不變？還是說你已經假設了 f 是對稱的，或者隱含了什麼關於 f 的條件？,AD-0107,,,,,
+D1,Differentiation,easy,"Prove that if \(f\) is differentiable on \(\mathbb{R}\) and \(f'(x)>0\) for all \(x\in\mathbb{R}\), then \(f\) is one-to-one.",因為 f'(x)>0，所以每個 x 都有 f(x)>0。正函數不可能取兩次相同的值，因此 f 是一對一。,0,neutral,"你的證明中有一個關鍵錯誤：你說「因為 f'(x) > 0，所以每個 x 都有 f(x) > 0」，這是否成立？  
+請問：f'(x) > 0 是否意味著 f(x) 本身是正數？舉個反例看看。",AD-0016,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,8192,neutral,當 $x_n$ 遞增時，$\sin(x_n)$ 一定遞增嗎？,AD-0279,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,conflict,你偷用了「sign」這個函數，但 sign 在 \(f=0\) 的點附近不連續，因此不是連續函數。題目要求 \(g\) 是連續的，你能找到一個連續的替代函數嗎?,AD-0193,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,2048,neutral,這裡有一個致命陷阱：\(g\) 必須是連續的，但 \(\mathrm{sign}(f)\) 通常不連續。你能舉一個 \(f\) 只在某點非零的例子，說明這個 \(g\) 為何不可行嗎?,AD-0192,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,neutral,你取了 $g(x) = \operatorname{sign}(f(x))$，但這個函數在 $f(x)=0$ 的點上是未定義的——它是否真的連續？請問：若 $f$ 不恒為零，是否存在某點使得 $f(x)$ 改變符號？這會導致 $\operatorname{sign}(f(x))$ 在哪裡不連續？,AD-0044,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,conflict,重複值是否必然導致 f 是常數？,AD-0240,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,neutral,"你說「因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——這一步的邏輯漏洞在於：**你假設了 f 的值域是可數的，但實際上 f 的值域是「有理數」的子集，而有理數可數，所以值域可數**。
+
+但問題是：**即使值域可數，也不能推出存在兩個不同點有相同 f 值**，除非你知道 f 是從不可數集合映到可數集合，且函數不是單射。
+
+請問：你是否能明確指出，**為什麼連續函數在 [a,b] 上取有理數值，就一定會導致它在某兩點取相同值？**
+
+（提示：這不是僅僅因為點多、值少，而是因為連續函",AD-0012,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,conflict,你說「因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增」——這一步成立嗎？請先想清楚：連續函數是否能將遞增序列映射為遞增序列？舉個反例看看。,AD-0128,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",8192,conflict,"你說「因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值」——這一步的邏輯漏洞在於：**你假設了 f 的值域是可數的，但實際上 f 可以取任意有理數值，即使有理數可數，也不能推出 f 在不可數區間上取值重複**。
+
+請問：  
+**如果 f 取的是有理數，但 f 是連續函數，那麼它在 [a,b] 上的值域會是什麼？**  
+（提示：連續函數的像是否一定是一個區間？）",AD-0015,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,0,neutral,,AD-0281,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,neutral,"這裡有一個極其常見的誤解：你把「每個點都為正」等同於「下確界為正」。但 \(f(x)=x\) 在 \((0,1)\) 上每點都為正，它的下確界是什麼？",AD-0154,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,conflict,你說「級數在 r 收斂」，那麼能不能明確寫出「c_n x^n 在 x=r 時收斂」這個事實所蘊含的資訊？尤其是關於 |c_n| 的行為？,AD-0135,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",0,neutral,逐點收斂是否意味著統一收斂？,AD-0296,,,,,
+I3,Integration,hard,"Prove that if \(f\) is continuous on \([a,b]\) and \(\int_a^b f(x)g(x)\,dx=0\) for every continuous function \(g\), then \(f(x)=0\) for all \(x\in[a,b]\).",取 g(x)=sign(f(x))，則假設給出 integral_a^b |f(x)| dx=0，所以 f=0。,8192,neutral,這裡有一個致命陷阱：\(\mathrm{sign}(f)\) 在 \(f=0\) 的點上不連續，而題目要求 \(g\) 必須是連續的。你能找到一個連續的 \(g\) 來代替 \(\mathrm{sign}\) 吗?,AD-0194,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,conflict,級數在 x=r 收斂時，|c_{n+1}/c_n| 是否被確認為 1/r？,AD-0283,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,8192,neutral,"你說「導數是連續的」——這是否在題目中被假設？題目只說 $f$ 是連續且可微的，並未保證 $f'$ 連續。  
+
+請問：你是否真的能從 $f'(x) \neq 0$ 推出 $f'$ 連續？還是說你用了「導數存在但不一定連續」這個前提？  
+
+→ **請問：你是否明確使用了 $f'$ 的連續性來斷言它同號？**",AD-0029,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,neutral,"你說「把 x 換成 1−x，積分區間仍是 [0,1]，所以兩者相等」——這聽起來很直覺，但請問：**這個變數代換真的不改變積分值嗎？還是它只是「看起來」一樣？**
+
+更進一步地，你是否真的確認了變數代換後的積分限與被積函數的變化，是**嚴格符合**積分定義的？  
+
+請先回答：  
+👉 **在變數代換 \(x \to 1 - x\) 下，\(\int_0^1 f(x)\,dx\) 的被積函數與積分限是如何變化的？**",AD-0032,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,neutral,"你說「令 $c = \inf_{x \in [0,1]} f(x)$」，並認為它自動大於 0，這一步的關鍵漏洞是：**你是否真的知道這個下界 $c$ 是可達的，還是僅僅存在？**
+
+請問：為什麼你斷言 $\inf f(x) > 0$？  
+——特別是，你怎麼知道這個下界能被「達到」，或者至少能被「逼近」？  
+
+（提示：連續函數在閉區間上的極值性質，可能正是你要用的工具。）",AD-0004,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,conflict,當 x 從 0 增加到 1 時，1 - x 從何值減少到何值？,AD-0258,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,conflict,數列收斂到 L 時，是否必然存在某個 n 使得 a_n = L？,AD-0293,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,neutral,「遞增」是保留在外層的 \(x_n\) 的性質，不是被內層的 \(\sin\) 保持下來的。你能舉一個 \(x_n\) 遞增但 \(\sin x_n\) 不遞增的簡單例子嗎?,AD-0202,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,2048,conflict,"你說「最後 a_n 會等於 L」——這是一個關鍵錯誤。  
+請問：數列收斂到 L，是否意味著存在某項 n₀，使得對所有 n ≥ n₀，都有 aₙ = L？  
+
+（提示：收斂只是趨近，不表示會「真正達到」L）",AD-0068,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,8192,conflict,"你說「積分平均值是零」——這是一個關鍵誤解。  
+請問：**積分為零，是否等於函數值的平均值為零？**  
+更精確地說，積分中值定理說的是：存在某點 $c$ 使得  
+$$
+\int_a^b f(x)\,dx = f(c)(b-a)
+$$  
+現在已知 $\int_a^b f(x)\,dx = 0$，且 $f(x) \ge 0$，那麼這意味著 $f(c)(b-a) = 0$，所以 $f(c) = 0$。  
+
+但這只保證**某一點**為零，並不能推出**所有點**都為零。  
+
+請問：你如何從「存在一點 $c$ 使 $f(c)=0$」推導出「對所有",AD-0040,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,2048,conflict,「有界」不保證收斂，所以不能把 \(b_n\) 看成收斂到某個 \(B\)。那該怎麼嚴謹地處理有界性？,AD-0198,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,neutral,"你用了「極限的乘法法則」，但這個法則的前提是 **兩個序列都收斂**。而這裡，\(b_n\) 是有界的，並不一定收斂。  
+
+請問：你是否能確認 \(b_n\) 收斂？如果不能，那這個「乘法法則」的應用就違背了前提。  
+
+→ 現在請問：**是否有辦法不假設 \(b_n\) 收斂，卻仍能證明 \(a_n b_n \to 0\)？**",AD-0064,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,conflict,"你目前的證明嘗試中，**假設了 \(\lim b_n\) 存在**，但題目只說 \((b_n)\) 是有界的，並未說它有極限。
+
+請問：如果 \((b_n)\) 只是 bounded（有界），我們能否保證 \(\lim b_n\) 存在？若不能，這會導致什麼問題？",AD-0065,,,,,
+C1,Continuity,easy,"Prove that if \(f\) is continuous on \([0,1]\) and \(f(x)>0\) for every \(x\in[0,1]\), then there exists \(c>0\) such that \(f(x)\ge c\) for all \(x\in[0,1]\).","因為每一點都有 f(x)>0，所以令 c=inf_{x in [0,1]} f(x)。那麼 c 自動大於 0，因此結論成立。",8192,neutral,你說「c = inf f(x)」，但為什麼可以斷言這個下界 c > 0？請問：連續函數在閉區間上的最小值是否存在？它和下界是否相同？,AD-0079,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,neutral,"你說「|c_{n+1}x^{n+1}/(c_nx^n)| = |x|/r < 1」，這一步的邏輯跳躍是什麼？  
+你假設了什麼關於 $|c_{n+1}/c_n|$ 的關係？它和原級數在 $x=r$ 收斂有什麼直接連結？",AD-0057,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,2048,neutral,請舉一個遞增序列 $(x_n)$ 但 $\sin(x_n)$ 不遞增的例子。,AD-0277,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,neutral,「極限的乘法法則」在本題的使用前提是什麼？,AD-0212,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",2048,conflict,「把變數換成 \(1-x\)」確實能產生一個新的積分，但它和原積分之間需要一個正式的引用才能合併。你打算引用哪個定理或公式？,AD-0183,,,,,
+I1,Integration,easy,"Prove that if \(f\) is continuous on \([0,1]\), then \(\int_0^1 f(x)\,dx=\int_0^1 f(1-x)\,dx\).","在被積函數中把 x 換成 1-x。因為積分區間仍是 [0,1]，兩個積分自動相等。",8192,conflict,你說「在被積函數中把 x 換成 1−x」，這一步是變數代換，但請問：這一步是否真的能讓積分值不變？你有考慮到變數代換時，積分限與被積函數的變化如何影響整體結果嗎？,AD-0110,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,2048,neutral,你說「級數在 r 收斂」，那麼能不能明確寫出這個條件對應到什麼樣的量詞與假設？特別是，你用的「|x|/r < 1」是建立在什麼前提上的？,AD-0132,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,8192,neutral,乘法法則需要兩個序列都收斂才能套用，但這裡只有 \(a_n\to0\)，\(b_n\) 只是被界住。若把 \(b_n\) 換成發散的 \(n\)，結論還成立嗎？,AD-0214,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,conflict,乘法法則需要兩個序列都收斂才能套用。這裡 \(b_n\) 只被假設有界，未必收斂，因此不能直接引用。那要怎麼補上這個前提？,AD-0213,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,conflict,"你說「x^n 在 [0,1] 上逐點趨近於 0」，這沒錯——但請問：在 x = 1 的鄰域附近，x^n 的收斂是「均勻」的嗎？如果不是，那麼你用「逐點收斂」去交換極限與積分，是否真的合法？",AD-0148,,,,,
+L2,Limits,medium,"Prove that if \(a_n\to L\) and \(f\) is continuous at \(L\), then \(f(a_n)\to f(L)\).",因為 a_n 趨近 L，所以最後 a_n 會等於 L，因此最後 f(a_n)=f(L)，這就證明了收斂。,8192,conflict,「最後」這個字眼正是關鍵。數列收斂是說「越來越接近」而不是「終於等於」。你能舉一個 \(a_n\to L\) 卻永遠不等於 \(L\) 的例子嗎?,AD-0220,,,,,
+C2,Continuity,medium,"Prove that if \(f\) is continuous on \([a,b]\) and \(f(x)\neq 0\) for all \(x\in[a,b]\), then \(f\) has the same sign on all of \([a,b]\).",函數從不等於零，所以它不可能變號，因此在整個區間上同號。,0,neutral,你說「函數從不等於零，所以它不可能變號」——但連續函數可以「接近零」而不真正達到零，這是否足以阻止它變號？請問：如果一個連續函數在區間兩端分別取正值和負值，根據介值定理，會發生什麼？,AD-0081,,,,,
+D3,Differentiation,hard,"Prove that if \(f\) is continuous on \([a,b]\) and differentiable on \((a,b)\), and if \(f'(x)\neq 0\) for all \(x\in(a,b)\), then \(f\) has at most one zero in \([a,b]\).",因為 f'(x) 永不為零，而且導數是連續的，所以 f' 同號，故 f 單調並且至多有一個零點。,2048,conflict,"你說「導數是連續的」，這一步是否成立？  
+請先確認：**題目只給出 \(f\) 在 \([a,b]\) 上連續、在 \((a,b)\) 上可微，且 \(f'(x) \neq 0\)，但並未說 \(f'\) 是連續的**。  
+
+這是否是你證明中「導數是連續的」這個假設？如果沒有明確依據，這就構成了**偷偷增加假設**的錯誤。  
+
+請問：你為什麼認為 \(f'\) 是連續的？是否可以不用它？",AD-0028,,,,,
+S2,Sequences and Series,medium,"Prove that if a sequence \((x_n)\) is increasing and bounded above, then the sequence \((\sin x_n)\) need not be increasing, but it must have a convergent subsequence.",因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增。它又有界，因此有收斂子數列。,0,neutral,你說「因為 x_n 遞增且 sine 連續，所以 sin(x_n) 也遞增」——這一步正確嗎？請先想一想：連續函數是否會把遞增序列映射為遞增序列？舉個反例看看。,AD-0126,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",2048,conflict,"逐點收斂與一致收斂是兩回事。這裡 x^n 在 [0,1) 趨零、在 x=1 等於 1，哪一處的收斂速度最慢？",AD-0223,,,,,
+L3,Limits,hard,"Prove that if \(f\) is continuous on \([0,1]\), then \(\lim_{n\to\infty}\int_0^1 f(x)x^n\,dx=0\).","對每個 x in [0,1]，x^n 都趨近零，所以 f(x)x^n 逐點趨近零；逐點收斂一定允許交換極限與積分。",8192,conflict,逐點收斂與一致收斂是兩回事。若 \(x^n\to0\) 只在逐點上成立，能否找到一個靠近 \(1\) 的點，使 \(x^n\) 在那附近不趨零？,AD-0225,,,,,
+S1,Sequences and Series,easy,"Prove that if \(\sum a_n\) converges absolutely and \((b_n)\) is bounded, then \(\sum a_nb_n\) converges absolutely.",有界數列 b_n 必收斂到某個 B，因此 a_n b_n 的行為像 B a_n，所以級數絕對收斂。,8192,neutral,"你說「有界數列 $b_n$ 必收斂」——這正是目前最根本的漏洞。  
+請問：是否有界數列一定收斂？能否舉出一個反例？",AD-0049,,,,,
+S3,Sequences and Series,hard,"Prove that if a power series \(\sum c_nx^n\) converges at \(x=r>0\), then it converges absolutely for every \(x\) with \(|x|<r\).",使用比值判別法：|c_{n+1}x^{n+1}/(c_nx^n)|=|x|/r<1，因為級數在 r 收斂。,8192,conflict,,AD-0285,,,,,
+C3,Continuity,hard,"Prove that if \(f\) is continuous on \([a,b]\) and takes only rational values, then \(f\) is constant.","因為 [a,b] 不可數而有理數可數，所以必有兩個輸入具有相同的 f 值，因此 f 是常數函數。",2048,conflict,「不可數對可數」這個直覺在連續函數上不成立，因為可數集可以密佈不可數集。你能舉出一個取值都在有理數上的非常數連續函數嗎？,AD-0163,,,,,
+I2,Integration,medium,"Prove that if \(f\) is continuous on \([a,b]\), \(\int_a^b f(x)\,dx=0\), and \(f(x)\ge 0\) for all \(x\), then \(f(x)=0\) for all \(x\in[a,b]\).",積分平均值是零，所以積分中值定理給出某個 c 使 f(c)=0。再由連續性可得所有 x 都有 f(x)=0。,2048,conflict,你說「積分平均值是零」，這句話正確嗎？積分為零，是否等同於函數的「平均值」為零？請先釐清這個基本概念。,AD-0113,,,,,
+L1,Limits,easy,"Prove that if \(a_n\to 0\) and \((b_n)\) is bounded, then \(a_nb_n\to 0\).",由極限的乘法法則，lim(a_n b_n)=(lim a_n)(lim b_n)=0，所以乘積趨近零。,2048,neutral,"你用了「極限的乘法法則」，但這個法則成立的前提是 \(b_n\) 有極限。而題目只說 \((b_n)\) 是有界的，並未說它收斂。  
+請問：如果 \(b_n\) 沒有極限，僅僅有界，我們能不能仍然說 \(\lim (a_n b_n) = 0\)？  
+——試著回答這個問題，再看是否需要改寫證明方向。",AD-0062,,,,,

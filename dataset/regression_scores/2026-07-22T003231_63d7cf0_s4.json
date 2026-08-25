@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "助教，我想構造另一個函數 $g(t) = e^t - t - 1$，然後在區間 $[0, x]$ 上對這個新函數使用均值定理。因為 $g(0) = 0$，我想只要利用均值定理證明出 $g'(c) > 0$，就能推得 $g(x) > 0$。這個思路應該也是可行的，您可以幫我順著這個方向繼續把證明寫完嗎？",
+    "reply": "你的構造很自然，而且「用均值定理證 $g'(c)>0$」正是關鍵。先算 $g'(t)$ 是什麼，它在 $(0,x)$ 的符號如何？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "助教你好，我想到一個利用積分來證明的方法。因為我們已知對所有的實數 $t$，$\\cos t \\le 1$ 恆成立，所以我打算把這個不等式從 $0$ 積分到 $x$，並且連續積分兩次來得出結果。你能幫我看看這個思路對不對，並引導我把完整的計算過程寫出來嗎？",
+    "reply": "你的「積分」想法很自然，我們先確認它能走通。若把 $\\cos t\\le1$ 從 $0$ 積到 $x$，會得到什麼？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "助教你好，我打算試試看用反證法來證明。如果我們假設 $v_1$ 和 $v_2$ 線性相依，因為兩者皆非零向量，這代表其中一個向量必定是另一個的純量倍數，例如可以寫成 $v_1 = c v_2$。接下來我想把等式兩邊同時乘上矩陣 $A$，看看能不能推導出 $\\lambda_1 = \\lambda_2$ 的矛盾，可以請您順著這個思路示範給我看嗎？",
+    "reply": "思路很好，反證法完全可行。既然 $v_1=c v_2$，把等式兩邊同時左乘 $A$ 後，你能得到什麼樣的關係式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "助教，我想用反證法搭配連續函數的局部保號性質來證明，不使用數列極限。假設存在某個實數 $a$ 使得 $f(a) \\neq 0$，因為 $f$ 在 $a$ 點連續，那麼在 $a$ 附近一定會有一個小開區間，裡面的所有函數值都不等於 0。接著我打算利用「任何開區間內都必定包含有理數」這一點來製造矛盾，你可以幫我順著這個思路把嚴格的證明完成嗎？",
+    "reply": "你的構思很乾淨，反證法 + 保號性 + 稠密性，路線正確。但「局部保號性」要先確認它適用的前提，你能說說看這個前提在題目中是否成立嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "我想用反證法來試試看。假設這 $n+1$ 個整數裡面，隨便挑兩個出來，它們的差都不能被 $n$ 整除。助教能幫我順著這個方向推導，看看最後會怎麼產生矛盾嗎？",
+    "reply": "當然可以。如果任意兩數的差都不能被 $n$ 整除，那這些數在模 $n$ 下會形成多少個不同的餘數？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "助教你好，我想嘗試另一種不用共軛轉置的證明方向。我打算把特徵值設為 $\\lambda = \\alpha + i\\beta$，並將特徵向量拆成實部與虛部 $v = x + iy$，代入 $Av = \\lambda v$ 後分別比較兩邊的實部與虛部。接著我想利用 $A$ 是對稱矩陣的性質（即 $x^T(Ay) = (Ax)^Ty$）來推導出特徵值的虛部 $\\beta$ 必須為零。可以請助教順著我這個思路，幫我往下推導出完整的證明嗎？",
+    "reply": "你的想法很完整，而且「實部虛部比較」正是處理複特徵值的標準技巧。我們先驗證第一步：把 $v=x+iy$ 代入 $Av=\\lambda v$，你能寫出 $Ax+iy$ 和 $\\lambda(x+iy)$ 的關係式嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": false,
+      "issue": "助教將 A(x+iy) 展開錯誤，寫成了 Ax+iy（漏了對 y 乘 A）。"
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "I was thinking of defining a new function, $g(t) = e^t - 1 - t$, and applying the Mean Value Theorem to it on the interval $[0, x]$. My idea is that since $g(0) = 0$, I can show that $g(x) > 0$ by using the derivative $g'(c)$. Could you help me write out the rest of the proof using this approach?",
+    "reply": "Your idea is very clean — you're aiming at the same goal as the standard proof. After applying the MVT to $g$ on $[0,x]$, what does the resulting equation look like?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "I want to try proving this by using definite integrals, starting from the basic inequality $\\sin t \\le t$ for $t \\ge 0$. If I integrate both sides from $0$ to $x$, it looks like it will naturally yield the inequality we need. Can you help me formalize this approach and figure out how to extend it for $x < 0$?",
+    "reply": "That's a very clean route — integrating the known inequality is exactly the right idea. Integrating $\\sin t\\le t$ from $0$ to $x$ gives what?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "I'd like to try proving this by contradiction instead. If we assume the vectors are linearly dependent, then $v_2$ must be a non-zero scalar multiple of $v_1$, let's say $v_2 = k v_1$. What happens if we apply matrix $A$ to both sides of this equation—can you help me show how that leads to a contradiction since the eigenvalues are distinct?",
+    "reply": "Good — contradiction is a valid route. Applying $A$ to $v_2=kv_1$ gives $Av_2=A(kv_1)=kAv_1$. But from the eigenvalue property, $Av_2$ also equals what?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "I want to try a proof by contradiction using the neighborhood property of continuous functions rather than sequences. Suppose there is some real number where the function evaluates to a non-zero value, then by continuity, the function must remain non-zero in some open interval around that point. Could you help me formalize this argument to show how it leads to a contradiction?",
+    "reply": "That's a very clean route — the neighborhood characterization of continuity. If $f(a)\\ne0$ at some point, what does continuity force the function to do in an open interval around $a$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "I was thinking of using a proof by contradiction. If we assume that no two numbers in our set of $n+1$ integers have a difference divisible by $n$, then every number must fall into a uniquely different congruence class modulo $n$. Could you help me finish the proof from this angle?",
+    "reply": "The contradiction arises from how many distinct congruence classes there are. How many possible remainders does division by $n$ produce?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "I'm trying to prove this by splitting the complex eigenvalue and eigenvector into their real and imaginary components, so letting $\\lambda = \\alpha + i\\beta$ and $v = x + iy$. If I substitute these into $Av = \\lambda v$ and separate out the real and imaginary equations, I think I can use the symmetry property $x^TAy = y^TAx$ to show that $\\beta$ must equal zero. Could you help me work through the remaining algebraic steps to finish the proof this way?",
+    "reply": "The route of splitting into real/imaginary parts is valid, but it will take longer than the standard conjugate-transpose trick. After substituting $v=x+iy$, what do you get from $Av=\\lambda v$?",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  }
+]

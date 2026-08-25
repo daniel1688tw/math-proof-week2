@@ -1,0 +1,26 @@
+{
+  "experiment_version": "attention_dilution_v1",
+  "run_mode": "full",
+  "seed": 20260821,
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "conditions": [
+    "Base-Instruct + Front Prompt",
+    "Base-Instruct + Prompt Refresh",
+    "LoRA + Front Prompt",
+    "Base-Thinking + Front Prompt"
+  ],
+  "context_targets": [
+    0,
+    2048,
+    8192
+  ],
+  "case_count": 15,
+  "expected_rows": 300,
+  "completed_rows": 300,
+  "instruct_max_new_tokens": 192,
+  "thinking_max_new_tokens": 4096,
+  "ollama_num_ctx": 16384,
+  "primary_metric": "contract_retention_rate",
+  "secondary_metric": "strict_tutor_retention_rate",
+  "causal_warning": "Behavioral context interference, not direct attention-weight measurement"
+}

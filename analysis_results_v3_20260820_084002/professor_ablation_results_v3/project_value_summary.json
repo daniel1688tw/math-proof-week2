@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "seed": 20260820,
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu128",
+    "instruct_model": "Qwen/Qwen3-4B-Instruct-2507",
+    "note": "Warm-up calls are excluded; report median and p95 in addition to mean."
+  },
+  "behavior_n_per_condition": {
+    "Base-Instruct + 4-Shot": 27,
+    "Base-Instruct + Prompt": 27,
+    "Base-Thinking + Prompt": 27,
+    "Full-Project": 27,
+    "LoRA + Instruct-Review": 27,
+    "LoRA-only": 27
+  },
+  "reviewer_n_per_condition": {
+    "Base-Instruct reviewer": 12,
+    "Base-Thinking reviewer": 12,
+    "LoRA reviewer": 12
+  },
+  "claim_guard": "Thinking-specific value requires Base-Thinking reviewer to exceed Base-Instruct reviewer on blind semantic accuracy, not merely JSON parsing."
+}

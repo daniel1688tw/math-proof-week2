@@ -1,0 +1,13 @@
+{
+  "N1": [
+    "The choice of ε = 1 is insufficient to guarantee f(x) > 0; it depends on L, and the argument fails when L is very small (e.g., L = 0.1), since L−1 < 0. The proof must use ε = L/2 to ensure that f(x) >"
+  ],
+  "N2": [
+    "The student incorrectly applies the Intermediate Value Theorem to conclude that there exists $c \\in (a,b)$ with $f(c) = \\frac{1}{b-a} \\int_a^b f(x)\\,dx$, without justifying that the average value of $",
+    "The student fails to establish that the value $A = \\frac{1}{b-a} \\int_a^b f(x)\\,dx$ equals $f(c)$ for some $c \\in (a,b)$ via a proper application of the Mean Value Theorem for integrals, which require"
+  ],
+  "N3": [
+    "Step: 'we have g(0)=g(1)' is incorrect. From f(0)=f(2), it follows that g(0)=f(0)-f(1), g(1)=f(1)-f(2)=f(1)-f(0)=-g(0), so g(1) = -g(0), not equal to g(0) unless g(0)=0. This assertion is false in gen",
+    "Step: 'By the Intermediate Value Theorem, g(c)=0 for some c in [0,1]' lacks justification — the student assumes g(0)=g(1) implies opposite signs or zero, but this is not true. Even if g(0)=g(1), it do"
+  ]
+}

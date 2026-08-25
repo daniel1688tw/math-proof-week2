@@ -1,0 +1,7 @@
+{
+  "seed": 20260820,
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "torch": "2.11.0+cu128",
+  "instruct_model": "Qwen/Qwen3-4B-Instruct-2507",
+  "note": "Warm-up calls are excluded; report median and p95 in addition to mean."
+}

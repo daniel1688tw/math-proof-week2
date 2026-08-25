@@ -1,0 +1,4 @@
+﻿condition,json_parse_rate,median_latency_s,p95_latency_s,mean_output_tokens,n
+Base-Instruct reviewer,1.0,7.110967414000015,17.173616277000097,121.16,25
+Base-Thinking reviewer,0.88,41.88252701000056,102.4837933113995,8061.8,25
+LoRA reviewer,0.2,11.11269990999972,20.500302703800106,93.16,25

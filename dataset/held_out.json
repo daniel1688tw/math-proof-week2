@@ -1,0 +1,50 @@
+[
+  {
+    "id": "H1",
+    "topic": "極限",
+    "statement": "用 $\\varepsilon$-$N$ 定義證明 $\\lim_{n\\to\\infty}\\dfrac{3n-1}{n+2}=3$。",
+    "reference_proof": "計算差：$\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\left|\\dfrac{3n-1-3(n+2)}{n+2}\\right|=\\dfrac{7}{n+2}<\\dfrac{7}{n}$。給定 $\\varepsilon>0$，由阿基米德性質取正整數 $N>\\dfrac{7}{\\varepsilon}$。則 $n\\ge N$ 時 $\\dfrac{7}{n}\\le\\dfrac{7}{N}<\\varepsilon$，故 $\\left|\\dfrac{3n-1}{n+2}-3\\right|<\\varepsilon$。$\\blacksquare$"
+  },
+  {
+    "id": "H2",
+    "topic": "連續性",
+    "statement": "證明 $f(x)=\\dfrac{1}{x}$ 在 $(0,1)$ 上不一致連續。",
+    "reference_proof": "取 $\\varepsilon_0=1$。令 $x_n=\\dfrac1n$、$y_n=\\dfrac1{n+1}$（皆在 $(0,1)$）。則 $|x_n-y_n|=\\dfrac{1}{n(n+1)}\\to0$，可小於任意 $\\delta$；但 $|f(x_n)-f(y_n)|=|n-(n+1)|=1\\ge\\varepsilon_0$。故存在 $\\varepsilon_0$ 使任意 $\\delta$ 都找得到反例，不一致連續。（根源：$f'$ 在近 $0$ 處無界。）$\\blacksquare$"
+  },
+  {
+    "id": "H3",
+    "topic": "連續性",
+    "statement": "設 $f$ 在 $\\mathbb{R}$ 連續且對所有有理數 $q$ 有 $f(q)=0$，證明 $f\\equiv0$。",
+    "reference_proof": "任取實數 $a$。由有理數在 $\\mathbb{R}$ 中稠密，存在有理數列 $q_n\\to a$。由 $f$ 在 $a$ 連續（序列準則），$f(a)=\\lim_{n\\to\\infty}f(q_n)$。而每個 $f(q_n)=0$，故 $f(a)=0$。因 $a$ 任取，$f\\equiv0$。$\\blacksquare$"
+  },
+  {
+    "id": "H4",
+    "topic": "微分",
+    "statement": "設 $f$ 在 $\\mathbb{R}$ 可微且 $|f'(x)|\\le M$，證明 $f$ 一致連續。",
+    "reference_proof": "若 $M=0$ 則 $f$ 為常數，顯然一致連續。設 $M>0$。任取 $x,y$，由 Lagrange 均值定理存在 $c$ 使 $f(x)-f(y)=f'(c)(x-y)$，故 $|f(x)-f(y)|\\le M|x-y|$（Lipschitz）。給定 $\\varepsilon>0$，取 $\\delta=\\dfrac{\\varepsilon}{M}$（與點無關）。則 $|x-y|<\\delta\\Rightarrow|f(x)-f(y)|<\\varepsilon$，一致連續。$\\blacksquare$"
+  },
+  {
+    "id": "H5",
+    "topic": "微分",
+    "statement": "用均值定理證明對所有 $x>0$，$e^x>1+x$。",
+    "reference_proof": "令 $f(t)=e^t$，在 $[0,x]$ 連續、$(0,x)$ 可微，$f'(t)=e^t$。由 Lagrange 均值定理存在 $c\\in(0,x)$ 使 $e^x-e^0=e^c(x-0)$，即 $e^x-1=e^c x$。因 $c>0$ 有 $e^c>1$，且 $x>0$，故 $e^x-1=e^c x>x$，即 $e^x>1+x$。$\\blacksquare$"
+  },
+  {
+    "id": "H6",
+    "topic": "積分",
+    "statement": "證明 $\\lim_{n\\to\\infty}\\displaystyle\\int_0^1\\dfrac{x^n}{1+x}\\,dx=0$。",
+    "reference_proof": "在 $[0,1]$ 上 $1\\le1+x$，故 $0\\le\\dfrac{x^n}{1+x}\\le x^n$。積分保序得 $0\\le\\displaystyle\\int_0^1\\dfrac{x^n}{1+x}\\,dx\\le\\int_0^1 x^n\\,dx=\\dfrac{1}{n+1}$。當 $n\\to\\infty$ 時 $\\dfrac{1}{n+1}\\to0$，由夾擠定理積分極限為 $0$。$\\blacksquare$"
+  },
+  {
+    "id": "H7",
+    "topic": "級數",
+    "statement": "用比較判別法證明 $\\sum_{n=1}^\\infty\\dfrac{1}{n^2+1}$ 收斂。",
+    "reference_proof": "對每個 $n\\ge1$，$n^2+1>n^2>0$，故 $0<\\dfrac{1}{n^2+1}<\\dfrac{1}{n^2}$。已知 $\\sum\\dfrac{1}{n^2}$ 收斂（$p=2>1$）。由比較判別法（$0\\le a_n\\le b_n$ 且 $\\sum b_n$ 收斂則 $\\sum a_n$ 收斂），$\\sum\\dfrac{1}{n^2+1}$ 收斂。$\\blacksquare$"
+  },
+  {
+    "id": "H8",
+    "topic": "級數",
+    "statement": "用比值判別法證明 $\\sum_{n=1}^\\infty\\dfrac{n}{2^n}$ 收斂。",
+    "reference_proof": "令 $a_n=\\dfrac{n}{2^n}>0$。比值 $\\dfrac{a_{n+1}}{a_n}=\\dfrac{(n+1)/2^{n+1}}{n/2^n}=\\dfrac{n+1}{2n}=\\dfrac12\\Big(1+\\dfrac1n\\Big)\\to\\dfrac12$。因極限 $\\dfrac12<1$，由比值判別法 $\\sum\\dfrac{n}{2^n}$ 絕對收斂。$\\blacksquare$"
+  }
+]

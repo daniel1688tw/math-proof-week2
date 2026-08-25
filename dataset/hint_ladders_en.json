@@ -1,0 +1,72 @@
+{
+  "H1": [
+    "First write the difference between the sequence value and the limit as a single fraction; after combining and simplifying, the numerator becomes a constant.",
+    "After simplifying, use the Archimedean property to pick a large enough positive integer N making the difference less than epsilon."
+  ],
+  "H2": [
+    "To prove NON-uniform continuity, construct two sequences of points whose mutual distance tends to zero while the difference of function values never drops below some fixed positive number.",
+    "Place both sequences near 0, exploiting how violently 1/x changes there."
+  ],
+  "H3": [
+    "The key is the density of the rationals: every real number can be approached by a sequence of rationals.",
+    "Then use the sequential criterion for continuity to transfer the values at rational points to arbitrary real points."
+  ],
+  "H4": [
+    "The key to this step is the mean value theorem, which links the difference of function values at two points to the derivative at some point.",
+    "A bounded derivative yields the Lipschitz property, and a Lipschitz delta can be chosen independently of location."
+  ],
+  "H5": [
+    "Apply the mean value theorem to the exponential function on the interval from 0 to x.",
+    "Note the intermediate point is strictly positive, so the derivative there is strictly greater than 1 — that is the source of the strict inequality."
+  ],
+  "H6": [
+    "No need to actually compute the integral: first find a simpler upper-bound function for the integrand.",
+    "Use denominator >= 1 to pin the integrand below x to the n-th power, then use monotonicity of the integral and the squeeze."
+  ],
+  "H7": [
+    "The comparison test needs a KNOWN-CONVERGENT series as the upper bound; a divergent one won't do.",
+    "Shrink the denominator slightly and it becomes comparable with a standard p-series."
+  ],
+  "H8": [
+    "The ratio test looks at the LIMIT of the ratio of consecutive terms, not whether each individual ratio is below 1.",
+    "Simplify the ratio, take the limit, and compare it with 1."
+  ],
+  "M1": [
+    "The difference between pointwise and uniform convergence: uniform convergence demands the SUPREMUM of the error tend to zero with n.",
+    "To refute uniform convergence, try finding for each n a special point (allowed to depend on n) where the function value does not shrink."
+  ],
+  "M2": [
+    "Move terms across the inequality and define an auxiliary function that should be everywhere nonnegative; prove instead that its minimum is zero.",
+    "Differentiate the auxiliary function twice: the sign of the second derivative tells you the monotonicity of the first, locating the minimum."
+  ],
+  "M3": [
+    "The standard trick for estimating a difference of products is add-and-subtract a term, splitting it into two pieces each containing one function's difference.",
+    "After splitting, use boundedness to pin the other factor to a constant, then invoke each function's uniform continuity separately."
+  ],
+  "M4": [
+    "Try constructing an auxiliary function that absorbs the constant k, turning the goal into the existence of a zero-derivative point.",
+    "Look at the signs of the auxiliary function's derivative at the two endpoints: they guarantee the minimum cannot occur at an endpoint.",
+    "An interior minimum plus differentiability — finish with Fermat's theorem."
+  ],
+  "M5": [
+    "Consider a symmetric double integral whose integrand is a product of two same-sign factors; monotonicity guarantees it is nonnegative.",
+    "Expand this double integral: each term reduces to an integral in the target inequality, and rearranging gives the claimed statement."
+  ],
+  "A6": [
+    "Expand 2 to the n-th power with the binomial theorem and pick one term as its lower bound.",
+    "The chosen term should be quadratic in n so the fraction's upper bound tends to zero with n; finish with the squeeze theorem."
+  ],
+  "C8": [
+    "The key to this step is the mean value theorem, which writes the difference of function values at two points exactly as some derivative times the gap.",
+    "Take absolute values and finish with the derivative bound M."
+  ],
+  "E4": [
+    "The partial sums increase, so only an upper bound is missing; the key is the monotone convergence theorem.",
+    "The bounding trick is telescoping: replace each term with a difference of two adjacent fractions so the middle cancels in the sum."
+  ],
+  "ADV1": [
+    "To apply the Cauchy mean value theorem to f and g, first confirm that g(x) itself is nonzero.",
+    "Before dividing the identity f(x)g'(c)=g(x)f'(c) by g(x)g'(c), remember to rule out g'(c)=0 via the mean value theorem or Fermat's theorem.",
+    "The point is that c depends on x, but a<c<x, so as x approaches a, c is squeezed toward a as well."
+  ]
+}

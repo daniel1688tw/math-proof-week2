@@ -1,0 +1,101 @@
+﻿comparison_condition,review_id,problem_id,topic,difficulty,scenario,position_consistent,canonical_winner,outcome_for_full
+Base-Instruct + 4-Shot,C1:wrong_attempt,C1,Continuity,easy,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,C2:wrong_attempt,C2,Continuity,medium,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,C3:high_logic,C3,Continuity,hard,high_logic,False,,excluded
+Base-Instruct + 4-Shot,C3:wrong_attempt,C3,Continuity,hard,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,D1:wrong_attempt,D1,Differentiation,easy,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,D2:wrong_attempt,D2,Differentiation,medium,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,D3:high_logic,D3,Differentiation,hard,high_logic,False,,excluded
+Base-Instruct + 4-Shot,D3:wrong_attempt,D3,Differentiation,hard,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,I1:wrong_attempt,I1,Integration,easy,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,I2:wrong_attempt,I2,Integration,medium,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,I3:high_logic,I3,Integration,hard,high_logic,False,,excluded
+Base-Instruct + 4-Shot,I3:wrong_attempt,I3,Integration,hard,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,L1:wrong_attempt,L1,Limits,easy,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,L2:wrong_attempt,L2,Limits,medium,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,L3:high_logic,L3,Limits,hard,high_logic,False,,excluded
+Base-Instruct + 4-Shot,L3:wrong_attempt,L3,Limits,hard,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,S1:wrong_attempt,S1,Sequences and Series,easy,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,S2:wrong_attempt,S2,Sequences and Series,medium,wrong_attempt,False,,excluded
+Base-Instruct + 4-Shot,S3:high_logic,S3,Sequences and Series,hard,high_logic,False,,excluded
+Base-Instruct + 4-Shot,S3:wrong_attempt,S3,Sequences and Series,hard,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,C1:wrong_attempt,C1,Continuity,easy,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,C2:wrong_attempt,C2,Continuity,medium,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,C3:high_logic,C3,Continuity,hard,high_logic,False,,excluded
+Base-Instruct + Prompt,C3:wrong_attempt,C3,Continuity,hard,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,D1:wrong_attempt,D1,Differentiation,easy,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,D2:wrong_attempt,D2,Differentiation,medium,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,D3:high_logic,D3,Differentiation,hard,high_logic,False,,excluded
+Base-Instruct + Prompt,D3:wrong_attempt,D3,Differentiation,hard,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,I1:wrong_attempt,I1,Integration,easy,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,I2:wrong_attempt,I2,Integration,medium,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,I3:high_logic,I3,Integration,hard,high_logic,False,,excluded
+Base-Instruct + Prompt,I3:wrong_attempt,I3,Integration,hard,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,L1:wrong_attempt,L1,Limits,easy,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,L2:wrong_attempt,L2,Limits,medium,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,L3:high_logic,L3,Limits,hard,high_logic,False,,excluded
+Base-Instruct + Prompt,L3:wrong_attempt,L3,Limits,hard,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,S1:wrong_attempt,S1,Sequences and Series,easy,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,S2:wrong_attempt,S2,Sequences and Series,medium,wrong_attempt,False,,excluded
+Base-Instruct + Prompt,S3:high_logic,S3,Sequences and Series,hard,high_logic,False,,excluded
+Base-Instruct + Prompt,S3:wrong_attempt,S3,Sequences and Series,hard,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,C1:wrong_attempt,C1,Continuity,easy,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,C2:wrong_attempt,C2,Continuity,medium,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,C3:high_logic,C3,Continuity,hard,high_logic,True,Full-Project,win
+Base-Thinking + Prompt,C3:wrong_attempt,C3,Continuity,hard,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,D1:wrong_attempt,D1,Differentiation,easy,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,D2:wrong_attempt,D2,Differentiation,medium,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,D3:high_logic,D3,Differentiation,hard,high_logic,False,,excluded
+Base-Thinking + Prompt,D3:wrong_attempt,D3,Differentiation,hard,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,I1:wrong_attempt,I1,Integration,easy,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,I2:wrong_attempt,I2,Integration,medium,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,I3:high_logic,I3,Integration,hard,high_logic,False,,excluded
+Base-Thinking + Prompt,I3:wrong_attempt,I3,Integration,hard,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,L1:wrong_attempt,L1,Limits,easy,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,L2:wrong_attempt,L2,Limits,medium,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,L3:high_logic,L3,Limits,hard,high_logic,False,,excluded
+Base-Thinking + Prompt,L3:wrong_attempt,L3,Limits,hard,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,S1:wrong_attempt,S1,Sequences and Series,easy,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,S2:wrong_attempt,S2,Sequences and Series,medium,wrong_attempt,False,,excluded
+Base-Thinking + Prompt,S3:high_logic,S3,Sequences and Series,hard,high_logic,False,,excluded
+Base-Thinking + Prompt,S3:wrong_attempt,S3,Sequences and Series,hard,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,C1:wrong_attempt,C1,Continuity,easy,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,C2:wrong_attempt,C2,Continuity,medium,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,C3:high_logic,C3,Continuity,hard,high_logic,False,,excluded
+LoRA + Instruct-Review,C3:wrong_attempt,C3,Continuity,hard,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,D1:wrong_attempt,D1,Differentiation,easy,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,D2:wrong_attempt,D2,Differentiation,medium,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,D3:high_logic,D3,Differentiation,hard,high_logic,False,,excluded
+LoRA + Instruct-Review,D3:wrong_attempt,D3,Differentiation,hard,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,I1:wrong_attempt,I1,Integration,easy,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,I2:wrong_attempt,I2,Integration,medium,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,I3:high_logic,I3,Integration,hard,high_logic,False,,excluded
+LoRA + Instruct-Review,I3:wrong_attempt,I3,Integration,hard,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,L1:wrong_attempt,L1,Limits,easy,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,L2:wrong_attempt,L2,Limits,medium,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,L3:high_logic,L3,Limits,hard,high_logic,False,,excluded
+LoRA + Instruct-Review,L3:wrong_attempt,L3,Limits,hard,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,S1:wrong_attempt,S1,Sequences and Series,easy,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,S2:wrong_attempt,S2,Sequences and Series,medium,wrong_attempt,False,,excluded
+LoRA + Instruct-Review,S3:high_logic,S3,Sequences and Series,hard,high_logic,False,,excluded
+LoRA + Instruct-Review,S3:wrong_attempt,S3,Sequences and Series,hard,wrong_attempt,False,,excluded
+LoRA-only,C1:wrong_attempt,C1,Continuity,easy,wrong_attempt,False,,excluded
+LoRA-only,C2:wrong_attempt,C2,Continuity,medium,wrong_attempt,False,,excluded
+LoRA-only,C3:high_logic,C3,Continuity,hard,high_logic,False,,excluded
+LoRA-only,C3:wrong_attempt,C3,Continuity,hard,wrong_attempt,False,,excluded
+LoRA-only,D1:wrong_attempt,D1,Differentiation,easy,wrong_attempt,False,,excluded
+LoRA-only,D2:wrong_attempt,D2,Differentiation,medium,wrong_attempt,False,,excluded
+LoRA-only,D3:high_logic,D3,Differentiation,hard,high_logic,False,,excluded
+LoRA-only,D3:wrong_attempt,D3,Differentiation,hard,wrong_attempt,False,,excluded
+LoRA-only,I1:wrong_attempt,I1,Integration,easy,wrong_attempt,False,,excluded
+LoRA-only,I2:wrong_attempt,I2,Integration,medium,wrong_attempt,False,,excluded
+LoRA-only,I3:high_logic,I3,Integration,hard,high_logic,False,,excluded
+LoRA-only,I3:wrong_attempt,I3,Integration,hard,wrong_attempt,False,,excluded
+LoRA-only,L1:wrong_attempt,L1,Limits,easy,wrong_attempt,False,,excluded
+LoRA-only,L2:wrong_attempt,L2,Limits,medium,wrong_attempt,False,,excluded
+LoRA-only,L3:high_logic,L3,Limits,hard,high_logic,False,,excluded
+LoRA-only,L3:wrong_attempt,L3,Limits,hard,wrong_attempt,False,,excluded
+LoRA-only,S1:wrong_attempt,S1,Sequences and Series,easy,wrong_attempt,False,,excluded
+LoRA-only,S2:wrong_attempt,S2,Sequences and Series,medium,wrong_attempt,False,,excluded
+LoRA-only,S3:high_logic,S3,Sequences and Series,hard,high_logic,False,,excluded
+LoRA-only,S3:wrong_attempt,S3,Sequences and Series,hard,wrong_attempt,False,,excluded

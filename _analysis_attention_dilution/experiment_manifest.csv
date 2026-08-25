@@ -1,0 +1,76 @@
+﻿problem_id,topic,difficulty,target_history_tokens,interference,actual_history_tokens,history_rounds,front_prompt_input_tokens
+C1,Continuity,easy,0,neutral,0,0,2
+C1,Continuity,easy,2048,neutral,2126,24,2
+C1,Continuity,easy,2048,conflict,2116,23,2
+C1,Continuity,easy,8192,neutral,8241,93,2
+C1,Continuity,easy,8192,conflict,8193,89,2
+C2,Continuity,medium,0,neutral,0,0,2
+C2,Continuity,medium,2048,neutral,2126,24,2
+C2,Continuity,medium,2048,conflict,2116,23,2
+C2,Continuity,medium,8192,neutral,8241,93,2
+C2,Continuity,medium,8192,conflict,8193,89,2
+C3,Continuity,hard,0,neutral,0,0,2
+C3,Continuity,hard,2048,neutral,2126,24,2
+C3,Continuity,hard,2048,conflict,2116,23,2
+C3,Continuity,hard,8192,neutral,8241,93,2
+C3,Continuity,hard,8192,conflict,8193,89,2
+D1,Differentiation,easy,0,neutral,0,0,2
+D1,Differentiation,easy,2048,neutral,2126,24,2
+D1,Differentiation,easy,2048,conflict,2116,23,2
+D1,Differentiation,easy,8192,neutral,8241,93,2
+D1,Differentiation,easy,8192,conflict,8193,89,2
+D2,Differentiation,medium,0,neutral,0,0,2
+D2,Differentiation,medium,2048,neutral,2126,24,2
+D2,Differentiation,medium,2048,conflict,2116,23,2
+D2,Differentiation,medium,8192,neutral,8241,93,2
+D2,Differentiation,medium,8192,conflict,8193,89,2
+D3,Differentiation,hard,0,neutral,0,0,2
+D3,Differentiation,hard,2048,neutral,2126,24,2
+D3,Differentiation,hard,2048,conflict,2116,23,2
+D3,Differentiation,hard,8192,neutral,8241,93,2
+D3,Differentiation,hard,8192,conflict,8193,89,2
+I1,Integration,easy,0,neutral,0,0,2
+I1,Integration,easy,2048,neutral,2126,24,2
+I1,Integration,easy,2048,conflict,2116,23,2
+I1,Integration,easy,8192,neutral,8241,93,2
+I1,Integration,easy,8192,conflict,8193,89,2
+I2,Integration,medium,0,neutral,0,0,2
+I2,Integration,medium,2048,neutral,2126,24,2
+I2,Integration,medium,2048,conflict,2116,23,2
+I2,Integration,medium,8192,neutral,8241,93,2
+I2,Integration,medium,8192,conflict,8193,89,2
+I3,Integration,hard,0,neutral,0,0,2
+I3,Integration,hard,2048,neutral,2126,24,2
+I3,Integration,hard,2048,conflict,2116,23,2
+I3,Integration,hard,8192,neutral,8241,93,2
+I3,Integration,hard,8192,conflict,8193,89,2
+S1,Sequences and Series,easy,0,neutral,0,0,2
+S1,Sequences and Series,easy,2048,neutral,2126,24,2
+S1,Sequences and Series,easy,2048,conflict,2116,23,2
+S1,Sequences and Series,easy,8192,neutral,8241,93,2
+S1,Sequences and Series,easy,8192,conflict,8193,89,2
+S2,Sequences and Series,medium,0,neutral,0,0,2
+S2,Sequences and Series,medium,2048,neutral,2126,24,2
+S2,Sequences and Series,medium,2048,conflict,2116,23,2
+S2,Sequences and Series,medium,8192,neutral,8241,93,2
+S2,Sequences and Series,medium,8192,conflict,8193,89,2
+S3,Sequences and Series,hard,0,neutral,0,0,2
+S3,Sequences and Series,hard,2048,neutral,2126,24,2
+S3,Sequences and Series,hard,2048,conflict,2116,23,2
+S3,Sequences and Series,hard,8192,neutral,8241,93,2
+S3,Sequences and Series,hard,8192,conflict,8193,89,2
+L1,Limits,easy,0,neutral,0,0,2
+L1,Limits,easy,2048,neutral,2126,24,2
+L1,Limits,easy,2048,conflict,2116,23,2
+L1,Limits,easy,8192,neutral,8241,93,2
+L1,Limits,easy,8192,conflict,8193,89,2
+L2,Limits,medium,0,neutral,0,0,2
+L2,Limits,medium,2048,neutral,2126,24,2
+L2,Limits,medium,2048,conflict,2116,23,2
+L2,Limits,medium,8192,neutral,8241,93,2
+L2,Limits,medium,8192,conflict,8193,89,2
+L3,Limits,hard,0,neutral,0,0,2
+L3,Limits,hard,2048,neutral,2126,24,2
+L3,Limits,hard,2048,conflict,2116,23,2
+L3,Limits,hard,8192,neutral,8241,93,2
+L3,Limits,hard,8192,conflict,8193,89,2

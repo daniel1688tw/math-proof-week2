@@ -1,0 +1,11 @@
+{
+  "N1": [
+    "The student incorrectly assumes that L - 1 > 0 without justification, as L > 0 does not imply L > 1."
+  ],
+  "N2": [
+    "學生在應用中間值定理前，未證明 $A$ 介於 $f(a)$ 和 $f(b)$ 之間"
+  ],
+  "N3": [
+    "The student incorrectly states that $g(0) = g(1)$ when in fact $g(1) = -g(0)$ because $f(0) = f(2)$ implies $g(1) = f(1) - f(2) = f(1) - f(0) = -(f(0) - f(1)) = -g(0)$."
+  ]
+}

@@ -1,0 +1,6 @@
+﻿condition,style_fidelity,task_accuracy,n_ratings
+Base-Instruct + 4-Shot,4.0,3.0,1
+Base-Instruct + Prompt,4.5,4.5,2
+Base-Thinking + Prompt,1.0,1.0,2
+Full-Project,4.833333333333333,4.666666666666667,6
+LoRA-only,5.0,5.0,1

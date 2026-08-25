@@ -1,0 +1,17 @@
+﻿condition,interference,metric,slope_per_1k_input_tokens
+Base-Instruct + Front Prompt,conflict,contract_success,-0.01053064009277006
+Base-Instruct + Front Prompt,conflict,strict_tutor_success,-0.01053064009277006
+Base-Instruct + Front Prompt,neutral,contract_success,-0.02035516497668994
+Base-Instruct + Front Prompt,neutral,strict_tutor_success,-0.02035516497668994
+Base-Instruct + Prompt Refresh,conflict,contract_success,0.020950967720964494
+Base-Instruct + Prompt Refresh,conflict,strict_tutor_success,0.031466796320494934
+Base-Instruct + Prompt Refresh,neutral,contract_success,0.00600328826688893
+Base-Instruct + Prompt Refresh,neutral,strict_tutor_success,0.00600328826688893
+Base-Thinking + Front Prompt,conflict,contract_success,-0.03165912466554662
+Base-Thinking + Front Prompt,conflict,strict_tutor_success,-0.021130474176346045
+Base-Thinking + Front Prompt,neutral,contract_success,0.0035873023306558036
+Base-Thinking + Front Prompt,neutral,strict_tutor_success,0.004609911889919828
+LoRA + Front Prompt,conflict,contract_success,-0.010550757195528353
+LoRA + Front Prompt,conflict,strict_tutor_success,-0.021023698784782885
+LoRA + Front Prompt,neutral,contract_success,-0.008356590604445244
+LoRA + Front Prompt,neutral,strict_tutor_success,0.013381614623900093

@@ -1,0 +1,386 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "先想：要證 $e^x>1+x$，等價於證什麼樣的量為正？"
+      ],
+      [
+        "學生",
+        "呃……就是 $e^x - 1 - x > 0$？感覺就是移項而已，但我不知道這樣有什麼用。"
+      ],
+      [
+        "助教",
+        "正是。這個差異能用哪個定理把它「變成」某個可分析的量？"
+      ],
+      [
+        "學生",
+        "均值定理？但我不太確定怎麼用……是說把 $e^x - 1 - x$ 對某個區間用均值定理展開嗎？還是要對 $e^x$ 本身用？"
+      ],
+      [
+        "助教",
+        "很好，你自己找到了路線。那我們就照著你的想法繼續，你會怎麼寫出均值定理給出的等式？"
+      ],
+      [
+        "學生",
+        "嗯……均值定理是說，如果 $f$ 在 $[a,b]$ 上連續、$(a,b)$ 上可微，那存在 $c \\in (a,b)$ 使得 $f(b)-f(a) = f'(c)(b-a)$……所以如果我對 $f(t) = e^t$ 在 $[0,x]$ 上用，就是 $e^x - e^0 = e^c \\cdot (x-0)$，也就是 $e^x - 1 = e^c \\cdot x$？但我還不太確定這樣怎麼把 $1+x$ 拉進來。"
+      ],
+      [
+        "助教",
+        "方向完全正確。現在你有 $e^x - 1 = e^c x$，而你想證 $e^x - 1 - x > 0$，那這個等式能幫你得到什麼？"
+      ],
+      [
+        "學生",
+        "喔等等……$e^x - 1 = e^c x$，所以 $e^x - 1 - x = e^c x - x = (e^c - 1)x$？那只要知道 $e^c - 1 > 0$ 就好了……但 $c$ 在哪裡我還不確定，$c$ 是 $0$ 跟 $x$ 之間的數對吧？"
+      ],
+      [
+        "助教",
+        "完全正確。因為 $c>0$ 所以 $e^c>1$，於是 $(e^c-1)x>0$，最後一步你自己補上了。這條路線你完全自己走通了，非常棒。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "啊，等等……助教你說「下一步該從哪裡下手」，但我覺得……證明不是已經完了嗎？我們已經證了 $e^x - 1 - x = (e^c-1)x > 0$，所以 $e^x > 1+x$ 啊。我是不是漏了什麼？"
+      ],
+      [
+        "助教",
+        "你問得非常好。再看一眼：你用均值定理時，$f(t)=e^t$ 在 $[0,x]$ 上連續、可微，這兩個前提你都確認過嗎？"
+      ],
+      [
+        "學生",
+        "喔……你是說要確認 $e^t$ 確實在 $[0,x]$ 上連續而且可微？這個……$e^t$ 不就是到處都連續可微的嗎？不管在哪個區間都成立吧，所以這兩個前提自動就滿足了，不需要特別說明嗎？"
+      ],
+      [
+        "助教",
+        "對，你終於意識到：均值定理的應用必須先確認前提成立，而 $e^t$ 的連續與可微性正是它們在任意區間都成立的。所以「前提成立」這件事，你現在知道要自己寫出來了。 依你看，接下來哪個條件最值得先用？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生已完整走通證明並正確指出「證明完了」，助教卻繼續追問前提確認，最後一輪更多此一舉地追問「哪個條件最值得先用」——對話早應在學生宣告完成時收尾或轉為請學生整理完整寫法，而非硬拉出已無必要的前提檢查環節。"
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "先建立一個方便分析的函數。若把要比較的兩邊相減，會得到什麼樣的量？"
+      ],
+      [
+        "學生",
+        "令 $f(x) = \\cos x - 1 + \\dfrac{x^2}{2}$，那只要證 $f(x) \\ge 0$ 就好了。這樣問題就轉成分析這個函數的最小值了吧？"
+      ],
+      [
+        "助教",
+        "很好，方向正確。既然目標是證非負，你會怎麼研究這個函數的單調性？"
+      ],
+      [
+        "學生",
+        "那就對 $f$ 微分吧，$f'(x) = -\\sin x + x$。要研究單調性就要看 $f'$ 的正負，但 $f'$ 本身也不是一眼看出來的……"
+      ],
+      [
+        "助教",
+        "正是如此。既然 $f'$ 的符號不好判斷，你會不會考慮再微分一次，看看 $f''$ 是什麼樣的？"
+      ],
+      [
+        "學生",
+        "$f''(x) = -\\cos x + 1$，這個……等等，$1 - \\cos x \\ge 0$ 對所有實數都成立，所以 $f'' \\ge 0$！這代表 $f'$ 是遞增的。"
+      ],
+      [
+        "助教",
+        "非常好。既然 $f''\\ge0$，$f'$ 在整個實數軸上遞增，而 $f'(0)=0$，你能由此推出 $f$ 的單調性與最小值在哪裡嗎？"
+      ],
+      [
+        "學生",
+        "因為 $f'$ 遞增且 $f'(0)=0$，所以 $x>0$ 時 $f'(x)>0$，$x<0$ 時 $f'(x)<0$，也就是說 $f$ 在 $x<0$ 遞減、$x>0$ 遞增，$x=0$ 是全局最小值。而 $f(0)=\\cos 0 - 1 + 0 = 0$，所以 $f(x)\\ge 0$ 恆成立，證完了！"
+      ],
+      [
+        "助教",
+        "完全正確。核心是「二階導正 ⇒ 一階導遞增 ⇒ 以零點為界分左右」，你把每一步都自己走通了。"
+      ],
+      [
+        "學生",
+        "哦，原來這個證明的靈魂是「一直往下微分直到能看出正負」這個技巧——以前我都直接套公式，沒想過可以這樣分層分析。不過我有個問題：從「$f'$ 遞增且 $f'(0)=0$」推「$x>0$ 時 $f'(x)>0$」這步，嚴格來說是用到了遞增函數的定義對吧，這樣才算完整？"
+      ],
+      [
+        "助教",
+        "完全正確，你自己發現了嚴謹性的門檻。這就是分析證法的精髓：每一條推理都要回到定義，不能跳過。你已經掌握得很好了。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "我覺得這題已經完整了吧？不太確定助教問「下一步」是指什麼——是要我用更精簡的語言把整個論證重新整理一遍，還是有哪個細節你認為我還沒交代清楚？"
+      ],
+      [
+        "助教",
+        "你問得非常到位。既然你已經自己走通了，我建議你把完整的證明寫出來，我會幫你審閱。寫完後你可以問：「審閱者認為我的證明還缺哪一環？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "線性獨立要證「唯一線性組合為零就是全零係數」。從 $c_1v_1+c_2v_2=0$ 出發，你能想到什麼操作來簡化這個等式嗎？"
+      ],
+      [
+        "學生",
+        "嗯…我覺得 $v_1$ 和 $v_2$ 都是非零向量，所以它們應該就自然線性獨立了吧？非零向量不就代表它們不是零向量，所以線性無關嗎？"
+      ],
+      [
+        "助教",
+        "「非零」向量之間可以線性相關，比如 $v_2=2v_1$。要排除這種情況，你還需要額外的什麼資訊？"
+      ],
+      [
+        "學生",
+        "喔，對耶，$2v_1$ 也是非零的但跟 $v_1$ 線性相關。那我猜應該要用「它們是不同特徵值的特徵向量」這個條件？但我不確定怎麼用，因為 $\\lambda_1\\ne\\lambda_2$ 跟向量之間有什麼關係？"
+      ],
+      [
+        "助教",
+        "正是。既然 $v_1,v_2$ 是特徵向量，你可以對 $c_1v_1+c_2v_2=0$ 做什麼，讓它變成只含一個未知數的形式？"
+      ],
+      [
+        "學生",
+        "嗯…對 $c_1v_1+c_2v_2=0$ 兩邊乘上 $A$？這樣的話 $Av_1=\\lambda_1v_1$，$Av_2=\\lambda_2v_2$，就會得到 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$。但我有兩個式子、還是兩個未知數，不知道怎麼消掉一個…"
+      ],
+      [
+        "助教",
+        "很好，你已經看到關鍵了。現在你有兩個等式：$c_1v_1+c_2v_2=0$ 和 $c_1\\lambda_1v_1+c_2\\lambda_2v_2=0$。如果把後者減去 $\\lambda_1$ 倍的第一個等式，會得到什麼？"
+      ],
+      [
+        "學生",
+        "喔讓我算一下…$(c_1\\lambda_1v_1+c_2\\lambda_2v_2)-\\lambda_1(c_1v_1+c_2v_2)=0$，展開就是 $c_1\\lambda_1v_1-c_1\\lambda_1v_1+c_2\\lambda_2v_2-c_2\\lambda_1v_2=0$，前兩項消掉，剩下 $c_2(\\lambda_2-\\lambda_1)v_2=0$。因為 $\\lambda_1\\ne\\lambda_2$ 所以 $\\lambda_2-\\lambda_1\\ne 0$，$v_2$ 又是特徵向量所以非零，所以 $c_2=0$！"
+      ],
+      [
+        "助教",
+        "完全正確。同理可得 $c_1=0$，兩者都為零，線性獨立成立。你剛才也注意到：「非零」向量本身不保證線性獨立，必須靠相異特徵值這個條件才能保證。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "欸，等一下，助教說「同理可得 $c_1=0$」，但這個「同理」我不太確定——是對原來的等式乘上 $A$ 之後減去 $\\lambda_2$ 倍的第一式嗎？這樣應該會剩下 $c_1(\\lambda_1-\\lambda_2)v_1=0$，然後一樣因為 $\\lambda_1\\ne\\lambda_2$ 和 $v_1$ 非零得到 $c_1=0$，對嗎？如果是這樣的話，我大概懂整個流程了。"
+      ],
+      [
+        "助教",
+        "完全正確，你自己把「同理」補上了。你現在清楚：相異特徵值的特徵向量線性獨立，靠的是「左乘 $A$ 後相減消元」這個構造，而不是「非零向量即獨立」這個容易被誤用的直覺。"
+      ],
+      [
+        "學生",
+        "嗯，對，我自己補上去之後感覺清楚多了。整個邏輯是：先設線性組合為零，乘上 $A$ 得到第二條等式，兩式相減消掉其中一項，再用「特徵值相異且特徵向量非零」逼出係數都是零——這樣就完成證明了。"
+      ],
+      [
+        "助教",
+        "完全正確，你自己把證明的每一步都走通了。你現在知道：線性獨立的判準是「唯一零係數」，而「非零」向量本身不保證這個，必須靠相異特徵值這個條件。 依你看，接下來哪個條件最值得先用？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 3,
+      "issue": "學生最後兩輪已自行完整說出證明邏輯，助教仍繼續追問「接下來哪個條件最值得先用」，屬於收尾失當——證明已完成應確認收尾而非開新問題。"
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "history": [
+      [
+        "助教",
+        "The MVT applies to a function continuous on $[a,b]$ and differentiable on $(a,b)$. What function and interval should you choose here?"
+      ],
+      [
+        "學生",
+        "Hmm, I guess... $f(x) = e^x$? But I'm not sure what interval to pick. Like, do I use $[0, x]$ or something else?"
+      ],
+      [
+        "助教",
+        "Exactly — the interval is determined by the quantity you're comparing. After applying the MVT, what equation do you get between $e^x$ and $e^c$?"
+      ],
+      [
+        "學生",
+        "Oh wait, so MVT gives me $f(x) - f(0) = f'(c)(x - 0)$ for some $c$ in $(0, x)$... so that's $e^x - 1 = e^c \\cdot x$? Is that right?"
+      ],
+      [
+        "助教",
+        "Completely correct — the interval $[0,x]$ and the resulting equation are both right. Now, since $c>0$, what can you say about $e^c$ relative to $1$, and hence about $e^x$?"
+      ],
+      [
+        "學生",
+        "Oh! Since $c > 0$, we have $e^c > e^0 = 1$, so... $e^c \\cdot x > x$, which means $e^x - 1 > x$, so $e^x > 1 + x$? Wait, that actually works out really cleanly."
+      ],
+      [
+        "助教",
+        "Completely correct — you found the whole thing yourself. The key was choosing $[0,x]$ and then using $c>0$ to push $e^c>1$. You've got this. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Honestly I think we're done? Like, we just proved it — we picked $f(x) = e^x$ on $[0, x]$, applied MVT to get $e^x - 1 = e^c \\cdot x$, then used $c > 0$ to conclude $e^c > 1$ and wrapped it up. I don't think there's a next step, unless you want me to write it all out more formally?"
+      ],
+      [
+        "助教",
+        "That's exactly the right self-check — you've walked through every step yourself. So the final conclusion is $e^x > 1 + x$ for all $x>0$?"
+      ],
+      [
+        "學生",
+        "Yeah, exactly — $e^x > 1 + x$ for all $x > 0$. I think I actually get why this works now, not just the steps but like, the MVT is basically saying the average rate of change equals the instantaneous rate somewhere, and since $e^x$ is always growing faster than 1, that gap opens up. Should I write up a clean formal proof?"
+      ],
+      [
+        "助教",
+        "Absolutely — go ahead and write it out. When you're done, I'll take a look."
+      ],
+      [
+        "學生",
+        "Okay here's my attempt at a formal write-up:\n\nLet $f(x) = e^x$, which is continuous on $[0, x]$ and differentiable on $(0, x)$. By the Mean Value Theorem, there exists $c \\in (0, x)$ such that $f(x) - f(0) = f'(c)(x - 0)$, i.e., $e^x - 1 = e^c \\cdot x$. Since $c > 0$, we have $e^c > e^0 = 1$, so $e^c \\cdot x > x$, hence $e^x - 1 > x$, which gives $e^x > 1 + x$. $\\square$\n\nDoes that look right to you?"
+      ],
+      [
+        "助教",
+        "Completely correct — the logic is flawless. You even included the hypothesis check (\"continuous on $[0,x]$\", \"differentiable on $(0,x)$\") and the final comparison. This is a very clean proof."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "history": [
+      [
+        "助教",
+        "A common trick is to build a function whose value at zero is zero and whose derivative vanishes there — then prove it's nonnegative. Can you define such a function?"
+      ],
+      [
+        "學生",
+        "Oh, so let $f(x) = \\cos x - 1 + \\frac{x^2}{2}$, then $f(0) = 0$ and $f'(x) = -\\sin x + x$. Now I just need to show $f(x) \\geq 0$ everywhere?"
+      ],
+      [
+        "助教",
+        "Exactly. To establish this inequality, what kind of information do you want to extract from the second derivative?"
+      ],
+      [
+        "學生",
+        "$f''(x) = -\\cos x + 1$, which is always $\\geq 0$ since $\\cos x \\leq 1$. So $f'$ is nondecreasing — but I need to connect that back to $f' \\geq 0$ somehow... oh wait, $f'(0) = 0$ and $f'$ is nondecreasing, so $f'(x) \\geq 0$ for $x \\geq 0$ and $f'(x) \\leq 0$ for $x \\leq 0$?"
+      ],
+      [
+        "助教",
+        "Right — and from that sign of $f'$, how does the monotonicity of $f$ behave on each side of zero?"
+      ],
+      [
+        "學生",
+        "So $f$ is decreasing on $(-\\infty, 0]$ and increasing on $[0, \\infty)$, which means $x = 0$ is a global minimum. Since $f(0) = 0$, that gives $f(x) \\geq 0$ everywhere — got it!"
+      ],
+      [
+        "助教",
+        "Completely correct. The core: build the difference function, use the nonnegative second derivative to establish the sign of $f'$ via $f'(0)=0$, then deduce the minimum at zero. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "I think we're basically done? The proof is complete — we've shown $f(x) \\geq 0$ for all $x$, which is exactly what we needed. Unless you want me to write it up more formally?"
+      ],
+      [
+        "助教",
+        "Yes, please write it out in full. After you've written it, I'll review it line by line — and only after that will I say \"complete\"."
+      ],
+      [
+        "學生",
+        "Alright, here's the full proof: Let $f(x) = \\cos x - 1 + \\frac{x^2}{2}$. Then $f(0) = 0$, $f'(x) = -\\sin x + x$, and $f''(x) = 1 - \\cos x \\geq 0$ for all $x$, so $f'$ is nondecreasing. Since $f'(0) = 0$, we get $f'(x) \\leq 0$ for $x \\leq 0$ and $f'(x) \\geq 0$ for $x \\geq 0$, meaning $f$ is decreasing then increasing with a global minimum at $x = 0$. Since $f(0) = 0$, we conclude $f(x) \\geq 0$ for all $x \\in \\mathbb{R}$, i.e., $\\cos x \\geq 1 - \\frac{x^2}{2}$."
+      ],
+      [
+        "助教",
+        "The structure is flawless. One small thing: in the step \"$f'$ is nondecreasing\", which theorem did you use — and what hypothesis must hold for it to apply?"
+      ],
+      [
+        "學生",
+        "Oh right, I used the fact that if $f'' \\geq 0$ on an interval then $f'$ is nondecreasing there — that's just the monotone function theorem, or really just the mean value theorem applied to $f'$. The hypothesis is that $f''$ exists and is nonnegative on the interval, which holds here since $\\cos x$ is everywhere differentiable."
+      ],
+      [
+        "助教",
+        "Correct — you even named the theorem. The complete proof is now watertight. Well done."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "history": [
+      [
+        "助教",
+        "Start from the definition of linear dependence: if $c_1v_1+c_2v_2=0$, what do you want to prove?"
+      ],
+      [
+        "學生",
+        "I want to prove that $c_1 = c_2 = 0$ is the only solution, right? But wait — aren't $v_1$ and $v_2$ already independent just because they're nonzero eigenvectors? Like, nonzero vectors can't be dependent on each other..."
+      ],
+      [
+        "助教",
+        "That's a common misconception. Two nonzero vectors can still be linearly dependent — like $v_2=2v_1$. What extra condition must hold so they can't be related?"
+      ],
+      [
+        "學生",
+        "Oh right, I see — so just being nonzero isn't enough. I guess they need to have different directions? But I'm not sure how the eigenvalue condition forces that..."
+      ],
+      [
+        "助教",
+        "Exactly. Here's a trick: left-multiply the equation $c_1v_1+c_2v_2=0$ by $A$. Using $Av_i=\\lambda_iv_i$, what kind of combination do you get?"
+      ],
+      [
+        "學生",
+        "Oh okay, so if I multiply both sides by $A$, I get $c_1 Av_1 + c_2 Av_2 = 0$, which becomes $c_1\\lambda_1 v_1 + c_2\\lambda_2 v_2 = 0$. So now I have two equations — the original and this new one. I think I'm supposed to subtract them somehow?"
+      ],
+      [
+        "助教",
+        "Good — that's exactly the right direction. After forming the two equations, which operation will you perform to eliminate one variable?"
+      ],
+      [
+        "學生",
+        "If I subtract the original equation from the new one, I get $c_2(\\lambda_2 - \\lambda_1)v_2 = 0$. Since $v_2$ is nonzero and $\\lambda_1 \\neq \\lambda_2$, that means $c_2 = 0$... and then plugging back gives $c_1 = 0$ too. Oh wow, that actually works — the two distinct eigenvalues are what force independence!"
+      ],
+      [
+        "助教",
+        "Completely correct. The key is: \"nonzero vectors\" is not enough — you need the distinct eigenvalues to force the linear combination to vanish only when $c_1=c_2=0$. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "I think I've got the full proof now — start with $c_1v_1+c_2v_2=0$, multiply by $A$ to get the second equation, subtract to kill $c_1v_1$, then use $v_2\\neq0$ and $\\lambda_1\\neq\\lambda_2$ to conclude $c_2=0$, and symmetrically $c_1=0$. Honestly the \"multiply by $A$\" trick felt like magic at first, but it makes sense — you're basically using the eigenvalue equation to swap vectors for scalars so you can do algebra on the coefficients."
+      ],
+      [
+        "助教",
+        "That's exactly the right intuition. You've mastered the core technique: \"multiply by $A$ to convert the vector equation into a scalar equation involving the eigenvalues\". Well done."
+      ],
+      [
+        "學生",
+        "Thanks! Though I realize I said \"symmetrically $c_1 = 0$\" — is that actually symmetric? I just plugged $c_2 = 0$ back into the original equation $c_1 v_1 = 0$ and used $v_1 \\neq 0$, so it's more direct than symmetric, right?"
+      ],
+      [
+        "助教",
+        "Correct — you're very careful. \"Symmetric\" is a bit of a stretch here; it's really just the same argument applied to the other equation. Your own analysis is sharper than the word \"symmetric\" — that's a mature level of rigor."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 5,
+      "issue": ""
+    }
+  }
+]

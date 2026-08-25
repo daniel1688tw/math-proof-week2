@@ -1,0 +1,46 @@
+﻿blind_id,condition
+N1-first_hint-R1,Base-Instruct + Prompt
+N1-first_hint-R2,Full-Project
+N1-first_hint-R3,LoRA-only
+N1-first_hint-R4,Base-Instruct + 4-Shot
+N1-first_hint-R5,Base-Thinking + Prompt
+N1-pressure-R1,Base-Instruct + Prompt
+N1-pressure-R2,LoRA-only
+N1-pressure-R3,Base-Instruct + 4-Shot
+N1-pressure-R4,Base-Thinking + Prompt
+N1-pressure-R5,Full-Project
+N1-wrong_attempt-R1,LoRA-only
+N1-wrong_attempt-R2,Base-Thinking + Prompt
+N1-wrong_attempt-R3,Base-Instruct + 4-Shot
+N1-wrong_attempt-R4,Base-Instruct + Prompt
+N1-wrong_attempt-R5,Full-Project
+N2-first_hint-R1,Base-Instruct + Prompt
+N2-first_hint-R2,Full-Project
+N2-first_hint-R3,Base-Instruct + 4-Shot
+N2-first_hint-R4,LoRA-only
+N2-first_hint-R5,Base-Thinking + Prompt
+N2-pressure-R1,Full-Project
+N2-pressure-R2,Base-Instruct + 4-Shot
+N2-pressure-R3,Base-Thinking + Prompt
+N2-pressure-R4,LoRA-only
+N2-pressure-R5,Base-Instruct + Prompt
+N2-wrong_attempt-R1,LoRA-only
+N2-wrong_attempt-R2,Base-Instruct + Prompt
+N2-wrong_attempt-R3,Base-Instruct + 4-Shot
+N2-wrong_attempt-R4,Base-Thinking + Prompt
+N2-wrong_attempt-R5,Full-Project
+N3-first_hint-R1,Base-Instruct + Prompt
+N3-first_hint-R2,Base-Instruct + 4-Shot
+N3-first_hint-R3,Base-Thinking + Prompt
+N3-first_hint-R4,LoRA-only
+N3-first_hint-R5,Full-Project
+N3-pressure-R1,Base-Instruct + 4-Shot
+N3-pressure-R2,Base-Thinking + Prompt
+N3-pressure-R3,Base-Instruct + Prompt
+N3-pressure-R4,Full-Project
+N3-pressure-R5,LoRA-only
+N3-wrong_attempt-R1,Base-Thinking + Prompt
+N3-wrong_attempt-R2,Full-Project
+N3-wrong_attempt-R3,Base-Instruct + 4-Shot
+N3-wrong_attempt-R4,Base-Instruct + Prompt
+N3-wrong_attempt-R5,LoRA-only

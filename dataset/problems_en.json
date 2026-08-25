@@ -1,0 +1,352 @@
+[
+  {
+    "id": "A1",
+    "topic": "limits",
+    "difficulty": "medium",
+    "statement": "Prove that $\\lim_{n\\to\\infty}\\sqrt[n]{n}=1$.",
+    "reference_proof": "Let $a_n=\\sqrt[n]{n}-1\\ge 0$ (since $\\sqrt[n]{n}\\ge 1$ for $n\\ge 1$). Then $n=(1+a_n)^n$.\nBy the binomial theorem, for $n\\ge 2$,\n$$n=(1+a_n)^n\\ge \\binom{n}{2}a_n^2=\\frac{n(n-1)}{2}a_n^2.$$\nHence $a_n^2\\le \\dfrac{2}{n-1}$, i.e. $0\\le a_n\\le \\sqrt{\\dfrac{2}{n-1}}$.\nThe right-hand side tends to $0$ as $n\\to\\infty$, so by the squeeze theorem $a_n\\to 0$, and therefore $\\sqrt[n]{n}=1+a_n\\to 1$. $\\blacksquare$"
+  },
+  {
+    "id": "A2",
+    "topic": "limits",
+    "difficulty": "medium",
+    "statement": "Prove by the $\\varepsilon$-$\\delta$ definition that $\\lim_{x\\to 2}x^2=4$.",
+    "reference_proof": "To show: for every $\\varepsilon>0$ there exists $\\delta>0$ such that $0<|x-2|<\\delta \\Rightarrow |x^2-4|<\\varepsilon$.\nFirst factor: $|x^2-4|=|x-2|\\,|x+2|$.\nRestrict $|x-2|<1$ first, so $1<x<3$ and hence $|x+2|<5$.\nThus $|x^2-4|<5|x-2|$ whenever $|x-2|<1$.\nTake $\\delta=\\min\\{1,\\varepsilon/5\\}$. Then $0<|x-2|<\\delta$ implies $|x^2-4|<5\\cdot\\frac{\\varepsilon}{5}=\\varepsilon$. $\\blacksquare$"
+  },
+  {
+    "id": "A3",
+    "topic": "limits",
+    "difficulty": "medium",
+    "statement": "Suppose $\\lim_{n\\to\\infty}a_n=L$ and $\\lim_{n\\to\\infty}b_n=M$. Prove that $\\lim_{n\\to\\infty}(a_n+b_n)=L+M$.",
+    "reference_proof": "To show: for every $\\varepsilon>0$ there exists $N$ such that $n\\ge N \\Rightarrow |(a_n+b_n)-(L+M)|<\\varepsilon$.\nKey inequality (triangle inequality): $|(a_n+b_n)-(L+M)|\\le |a_n-L|+|b_n-M|$.\nSince $a_n\\to L$: there exists $N_1$ with $n\\ge N_1 \\Rightarrow |a_n-L|<\\varepsilon/2$.\nSince $b_n\\to M$: there exists $N_2$ with $n\\ge N_2 \\Rightarrow |b_n-M|<\\varepsilon/2$.\nTake $N=\\max\\{N_1,N_2\\}$; for $n\\ge N$ both hold, so the sum is $<\\varepsilon/2+\\varepsilon/2=\\varepsilon$. $\\blacksquare$"
+  },
+  {
+    "id": "A4",
+    "topic": "limits",
+    "difficulty": "basic",
+    "statement": "Prove that $\\lim_{n\\to\\infty}\\dfrac{\\sin n}{n}=0$.",
+    "reference_proof": "For all $n$, $|\\sin n|\\le 1$, so $0\\le \\left|\\dfrac{\\sin n}{n}\\right|\\le \\dfrac{1}{n}$.\nAs $n\\to\\infty$, $\\dfrac{1}{n}\\to 0$. By the squeeze theorem $\\left|\\dfrac{\\sin n}{n}\\right|\\to 0$, hence $\\dfrac{\\sin n}{n}\\to 0$. $\\blacksquare$"
+  },
+  {
+    "id": "A5",
+    "topic": "limits",
+    "difficulty": "basic",
+    "statement": "Prove by the $\\varepsilon$-$N$ definition that $\\lim_{n\\to\\infty}\\dfrac{1}{n}=0$.",
+    "reference_proof": "To show: for every $\\varepsilon>0$ there exists $N$ such that $n\\ge N \\Rightarrow \\left|\\dfrac{1}{n}-0\\right|<\\varepsilon$.\n$\\left|\\dfrac1n\\right|=\\dfrac1n<\\varepsilon \\iff n>\\dfrac1\\varepsilon$.\nBy the Archimedean property there is a positive integer $N>\\dfrac1\\varepsilon$. Then for $n\\ge N$, $\\dfrac1n\\le\\dfrac1N<\\varepsilon$. $\\blacksquare$"
+  },
+  {
+    "id": "A6",
+    "topic": "limits",
+    "difficulty": "medium",
+    "statement": "Prove that $\\lim_{n\\to\\infty}\\dfrac{n}{2^n}=0$.",
+    "reference_proof": "For $n\\ge 1$, by the binomial theorem $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$ (for $n\\ge 2$).\nHence $0\\le \\dfrac{n}{2^n}\\le \\dfrac{n}{n(n-1)/2}=\\dfrac{2}{n-1}$.\nAs $n\\to\\infty$, $\\dfrac{2}{n-1}\\to 0$, so by the squeeze theorem $\\dfrac{n}{2^n}\\to 0$. $\\blacksquare$"
+  },
+  {
+    "id": "A7",
+    "topic": "limits",
+    "difficulty": "medium",
+    "statement": "Prove that every convergent sequence is bounded.",
+    "reference_proof": "Suppose $a_n\\to L$. Take $\\varepsilon=1$: there exists $N$ such that $n\\ge N \\Rightarrow |a_n-L|<1$,\nso $|a_n|\\le |L|+1$ for $n\\ge N$.\nThe remaining terms $a_1,\\dots,a_{N-1}$ are finitely many; let $M=\\max\\{|a_1|,\\dots,|a_{N-1}|,\\,|L|+1\\}$.\nThen $|a_n|\\le M$ for all $n$, so the sequence is bounded. $\\blacksquare$"
+  },
+  {
+    "id": "A8",
+    "topic": "limits",
+    "difficulty": "basic",
+    "statement": "Suppose $\\lim_{n\\to\\infty}a_n=L$. Prove that $\\lim_{n\\to\\infty}|a_n|=|L|$.",
+    "reference_proof": "By the reverse triangle inequality, $\\big||a_n|-|L|\\big|\\le |a_n-L|$.\nGiven $\\varepsilon>0$, since $a_n\\to L$ there exists $N$ such that $n\\ge N \\Rightarrow |a_n-L|<\\varepsilon$.\nThen for $n\\ge N$, $\\big||a_n|-|L|\\big|\\le|a_n-L|<\\varepsilon$, so $|a_n|\\to|L|$.\n(Note the converse fails, e.g. $a_n=(-1)^n$.) $\\blacksquare$"
+  },
+  {
+    "id": "A9",
+    "topic": "limits",
+    "difficulty": "basic",
+    "statement": "Prove by the $\\varepsilon$-$\\delta$ definition that $\\lim_{x\\to 1}(2x+1)=3$.",
+    "reference_proof": "$|(2x+1)-3|=|2x-2|=2|x-1|$.\nGiven $\\varepsilon>0$, we need $2|x-1|<\\varepsilon$, i.e. $|x-1|<\\varepsilon/2$.\nTake $\\delta=\\varepsilon/2$. Then $0<|x-1|<\\delta \\Rightarrow |(2x+1)-3|=2|x-1|<2\\cdot\\frac{\\varepsilon}{2}=\\varepsilon$. $\\blacksquare$"
+  },
+  {
+    "id": "A10",
+    "topic": "limits",
+    "difficulty": "medium",
+    "statement": "Prove that $\\lim_{x\\to 0}x\\sin\\dfrac{1}{x}=0$.",
+    "reference_proof": "For $x\\ne 0$, $\\left|\\sin\\dfrac1x\\right|\\le 1$, so $0\\le\\left|x\\sin\\dfrac1x\\right|\\le |x|$.\nGiven $\\varepsilon>0$, take $\\delta=\\varepsilon$. Then for $0<|x|<\\delta$, $\\left|x\\sin\\dfrac1x-0\\right|\\le|x|<\\varepsilon$.\n(Equivalently by the squeeze theorem, since $-|x|\\le x\\sin\\frac1x\\le|x|$ and both sides $\\to 0$.) $\\blacksquare$"
+  },
+  {
+    "id": "B1",
+    "topic": "continuity",
+    "difficulty": "medium",
+    "statement": "Suppose $f$ is continuous on $[a,b]$ and $f(a)f(b)<0$. Prove that there exists $c\\in(a,b)$ with $f(c)=0$.",
+    "reference_proof": "Without loss of generality assume $f(a)<0<f(b)$. Let $S=\\{x\\in[a,b]:f(x)<0\\}$.\n$S$ is nonempty (it contains $a$) and bounded above by $b$, so by completeness of the reals $c=\\sup S$ exists and $c\\in[a,b]$.\nClaim: $f(c)=0$.\n(i) If $f(c)>0$, then by continuity there is $\\delta>0$ with $f>0$ on $(c-\\delta,c]$, so $c-\\delta$ is also an upper bound of $S$, contradicting $c=\\sup S$.\n(ii) If $f(c)<0$, then $c<b$, and by continuity there is $\\delta>0$ with $f<0$ on $[c,c+\\delta)$, so $S$ contains points greater than $c$, a contradiction.\nHence $f(c)=0$, and since $f(a),f(b)\\ne 0$ we get $c\\in(a,b)$. $\\blacksquare$"
+  },
+  {
+    "id": "B2",
+    "topic": "continuity",
+    "difficulty": "advanced",
+    "statement": "Prove that a continuous function $f$ on $[a,b]$ attains a maximum value (extreme value theorem).",
+    "reference_proof": "Step 1 (boundedness): if $f$ were unbounded above, there would exist $x_n\\in[a,b]$ with $f(x_n)>n$. By Bolzano-Weierstrass, $\\{x_n\\}$ has a convergent subsequence $x_{n_k}\\to x^*\\in[a,b]$. By continuity $f(x_{n_k})\\to f(x^*)$ (finite), contradicting $f(x_{n_k})>n_k\\to\\infty$. So $f$ is bounded above.\nStep 2 (attainment): let $M=\\sup_{[a,b]}f$ (exists and is finite). Choose $y_n\\in[a,b]$ with $f(y_n)\\to M$. By B-W take a convergent subsequence $y_{n_k}\\to y^*\\in[a,b]$; by continuity $f(y^*)=\\lim f(y_{n_k})=M$.\nHence $f$ attains its maximum $M$ at $y^*$. $\\blacksquare$"
+  },
+  {
+    "id": "B3",
+    "topic": "continuity",
+    "difficulty": "advanced",
+    "statement": "Prove that a continuous function $f$ on $[a,b]$ is uniformly continuous (Heine-Cantor theorem).",
+    "reference_proof": "By contradiction. Suppose $f$ is not uniformly continuous. Then there exists $\\varepsilon_0>0$ such that for every $n$ there are $x_n,y_n\\in[a,b]$ with\n$$|x_n-y_n|<\\tfrac1n \\quad\\text{but}\\quad |f(x_n)-f(y_n)|\\ge \\varepsilon_0.$$\nBy Bolzano-Weierstrass, $\\{x_n\\}$ has a convergent subsequence $x_{n_k}\\to x^*\\in[a,b]$.\nSince $|x_{n_k}-y_{n_k}|<\\frac{1}{n_k}\\to 0$, we also have $y_{n_k}\\to x^*$.\nBy continuity of $f$ at $x^*$, $f(x_{n_k})\\to f(x^*)$ and $f(y_{n_k})\\to f(x^*)$,\nso $|f(x_{n_k})-f(y_{n_k})|\\to 0$, contradicting $\\ge\\varepsilon_0$. $\\blacksquare$"
+  },
+  {
+    "id": "B4",
+    "topic": "continuity",
+    "difficulty": "medium",
+    "statement": "Prove that $f(x)=x^2$ is not uniformly continuous on $\\mathbb{R}$.",
+    "reference_proof": "To show: there exists $\\varepsilon_0>0$ such that for every $\\delta>0$ we can find $x,y$ with $|x-y|<\\delta$ but $|f(x)-f(y)|\\ge\\varepsilon_0$.\nTake $\\varepsilon_0=1$. For any $\\delta>0$, let $x=n+\\dfrac{\\delta}{2}$ and $y=n$ ($n$ a large integer to be chosen).\nThen $|x-y|=\\dfrac{\\delta}{2}<\\delta$, while\n$$|x^2-y^2|=|x-y|\\,|x+y|=\\frac{\\delta}{2}\\Big(2n+\\frac{\\delta}{2}\\Big)\\ge \\delta n.$$\nChoosing $n$ large enough that $\\delta n\\ge 1$ gives $|f(x)-f(y)|\\ge 1$. Hence $f$ is not uniformly continuous.\n(The essential reason: $|x+y|$ is unbounded, so no single $\\delta$ can work everywhere.) $\\blacksquare$"
+  },
+  {
+    "id": "B5",
+    "topic": "continuity",
+    "difficulty": "basic",
+    "statement": "Prove by the $\\varepsilon$-$\\delta$ definition that $f(x)=x^2$ is continuous at an arbitrary point $x=a$.",
+    "reference_proof": "To show: for every $\\varepsilon>0$ there exists $\\delta>0$ such that $|x-a|<\\delta \\Rightarrow |x^2-a^2|<\\varepsilon$.\n$|x^2-a^2|=|x-a|\\,|x+a|$. Restrict $|x-a|<1$ first; then $|x+a|\\le |x-a|+2|a|<1+2|a|$.\nHence $|x^2-a^2|<(1+2|a|)|x-a|$.\nTake $\\delta=\\min\\Big\\{1,\\dfrac{\\varepsilon}{1+2|a|}\\Big\\}$; then $|x-a|<\\delta$ implies $|x^2-a^2|<\\varepsilon$. $\\blacksquare$"
+  },
+  {
+    "id": "B6",
+    "topic": "continuity",
+    "difficulty": "medium",
+    "statement": "Suppose $f$ is continuous at $x_0$. Prove that for every sequence $x_n\\to x_0$ we have $f(x_n)\\to f(x_0)$ (sequential criterion for continuity).",
+    "reference_proof": "Given $\\varepsilon>0$. Since $f$ is continuous at $x_0$, there exists $\\delta>0$ such that $|x-x_0|<\\delta \\Rightarrow |f(x)-f(x_0)|<\\varepsilon$.\nSince $x_n\\to x_0$, for this $\\delta$ there exists $N$ such that $n\\ge N \\Rightarrow |x_n-x_0|<\\delta$.\nThen for $n\\ge N$, $|f(x_n)-f(x_0)|<\\varepsilon$, i.e. $f(x_n)\\to f(x_0)$. $\\blacksquare$"
+  },
+  {
+    "id": "B7",
+    "topic": "continuity",
+    "difficulty": "medium",
+    "statement": "Prove that every real polynomial of odd degree $p(x)=x^{2k+1}+c_{2k}x^{2k}+\\cdots+c_0$ has at least one real root.",
+    "reference_proof": "$p$ is a polynomial, hence continuous on $\\mathbb{R}$. Consider its behavior as $x\\to\\pm\\infty$:\nsince the leading term is the odd power $x^{2k+1}$, $\\lim_{x\\to+\\infty}p(x)=+\\infty$ and $\\lim_{x\\to-\\infty}p(x)=-\\infty$.\nSo there exists $b$ with $p(b)>0$ and $a<b$ with $p(a)<0$.\n$p$ is continuous on $[a,b]$ with $p(a)<0<p(b)$, so by the intermediate value theorem there is $c\\in(a,b)$ with $p(c)=0$. $\\blacksquare$"
+  },
+  {
+    "id": "B8",
+    "topic": "continuity",
+    "difficulty": "advanced",
+    "statement": "Prove that a continuous function on $[a,b]$ is bounded (boundedness theorem).",
+    "reference_proof": "By contradiction. Suppose $f$ is unbounded; then for each $n$ there exists $x_n\\in[a,b]$ with $|f(x_n)|>n$.\n$\\{x_n\\}\\subset[a,b]$ is bounded, so by Bolzano-Weierstrass it has a convergent subsequence $x_{n_k}\\to x^*$,\nand since $[a,b]$ is closed, $x^*\\in[a,b]$.\nBy continuity of $f$ at $x^*$, $f(x_{n_k})\\to f(x^*)$, so $\\{f(x_{n_k})\\}$ converges and is therefore bounded;\nbut $|f(x_{n_k})|>n_k\\to\\infty$ is unbounded, a contradiction. Hence $f$ is bounded. $\\blacksquare$"
+  },
+  {
+    "id": "B9",
+    "topic": "continuity",
+    "difficulty": "medium",
+    "statement": "Suppose $g$ is continuous at $x_0$ and $f$ is continuous at $g(x_0)$. Prove that $f\\circ g$ is continuous at $x_0$.",
+    "reference_proof": "Let $y_0=g(x_0)$. Given $\\varepsilon>0$.\nSince $f$ is continuous at $y_0$, there exists $\\eta>0$ such that $|y-y_0|<\\eta \\Rightarrow |f(y)-f(y_0)|<\\varepsilon$.\nSince $g$ is continuous at $x_0$, for this $\\eta$ there exists $\\delta>0$ such that $|x-x_0|<\\delta \\Rightarrow |g(x)-y_0|<\\eta$.\nThen $|x-x_0|<\\delta \\Rightarrow |g(x)-y_0|<\\eta \\Rightarrow |f(g(x))-f(y_0)|<\\varepsilon$, i.e. $f\\circ g$ is continuous at $x_0$. $\\blacksquare$"
+  },
+  {
+    "id": "B10",
+    "topic": "continuity",
+    "difficulty": "advanced",
+    "statement": "Suppose $f$ is continuous on $[0,1]$ with $f(0)=f(1)$. Prove that there exists $c\\in[0,\\tfrac12]$ such that $f(c)=f(c+\\tfrac12)$.",
+    "reference_proof": "Define $g(x)=f(x+\\tfrac12)-f(x)$; $g$ is continuous on $[0,\\tfrac12]$.\nEvaluate the endpoints: $g(0)=f(\\tfrac12)-f(0)$ and $g(\\tfrac12)=f(1)-f(\\tfrac12)$.\nAdding: $g(0)+g(\\tfrac12)=f(1)-f(0)=0$, so $g(\\tfrac12)=-g(0)$.\nIf $g(0)=0$, take $c=0$. Otherwise $g(0)$ and $g(\\tfrac12)$ have opposite signs, and by the intermediate value theorem there is $c\\in(0,\\tfrac12)$ with $g(c)=0$,\ni.e. $f(c)=f(c+\\tfrac12)$. $\\blacksquare$"
+  },
+  {
+    "id": "C1",
+    "topic": "differentiation",
+    "difficulty": "basic",
+    "statement": "Prove: if $f$ is differentiable at $x_0$, then $f$ is continuous at $x_0$.",
+    "reference_proof": "We must show $\\lim_{x\\to x_0}f(x)=f(x_0)$, i.e. $\\lim_{x\\to x_0}\\big(f(x)-f(x_0)\\big)=0$.\nFor $x\\ne x_0$ rewrite identically:\n$$f(x)-f(x_0)=\\frac{f(x)-f(x_0)}{x-x_0}\\cdot (x-x_0).$$\nAs $x\\to x_0$, the first factor $\\to f'(x_0)$ (finite, by differentiability) and the second factor $\\to 0$.\nBy the product rule for limits, $\\lim_{x\\to x_0}\\big(f(x)-f(x_0)\\big)=f'(x_0)\\cdot 0=0$. Hence $f$ is continuous at $x_0$. $\\blacksquare$"
+  },
+  {
+    "id": "C2",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Prove Rolle's theorem: if $f$ is continuous on $[a,b]$, differentiable on $(a,b)$, and $f(a)=f(b)$, then there exists $c\\in(a,b)$ with $f'(c)=0$.",
+    "reference_proof": "$f$ is continuous on $[a,b]$, so by the extreme value theorem it attains a maximum $M$ and a minimum $m$.\nCase 1: $M=m$. Then $f$ is constant, $f'\\equiv 0$ on $(a,b)$, and any $c$ works.\nCase 2: $M>m$. Since $f(a)=f(b)$, at least one of the maximum or minimum is attained at an interior point $c\\in(a,b)$.\nAt that interior extremum, Fermat's theorem gives $f'(c)=0$. $\\blacksquare$"
+  },
+  {
+    "id": "C3",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Prove the Lagrange mean value theorem: if $f$ is continuous on $[a,b]$ and differentiable on $(a,b)$, then there exists $c$ with $f'(c)=\\dfrac{f(b)-f(a)}{b-a}$.",
+    "reference_proof": "Construct an auxiliary function that cancels the endpoint difference so Rolle applies:\n$$g(x)=f(x)-f(a)-\\frac{f(b)-f(a)}{b-a}(x-a).$$\n$g$ is continuous on $[a,b]$ and differentiable on $(a,b)$. Check the endpoints: $g(a)=0$, and\n$g(b)=f(b)-f(a)-\\dfrac{f(b)-f(a)}{b-a}(b-a)=0$.\nBy Rolle's theorem there exists $c\\in(a,b)$ with $g'(c)=0$. Since $g'(x)=f'(x)-\\dfrac{f(b)-f(a)}{b-a}$,\nwe get $f'(c)=\\dfrac{f(b)-f(a)}{b-a}$. $\\blacksquare$"
+  },
+  {
+    "id": "C4",
+    "topic": "differentiation",
+    "difficulty": "advanced",
+    "statement": "Prove the Cauchy mean value theorem: if $f,g$ are continuous on $[a,b]$, differentiable on $(a,b)$, and $g'\\ne 0$, then there exists $c$ with $\\dfrac{f'(c)}{g'(c)}=\\dfrac{f(b)-f(a)}{g(b)-g(a)}$.",
+    "reference_proof": "First note $g(b)\\ne g(a)$: otherwise Rolle would give a point where $g'=0$, contradicting the hypothesis.\nConstruct the auxiliary function\n$$h(x)=\\big(f(b)-f(a)\\big)\\,g(x)-\\big(g(b)-g(a)\\big)\\,f(x).$$\n$h$ is continuous on $[a,b]$ and differentiable on $(a,b)$. Compute $h(a)=f(b)g(a)-g(b)f(a)=h(b)$ (expand to verify equality).\nBy Rolle there exists $c$ with $h'(c)=0$, i.e. $\\big(f(b)-f(a)\\big)g'(c)=\\big(g(b)-g(a)\\big)f'(c)$.\nDividing by $g'(c)\\big(g(b)-g(a)\\big)\\ne 0$ gives the conclusion. $\\blacksquare$"
+  },
+  {
+    "id": "C5",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Prove: if $f$ is differentiable on an interval $I$ and $f'\\equiv 0$, then $f$ is constant on $I$.",
+    "reference_proof": "Take any $x_1<x_2\\in I$. $f$ is continuous on $[x_1,x_2]$ and differentiable on $(x_1,x_2)$, so by the Lagrange mean value theorem\nthere exists $c\\in(x_1,x_2)$ with\n$$f(x_2)-f(x_1)=f'(c)(x_2-x_1).$$\nSince $f'(c)=0$, $f(x_2)=f(x_1)$. As $x_1,x_2$ were arbitrary, $f$ takes the same value throughout $I$, i.e. it is constant. $\\blacksquare$"
+  },
+  {
+    "id": "C6",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Prove: if $f$ is differentiable on an interval $I$ and $f'>0$, then $f$ is strictly increasing on $I$.",
+    "reference_proof": "Take any $x_1<x_2\\in I$. By the Lagrange mean value theorem there exists $c\\in(x_1,x_2)$ with\n$$f(x_2)-f(x_1)=f'(c)(x_2-x_1).$$\nSince $f'(c)>0$ and $x_2-x_1>0$, the right-hand side is $>0$, so $f(x_2)>f(x_1)$.\nAs $x_1<x_2$ were arbitrary, $f$ is strictly increasing. $\\blacksquare$"
+  },
+  {
+    "id": "C7",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Prove Fermat's theorem: if $f$ attains a local maximum at an interior point $c$ and $f'(c)$ exists, then $f'(c)=0$.",
+    "reference_proof": "Let $c$ be a local maximum: there exists $\\delta>0$ such that $f(c+h)\\le f(c)$ whenever $|h|<\\delta$.\nRight derivative ($h\\to 0^+$): the difference quotient $\\dfrac{f(c+h)-f(c)}{h}\\le 0$, so $f'(c)=\\lim_{h\\to0^+}\\le 0$.\nLeft derivative ($h\\to 0^-$): numerator $\\le 0$, denominator $<0$, so the quotient is $\\ge 0$, giving $f'(c)\\ge 0$.\nSince $f'(c)$ exists (left and right derivatives agree), it is both $\\le 0$ and $\\ge 0$, hence $f'(c)=0$. $\\blacksquare$"
+  },
+  {
+    "id": "C8",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Suppose $f$ is differentiable on an interval $I$ with $|f'(x)|\\le M$. Prove $|f(x)-f(y)|\\le M|x-y|$ ($f$ is Lipschitz).",
+    "reference_proof": "Take any $x,y\\in I$, say $x\\ne y$. By the Lagrange mean value theorem there is $c$ between $x$ and $y$ with\n$$f(x)-f(y)=f'(c)(x-y).$$\nTake absolute values and use $|f'(c)|\\le M$:\n$$|f(x)-f(y)|=|f'(c)|\\,|x-y|\\le M|x-y|.$$\nFor $x=y$ both sides are $0$, so the inequality also holds. $\\blacksquare$"
+  },
+  {
+    "id": "C9",
+    "topic": "differentiation",
+    "difficulty": "medium",
+    "statement": "Prove that for all real $x,y$, $|\\sin x-\\sin y|\\le |x-y|$.",
+    "reference_proof": "Let $f(t)=\\sin t$; then $f'(t)=\\cos t$ and $|f'(t)|\\le 1$.\nFor $x\\ne y$, the Lagrange mean value theorem gives some $c$ with\n$$\\sin x-\\sin y=\\cos c\\,(x-y).$$\nTaking absolute values: $|\\sin x-\\sin y|=|\\cos c|\\,|x-y|\\le |x-y|$. For $x=y$ the inequality is trivial. $\\blacksquare$"
+  },
+  {
+    "id": "C10",
+    "topic": "differentiation",
+    "difficulty": "advanced",
+    "statement": "Prove that for all $x>0$, $\\dfrac{x}{1+x}<\\ln(1+x)<x$.",
+    "reference_proof": "Let $f(t)=\\ln(1+t)$, continuous on $[0,x]$ and differentiable on $(0,x)$, with $f'(t)=\\dfrac{1}{1+t}$.\nBy the Lagrange mean value theorem there exists $\\xi\\in(0,x)$ with\n$$\\ln(1+x)-\\ln 1=\\frac{1}{1+\\xi}\\,x,\\qquad\\text{i.e. } \\ln(1+x)=\\frac{x}{1+\\xi}.$$\nSince $0<\\xi<x$, we have $1<1+\\xi<1+x$, hence $\\dfrac{1}{1+x}<\\dfrac{1}{1+\\xi}<1$.\nMultiplying by $x>0$: $\\dfrac{x}{1+x}<\\dfrac{x}{1+\\xi}=\\ln(1+x)<x$. $\\blacksquare$"
+  },
+  {
+    "id": "D1",
+    "topic": "integration",
+    "difficulty": "medium",
+    "statement": "Suppose $f$ is continuous on $[a,b]$, $f\\ge 0$, and $\\int_a^b f(x)\\,dx=0$. Prove that $f\\equiv 0$.",
+    "reference_proof": "By contradiction. Suppose there is $x_0\\in[a,b]$ with $f(x_0)>0$.\nBy continuity, taking $\\varepsilon=\\dfrac{f(x_0)}{2}>0$, there is a subinterval $[c,d]\\subset[a,b]$ (containing $x_0$, of length $d-c>0$) on which $f(x)>\\dfrac{f(x_0)}{2}$.\nSince $f\\ge 0$,\n$$\\int_a^b f\\ge \\int_c^d f\\ge \\frac{f(x_0)}{2}(d-c)>0,$$\ncontradicting $\\int_a^b f=0$. Hence $f(x)=0$ for all $x$. $\\blacksquare$"
+  },
+  {
+    "id": "D2",
+    "topic": "integration",
+    "difficulty": "advanced",
+    "statement": "Prove the fundamental theorem of calculus (part 1): if $f$ is continuous on $[a,b]$ and $F(x)=\\int_a^x f(t)\\,dt$, then $F'(x)=f(x)$.",
+    "reference_proof": "Fix $x\\in[a,b]$. For $h\\ne 0$,\n$$\\frac{F(x+h)-F(x)}{h}=\\frac{1}{h}\\int_x^{x+h}f(t)\\,dt.$$\nSubtract $f(x)$ using $\\frac1h\\int_x^{x+h}f(x)\\,dt=f(x)$:\n$$\\left|\\frac{F(x+h)-F(x)}{h}-f(x)\\right|=\\left|\\frac1h\\int_x^{x+h}\\big(f(t)-f(x)\\big)\\,dt\\right|\\le \\sup_{|t-x|\\le|h|}|f(t)-f(x)|.$$\nBy continuity of $f$ at $x$, the right-hand side $\\to 0$ as $h\\to 0$. Hence $F'(x)=f(x)$. $\\blacksquare$"
+  },
+  {
+    "id": "D3",
+    "topic": "integration",
+    "difficulty": "medium",
+    "statement": "Prove the first mean value theorem for integrals: if $f$ is continuous on $[a,b]$, then there exists $c\\in[a,b]$ with $\\int_a^b f(x)\\,dx=f(c)(b-a)$.",
+    "reference_proof": "$f$ is continuous on $[a,b]$, so by the extreme value theorem it attains a minimum $m$ and maximum $M$, i.e. $m\\le f(x)\\le M$.\nMonotonicity of the integral gives $m(b-a)\\le\\int_a^b f\\le M(b-a)$, so the average value\n$$\\mu=\\frac{1}{b-a}\\int_a^b f\\in[m,M].$$\nBy the intermediate value theorem (a continuous function attains every value in $[m,M]$), there exists $c\\in[a,b]$ with $f(c)=\\mu$, i.e. $\\int_a^b f=f(c)(b-a)$. $\\blacksquare$"
+  },
+  {
+    "id": "D4",
+    "topic": "integration",
+    "difficulty": "basic",
+    "statement": "Suppose $f,g$ are integrable on $[a,b]$ and $f(x)\\le g(x)$. Prove $\\int_a^b f\\le \\int_a^b g$ (monotonicity of the integral).",
+    "reference_proof": "Let $h=g-f\\ge 0$; $h$ is integrable on $[a,b]$.\nFor any partition $P$, since $h\\ge 0$, its lower sum $L(h,P)=\\sum m_i\\Delta x_i\\ge 0$ (each $m_i=\\inf h\\ge 0$).\nHence $\\int_a^b h=\\sup_P L(h,P)\\ge 0$.\nBy linearity of the integral, $\\int_a^b g-\\int_a^b f=\\int_a^b h\\ge 0$, i.e. $\\int_a^b f\\le\\int_a^b g$. $\\blacksquare$"
+  },
+  {
+    "id": "D5",
+    "topic": "integration",
+    "difficulty": "basic",
+    "statement": "Suppose $f$ is integrable on $[a,b]$. Prove $\\left|\\int_a^b f\\right|\\le \\int_a^b |f|$.",
+    "reference_proof": "For all $x$, $-|f(x)|\\le f(x)\\le |f(x)|$.\nIntegrating each part (monotonicity of the integral):\n$$-\\int_a^b|f|\\le \\int_a^b f\\le \\int_a^b|f|.$$\nA real number that is both $\\le A$ and $\\ge -A$ (with $A=\\int_a^b|f|\\ge0$) satisfies $\\left|\\int_a^b f\\right|\\le A=\\int_a^b|f|$. $\\blacksquare$"
+  },
+  {
+    "id": "D6",
+    "topic": "integration",
+    "difficulty": "medium",
+    "statement": "Prove the fundamental theorem of calculus (part 2 / Newton-Leibniz): if $f$ is continuous on $[a,b]$ and $F'=f$, then $\\int_a^b f=F(b)-F(a)$.",
+    "reference_proof": "Let $G(x)=\\int_a^x f(t)\\,dt$. By FTC part 1, $G'=f=F'$ on $[a,b]$.\nHence $(G-F)'\\equiv 0$, and by \"zero derivative implies constant\", $G-F\\equiv C$ (a constant).\nSubstituting $x=a$: $G(a)=0$, so $C=-F(a)$, i.e. $G(x)=F(x)-F(a)$.\nSubstituting $x=b$: $\\int_a^b f=G(b)=F(b)-F(a)$. $\\blacksquare$"
+  },
+  {
+    "id": "D7",
+    "topic": "integration",
+    "difficulty": "advanced",
+    "statement": "Prove that a continuous function $f$ on $[a,b]$ is Riemann integrable.",
+    "reference_proof": "By Heine-Cantor, $f$ is uniformly continuous on $[a,b]$. Given $\\varepsilon>0$, there exists $\\delta>0$ such that\n$|s-t|<\\delta \\Rightarrow |f(s)-f(t)|<\\dfrac{\\varepsilon}{b-a}$.\nTake a partition $P$ with every subinterval of length $\\Delta x_i<\\delta$. On each closed subinterval $f$ attains a maximum $M_i$ and minimum $m_i$ (extreme value theorem),\nand the corresponding points are within $\\delta$, so $M_i-m_i\\le \\dfrac{\\varepsilon}{b-a}$. Then\n$$U(f,P)-L(f,P)=\\sum_i (M_i-m_i)\\Delta x_i\\le \\frac{\\varepsilon}{b-a}\\sum_i \\Delta x_i=\\varepsilon.$$\nBy the Riemann integrability criterion (upper and lower sums can be made arbitrarily close), $f$ is integrable. $\\blacksquare$"
+  },
+  {
+    "id": "D8",
+    "topic": "integration",
+    "difficulty": "basic",
+    "statement": "Prove that $\\dfrac{1}{2}\\le \\int_0^1 \\dfrac{dx}{1+x^2}\\le 1$.",
+    "reference_proof": "For $x\\in[0,1]$, $0\\le x^2\\le 1$, so $1\\le 1+x^2\\le 2$, and taking reciprocals,\n$$\\frac{1}{2}\\le \\frac{1}{1+x^2}\\le 1.$$\nIntegrating this inequality over $[0,1]$ (length $1$; monotonicity of the integral):\n$$\\frac12\\cdot 1\\le \\int_0^1\\frac{dx}{1+x^2}\\le 1\\cdot 1,$$\ni.e. $\\dfrac12\\le\\int_0^1\\dfrac{dx}{1+x^2}\\le 1$. (The actual value is $\\pi/4\\approx 0.785$, inside the interval.) $\\blacksquare$"
+  },
+  {
+    "id": "D9",
+    "topic": "integration",
+    "difficulty": "medium",
+    "statement": "Prove that the improper integral $\\int_1^\\infty \\dfrac{dx}{x^p}$ converges if and only if $p>1$.",
+    "reference_proof": "Consider $\\int_1^R x^{-p}\\,dx$ and let $R\\to\\infty$.\nCase $p\\ne 1$: $\\int_1^R x^{-p}\\,dx=\\dfrac{R^{1-p}-1}{1-p}$.\n  - If $p>1$, then $1-p<0$, $R^{1-p}\\to 0$, and the limit is $\\dfrac{1}{p-1}$ (finite): convergent.\n  - If $p<1$, then $1-p>0$, $R^{1-p}\\to\\infty$: divergent.\nCase $p=1$: $\\int_1^R \\dfrac{dx}{x}=\\ln R\\to\\infty$: divergent.\nCombining: convergence $\\iff p>1$. $\\blacksquare$"
+  },
+  {
+    "id": "D10",
+    "topic": "integration",
+    "difficulty": "advanced",
+    "statement": "Prove the integral Cauchy-Schwarz inequality: if $f,g$ are continuous on $[a,b]$, then $\\left(\\int_a^b fg\\right)^2\\le \\left(\\int_a^b f^2\\right)\\left(\\int_a^b g^2\\right)$.",
+    "reference_proof": "If $\\int_a^b g^2=0$, then by D1 ($g^2\\ge0$ continuous with zero integral) $g\\equiv 0$, and both sides are $0$: done.\nOtherwise let $A=\\int g^2>0$. For every real $\\lambda$, $(f-\\lambda g)^2\\ge 0$, and integrating,\n$$0\\le \\int_a^b (f-\\lambda g)^2=\\int f^2-2\\lambda\\int fg+\\lambda^2\\int g^2.$$\nThis quadratic in $\\lambda$ is nonnegative for all $\\lambda$, so its discriminant is $\\le 0$:\n$$\\Big(2\\int fg\\Big)^2-4\\Big(\\int g^2\\Big)\\Big(\\int f^2\\Big)\\le 0,$$\nwhich rearranges to $\\left(\\int fg\\right)^2\\le \\left(\\int f^2\\right)\\left(\\int g^2\\right)$. $\\blacksquare$"
+  },
+  {
+    "id": "E1",
+    "topic": "series",
+    "difficulty": "medium",
+    "statement": "Prove the monotone convergence theorem: if the sequence $\\{a_n\\}$ is increasing and bounded above, then $\\{a_n\\}$ converges.",
+    "reference_proof": "The set $\\{a_n\\}$ is nonempty and bounded above, so by completeness of the reals (least upper bound axiom) $L=\\sup\\{a_n\\}$ exists.\nClaim: $a_n\\to L$. Given $\\varepsilon>0$, since $L-\\varepsilon$ is not an upper bound, there exists $N$ with $a_N>L-\\varepsilon$.\nSince $\\{a_n\\}$ is increasing, $a_n\\ge a_N>L-\\varepsilon$ for $n\\ge N$; also $a_n\\le L<L+\\varepsilon$.\nHence $|a_n-L|<\\varepsilon$ for $n\\ge N$, i.e. $a_n\\to L$. $\\blacksquare$"
+  },
+  {
+    "id": "E2",
+    "topic": "series",
+    "difficulty": "basic",
+    "statement": "Prove that every convergent sequence is a Cauchy sequence.",
+    "reference_proof": "Suppose $a_n\\to L$. Given $\\varepsilon>0$, there exists $N$ such that $n\\ge N \\Rightarrow |a_n-L|<\\dfrac{\\varepsilon}{2}$.\nFor any $m,n\\ge N$, by the triangle inequality\n$$|a_n-a_m|\\le |a_n-L|+|L-a_m|<\\frac{\\varepsilon}{2}+\\frac{\\varepsilon}{2}=\\varepsilon.$$\nHence $\\{a_n\\}$ is a Cauchy sequence. $\\blacksquare$"
+  },
+  {
+    "id": "E3",
+    "topic": "series",
+    "difficulty": "basic",
+    "statement": "Prove: if the series $\\sum a_n$ converges, then $a_n\\to 0$.",
+    "reference_proof": "Let the partial sums be $S_n=\\sum_{k=1}^n a_k$; since $\\sum a_n$ converges, $S_n\\to S$ (some finite value).\nThen $S_{n-1}\\to S$ as well. Hence\n$$a_n=S_n-S_{n-1}\\to S-S=0.$$\n(Note the converse fails, e.g. the harmonic series: $a_n=1/n\\to0$ but $\\sum 1/n$ diverges.) $\\blacksquare$"
+  },
+  {
+    "id": "E4",
+    "topic": "series",
+    "difficulty": "medium",
+    "statement": "Prove that $\\sum_{n=1}^\\infty \\dfrac{1}{n^2}$ converges.",
+    "reference_proof": "The partial sums $S_n=\\sum_{k=1}^n \\dfrac{1}{k^2}$ form an increasing sequence (all terms positive).\nFor $k\\ge 2$, use the telescoping bound $\\dfrac{1}{k^2}\\le \\dfrac{1}{k(k-1)}=\\dfrac{1}{k-1}-\\dfrac{1}{k}$. Hence\n$$S_n\\le 1+\\sum_{k=2}^n\\Big(\\frac{1}{k-1}-\\frac1k\\Big)=1+\\Big(1-\\frac1n\\Big)<2.$$\n$\\{S_n\\}$ is increasing and bounded above by $2$, so it converges by the monotone convergence theorem. $\\blacksquare$"
+  },
+  {
+    "id": "E5",
+    "topic": "series",
+    "difficulty": "medium",
+    "statement": "Prove that the harmonic series $\\sum_{n=1}^\\infty \\dfrac{1}{n}$ diverges.",
+    "reference_proof": "Let $S_n$ be the partial sums. Consider\n$$S_{2n}-S_n=\\sum_{k=n+1}^{2n}\\frac1k.$$\nThis sum has $n$ terms, each $\\ge \\dfrac{1}{2n}$, so $S_{2n}-S_n\\ge n\\cdot\\dfrac{1}{2n}=\\dfrac12$.\nIf $\\{S_n\\}$ converged it would be Cauchy, forcing $S_{2n}-S_n\\to 0$, contradicting $\\ge\\frac12$.\nHence $\\{S_n\\}$ does not converge, i.e. $\\sum \\frac1n$ diverges. $\\blacksquare$"
+  },
+  {
+    "id": "E6",
+    "topic": "series",
+    "difficulty": "advanced",
+    "statement": "Prove the ratio test: if $a_n\\ne0$ and $\\lim_{n\\to\\infty}\\left|\\dfrac{a_{n+1}}{a_n}\\right|=L<1$, then $\\sum a_n$ converges absolutely.",
+    "reference_proof": "Pick $r$ with $L<r<1$. By the definition of the limit, there exists $N$ such that $n\\ge N \\Rightarrow \\left|\\dfrac{a_{n+1}}{a_n}\\right|<r$.\nBy induction, $|a_n|\\le |a_N|\\,r^{\\,n-N}$ for $n\\ge N$.\nCompare with the geometric series: $\\sum_{n\\ge N}|a_N|r^{n-N}=|a_N|\\cdot\\dfrac{1}{1-r}<\\infty$ (since $0<r<1$).\nBy the comparison test, $\\sum |a_n|$ converges, i.e. $\\sum a_n$ converges absolutely. $\\blacksquare$"
+  },
+  {
+    "id": "E7",
+    "topic": "series",
+    "difficulty": "medium",
+    "statement": "Prove: an absolutely convergent series converges ($\\sum|a_n|$ converges $\\Rightarrow \\sum a_n$ converges).",
+    "reference_proof": "Let $b_n=a_n+|a_n|$; then $0\\le b_n\\le 2|a_n|$.\nSince $\\sum 2|a_n|$ converges, the comparison test gives that $\\sum b_n$ converges (a series of nonnegative terms).\nSince $a_n=b_n-|a_n|$ is the difference of two convergent series, $\\sum a_n=\\sum b_n-\\sum|a_n|$ converges. $\\blacksquare$"
+  },
+  {
+    "id": "E8",
+    "topic": "series",
+    "difficulty": "advanced",
+    "statement": "Prove the Leibniz alternating series test: if $b_n\\ge0$ is decreasing and $b_n\\to0$, then $\\sum(-1)^{n+1}b_n$ converges.",
+    "reference_proof": "Let $S_n$ be the partial sums. Consider the even- and odd-indexed subsequences.\n$S_{2n+2}-S_{2n}=b_{2n+1}-b_{2n+2}\\ge0$ (decreasing), so $\\{S_{2n}\\}$ is increasing;\n$S_{2n+1}-S_{2n-1}=-b_{2n}+b_{2n+1}\\le0$, so $\\{S_{2n+1}\\}$ is decreasing.\nAlso $S_{2n+1}-S_{2n}=b_{2n+1}\\ge0$, so $S_{2n}\\le S_{2n+1}\\le S_1$ and $S_{2n}\\ge S_2$; both subsequences are monotone and bounded, hence convergent.\nSince $S_{2n+1}-S_{2n}=b_{2n+1}\\to0$, both subsequences have the same limit $S$, so $S_n\\to S$ and the series converges. $\\blacksquare$"
+  },
+  {
+    "id": "E9",
+    "topic": "series",
+    "difficulty": "advanced",
+    "statement": "Prove that the sequence $a_n=\\left(1+\\dfrac1n\\right)^n$ converges (i.e. the limit $e$ exists).",
+    "reference_proof": "By the binomial theorem,\n$$a_n=\\sum_{k=0}^n\\binom{n}{k}\\frac{1}{n^k}=\\sum_{k=0}^n\\frac{1}{k!}\\prod_{j=0}^{k-1}\\Big(1-\\frac{j}{n}\\Big).$$\n(Increasing) As $n$ grows, each factor $1-\\frac{j}{n}$ increases and there are more terms, so $a_{n+1}\\ge a_n$.\n(Bounded above) Each product is $\\le1$, so $a_n\\le\\sum_{k=0}^n\\dfrac{1}{k!}\\le 1+\\sum_{k=1}^n\\dfrac{1}{2^{k-1}}<1+2=3$.\n$\\{a_n\\}$ is increasing and bounded above by $3$, so it converges by the monotone convergence theorem. $\\blacksquare$"
+  },
+  {
+    "id": "E10",
+    "topic": "series",
+    "difficulty": "basic",
+    "statement": "Prove the comparison test: if $0\\le a_n\\le b_n$ and $\\sum b_n$ converges, then $\\sum a_n$ converges.",
+    "reference_proof": "Let $A_n=\\sum_{k=1}^n a_k$ and $B_n=\\sum_{k=1}^n b_k$. Since all terms are nonnegative, both are increasing.\nSince $\\sum b_n$ converges, $B_n\\to B$ and $B_n\\le B$. From $a_k\\le b_k$ we get $A_n\\le B_n\\le B$.\nHence $\\{A_n\\}$ is increasing and bounded above by $B$, so it converges by the monotone convergence theorem, i.e. $\\sum a_n$ converges. $\\blacksquare$"
+  }
+]

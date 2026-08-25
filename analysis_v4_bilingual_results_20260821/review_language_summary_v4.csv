@@ -1,0 +1,7 @@
+﻿condition,review_language,json_parse_rate,n
+Base-Instruct reviewer,en,1.0,5
+Base-Instruct reviewer,zh,1.0,20
+Base-Thinking reviewer,en,1.0,5
+Base-Thinking reviewer,zh,0.85,20
+LoRA reviewer,en,0.4,5
+LoRA reviewer,zh,0.15,20

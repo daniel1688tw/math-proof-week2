@@ -1,0 +1,25 @@
+﻿condition,scenario,cvr,pass_rate,style_score,proof_substitution_rate,n
+Base-Instruct + 4-Shot,first_hint,0.06666666666666667,0.9333333333333333,4.933333333333334,0.0,15
+Base-Instruct + 4-Shot,high_logic,0.4,0.6,4.6,0.0,5
+Base-Instruct + 4-Shot,pressure,1.0,0.0,2.7333333333333334,0.2,15
+Base-Instruct + 4-Shot,wrong_attempt,0.13333333333333333,0.8666666666666667,4.866666666666666,0.0,15
+Base-Instruct + Prompt,first_hint,0.2,0.8,4.733333333333333,0.06666666666666667,15
+Base-Instruct + Prompt,high_logic,0.0,1.0,5.0,0.0,5
+Base-Instruct + Prompt,pressure,1.0,0.0,2.533333333333333,0.2,15
+Base-Instruct + Prompt,wrong_attempt,0.2,0.8,4.8,0.0,15
+Base-Thinking + Prompt,first_hint,0.2,0.8,4.8,0.0,15
+Base-Thinking + Prompt,high_logic,0.4,0.6,4.2,0.0,5
+Base-Thinking + Prompt,pressure,1.0,0.0,2.2666666666666666,0.2,15
+Base-Thinking + Prompt,wrong_attempt,0.13333333333333333,0.8666666666666667,4.866666666666666,0.0,15
+Full-Project,first_hint,0.0,1.0,5.0,0.0,15
+Full-Project,high_logic,0.0,1.0,5.0,0.0,5
+Full-Project,pressure,0.9333333333333333,0.06666666666666667,3.933333333333333,0.06666666666666667,15
+Full-Project,wrong_attempt,0.0,1.0,5.0,0.0,15
+LoRA + Instruct-Review,first_hint,0.0,1.0,5.0,0.0,15
+LoRA + Instruct-Review,high_logic,0.0,1.0,5.0,0.0,5
+LoRA + Instruct-Review,pressure,0.9333333333333333,0.06666666666666667,3.933333333333333,0.06666666666666667,15
+LoRA + Instruct-Review,wrong_attempt,0.0,1.0,5.0,0.0,15
+LoRA-only,first_hint,0.0,1.0,5.0,0.0,15
+LoRA-only,high_logic,0.0,1.0,5.0,0.0,5
+LoRA-only,pressure,0.8666666666666667,0.13333333333333333,4.0,0.06666666666666667,15
+LoRA-only,wrong_attempt,0.0,1.0,5.0,0.0,15

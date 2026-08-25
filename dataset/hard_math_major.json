@@ -1,0 +1,32 @@
+[
+  {
+    "id": "M1",
+    "topic": "一致收斂",
+    "statement": "設 $f_n(x)=\\dfrac{nx}{1+n^2x^2}$，$x\\in[0,1]$。證明 $\\{f_n\\}$ 在 $[0,1]$ 上逐點收斂於 $0$，但不一致收斂。",
+    "reference_proof": "**逐點收斂**：$x=0$ 時 $f_n(0)=0$。$x\\in(0,1]$ 時，分母 $1+n^2x^2$ 的成長速度快於分子 $nx$，故 $f_n(x)=\\dfrac{nx}{1+n^2x^2}\\to0$（可由 $f_n(x)\\le\\dfrac{1}{nx}\\to0$ 或直接取極限驗證）。故逐點極限函數為 $f\\equiv0$。\n\n**非一致收斂**：對 $\\sup_{x\\in[0,1]}|f_n(x)-0|$ 估計。取 $x_n=\\dfrac1n\\in[0,1]$（$n\\ge1$），則\n$$f_n(x_n)=\\frac{n\\cdot\\frac1n}{1+n^2\\cdot\\frac1{n^2}}=\\frac{1}{1+1}=\\frac12.$$\n故 $\\sup_{x\\in[0,1]}|f_n(x)-0|\\ge\\dfrac12$ 對所有 $n$ 成立，不趨於 $0$。由一致收斂定義（$\\sup$ 誤差須 $\\to0$），$\\{f_n\\}$ 不一致收斂於 $0$。$\\blacksquare$"
+  },
+  {
+    "id": "M2",
+    "topic": "微分（二階導數鏈式單調性）",
+    "statement": "證明對所有實數 $x$，$\\cos x\\ge1-\\dfrac{x^2}{2}$。",
+    "reference_proof": "令 $g(x)=\\cos x-1+\\dfrac{x^2}{2}$，目標為證 $g(x)\\ge0$。\n\n計算：$g(0)=1-1+0=0$；$g'(x)=-\\sin x+x$，$g'(0)=0$；$g''(x)=-\\cos x+1=1-\\cos x\\ge0$（對所有 $x$，因 $\\cos x\\le1$）。\n\n由 $g''\\ge0$，$g'$ 在 $\\mathbb{R}$ 上遞增（不嚴格）。又 $g'(0)=0$，故：\n- $x<0$ 時 $g'(x)\\le g'(0)=0$；\n- $x>0$ 時 $g'(x)\\ge g'(0)=0$。\n\n即 $g$ 在 $(-\\infty,0]$ 遞減、在 $[0,\\infty)$ 遞增，故 $g$ 在 $x=0$ 取全域最小值 $g(0)=0$。因此對所有 $x$，$g(x)\\ge0$，即 $\\cos x\\ge1-\\dfrac{x^2}{2}$。$\\blacksquare$"
+  },
+  {
+    "id": "M3",
+    "topic": "一致連續（乘積）",
+    "statement": "設 $f,g:\\mathbb{R}\\to\\mathbb{R}$ 均一致連續且均有界，證明 $fg$ 在 $\\mathbb{R}$ 上一致連續。（若拿掉「有界」這個條件，結論還成立嗎？）",
+    "reference_proof": "設 $|f(x)|\\le M$、$|g(x)|\\le M$ 對所有 $x$ 成立（取共同界 $M$）。對任意 $x,y$，用加減湊項：\n$$|f(x)g(x)-f(y)g(y)|=|f(x)g(x)-f(x)g(y)+f(x)g(y)-f(y)g(y)|\\le|f(x)||g(x)-g(y)|+|g(y)||f(x)-f(y)|$$\n$$\\le M|g(x)-g(y)|+M|f(x)-f(y)|.$$\n給定 $\\varepsilon>0$，由 $f,g$ 一致連續，分別取 $\\delta_1,\\delta_2>0$ 使 $|x-y|<\\delta_1\\Rightarrow|f(x)-f(y)|<\\dfrac{\\varepsilon}{2M}$、$|x-y|<\\delta_2\\Rightarrow|g(x)-g(y)|<\\dfrac{\\varepsilon}{2M}$（$M=0$ 時 $f\\equiv g\\equiv0$，顯然成立）。取 $\\delta=\\min\\{\\delta_1,\\delta_2\\}$，則 $|x-y|<\\delta$ 時 $|f(x)g(x)-f(y)g(y)|<M\\cdot\\frac{\\varepsilon}{2M}+M\\cdot\\frac{\\varepsilon}{2M}=\\varepsilon$。故 $fg$ 一致連續。\n\n**有界不可省**：$f(x)=g(x)=x$ 皆一致連續（Lipschitz 常數 $1$）但無界，而 $fg(x)=x^2$ 在 $\\mathbb{R}$ 上不一致連續（因 $|x+y|$ 無界，經典反例）。$\\blacksquare$"
+  },
+  {
+    "id": "M4",
+    "topic": "Darboux 定理（導函數介值性）",
+    "statement": "設 $f$ 在 $[a,b]$ 上可微（不假設 $f'$ 連續），且 $f'(a)<k<f'(b)$。證明存在 $c\\in(a,b)$ 使 $f'(c)=k$。（此為 Darboux 定理：導函數即使不連續，仍具介值性質。）",
+    "reference_proof": "構造輔助函數 $g(x)=f(x)-kx$，則 $g$ 在 $[a,b]$ 可微，$g'(x)=f'(x)-k$。\n\n由假設，$g'(a)=f'(a)-k<0$，$g'(b)=f'(b)-k>0$。\n\n$g$ 可微故連續，由最大值定理，$g$ 在 $[a,b]$ 上取得最小值，設在 $c\\in[a,b]$ 取得。\n\n**排除 $c=a$**：因 $g'(a)<0$，存在 $\\delta>0$ 使 $x\\in(a,a+\\delta)$ 時 $\\dfrac{g(x)-g(a)}{x-a}<0$，故 $g(x)<g(a)$，即 $a$ 附近有比 $g(a)$ 更小的值，$a$ 不是最小值點。\n\n**排除 $c=b$**：因 $g'(b)>0$，存在 $\\delta>0$ 使 $x\\in(b-\\delta,b)$ 時 $\\dfrac{g(x)-g(b)}{x-b}>0$（注意 $x-b<0$），故 $g(x)<g(b)$，$b$ 附近也有更小的值，$b$ 不是最小值點。\n\n故最小值點 $c\\in(a,b)$（內部點）。由費馬定理，$g'(c)=0$，即 $f'(c)=k$。$\\blacksquare$"
+  },
+  {
+    "id": "M5",
+    "topic": "積分不等式（Chebyshev 型，雙重積分）",
+    "statement": "設 $f$ 在 $[0,1]$ 連續且遞增，證明 $\\displaystyle\\int_0^1 xf(x)\\,dx\\ge\\frac12\\int_0^1 f(x)\\,dx$。",
+    "reference_proof": "考慮雙重積分 $I=\\displaystyle\\int_0^1\\int_0^1(x-y)\\big(f(x)-f(y)\\big)\\,dy\\,dx$。\n\n因 $f$ 遞增，對任意 $x,y$，$(x-y)$ 與 $\\big(f(x)-f(y)\\big)$ 同號（$x>y\\Rightarrow f(x)\\ge f(y)$，$x<y$ 同理），故被積函數處處 $\\ge0$，因此 $I\\ge0$。\n\n展開被積式並逐項積分（記 $I_1=\\int_0^1xf(x)dx$，$I_2=\\int_0^1f(x)dx$）：\n$$I=\\int_0^1\\!\\!\\int_0^1\\big[xf(x)-xf(y)-yf(x)+yf(y)\\big]\\,dy\\,dx.$$\n四項分別為：$\\int xf(x)\\,dx=I_1$；$\\big(\\int x\\,dx\\big)\\big(\\int f(y)dy\\big)=\\tfrac12 I_2$；$\\big(\\int y\\,dy\\big)\\big(\\int f(x)dx\\big)=\\tfrac12 I_2$；$\\int yf(y)\\,dy=I_1$。\n\n故 $I=I_1-\\tfrac12I_2-\\tfrac12I_2+I_1=2I_1-I_2$。\n\n由 $I\\ge0$ 得 $2I_1-I_2\\ge0$，即 $I_1\\ge\\dfrac12I_2$，也就是 $\\displaystyle\\int_0^1xf(x)\\,dx\\ge\\frac12\\int_0^1f(x)\\,dx$。$\\blacksquare$"
+  }
+]

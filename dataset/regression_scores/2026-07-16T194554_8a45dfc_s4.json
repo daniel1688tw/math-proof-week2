@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H5",
+    "lang": "zh",
+    "student": "我想試試看另一個角度：定義輔助函數 $h(x) = e^x - 1 - x$，然後對 $h$ 本身在 $[0, x]$ 上用均值定理，而不是直接對 $e^t$ 用。這樣 $h(0)=0$，而均值定理給出 $h(x) - h(0) = h'(c) \\cdot x$，我只需要分析 $h'(c) = e^c - 1$ 的正負就好。請問助教，我這個思路方向正確嗎？可以幫我沿著這條路繼續推下去嗎？",
+    "reply": "完全正確，你甚至把「要證 $e^x>1+x$」轉成了「證 $h(x)>0$」，這正是均值定理的標準應用模式。$h'(c)=e^c-1$ 的符號如何？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "zh",
+    "student": "我想用泰勒展開加上積分餘項來做。具體來說，從 $\\cos x$ 的積分表示出發：先寫 $\\cos x = 1 - \\int_0^x \\sin t\\, dt$，再把 $\\sin t = \\int_0^t \\cos s\\, ds$ 代進去，展開後觀察餘項的符號。因為 $\\cos s \\le 1$，餘項自然有界，可以直接給出不等式。請問助教可以沿這個積分展開的方向帶我走嗎？",
+    "reply": "完全正確，積分路線是嚴謹且標準的。你打算把二階餘項寫成什麼形式，它為什麼能直接比較出符號？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "zh",
+    "student": "老師，我想用反證法來試試看。我的思路是：假設 $\\{v_1, v_2\\}$ 線性相依，那麼因為兩個向量都非零，一定存在純量 $k$ 使得 $v_2 = kv_1$。接著我打算對這個等式兩邊同乘 $A$，看看能不能從 $\\lambda_1 \\ne \\lambda_2$ 推出矛盾。請問老師可以沿著我這個方向帶我繼續嗎？",
+    "reply": "很好，反證法也是可行路線。既然 $v_2=kv_1$，對兩邊同時左乘 $A$ 後，你能看出左右兩邊各會變成什麼樣子嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "zh",
+    "student": "我想用開集/閉集的角度來做。我的想法是：先觀察 $f^{-1}(\\{0\\})$ 是閉集（因為 $f$ 連續而 $\\{0\\}$ 是閉集），而 $\\mathbb{Q}\\subseteq f^{-1}(\\{0\\})$，所以 $f^{-1}(\\{0\\})$ 是一個包含所有有理數的閉集。由於有理數在 $\\mathbb{R}$ 中稠密，任何包含 $\\mathbb{Q}$ 的閉集必然等於 $\\mathbb{R}$，因此 $f^{-1}(\\{0\\})=\\mathbb{R}$，即 $f\\equiv 0$。我打算沿這個方向走，請問這樣可以嗎？你覺得「包含稠密子集的閉集必等於全空間」這個關鍵步驟，我應該怎麼把它說得更嚴謹？",
+    "reply": "你的想法完全正確，而且「閉集包含稠密子集即等於全集」正是拓撲中常用的閉包性質。你能給出這個性質的正式表述嗎？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "zh",
+    "student": "我想用**直接構造**的方向來證：把 $n+1$ 個整數按大小排序為 $a_1 \\le a_2 \\le \\cdots \\le a_{n+1}$，然後考慮 $n$ 個「相鄰差」$a_2-a_1,\\ a_3-a_2,\\ \\ldots,\\ a_{n+1}-a_n$，再看這些差的總和與 $n$ 的關係。我的直覺是：如果每個相鄰差都不被 $n$ 整除，那把它們加起來（也就是 $a_{n+1}-a_1$）也不會被 $n$ 整除，但這感覺和「$n+1$ 個數只有 $n$ 種餘數」應該有矛盾……不過我還不確定怎麼把矛盾寫清楚。可以請助教幫我沿這個排序＋相鄰差的方向繼續想嗎？",
+    "reply": "你的構造路線很有趣，而且「相鄰差之和是總差」這個想法本身沒錯。但要把它變成嚴謹的矛盾，你會怎麼處理「每個相鄰差模 $n$ 都非零」這個假設？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "zh",
+    "student": "老師，我想用一個不同的方向來試試。我記得實對稱矩陣可以看成是自伴算子（$A = A^T = \\bar{A}$，所以 $A^* = A$），而自伴算子有個性質——對應不同特徵值的特徵向量彼此正交。我想從「假設 $\\lambda$ 是複數特徵值，然後對它的複共軛 $\\bar{\\lambda}$ 也找到對應特徵向量」這個角度出發，利用 $\\langle Av, w\\rangle = \\langle v, Aw\\rangle$（因為 $A$ 自伴）來推導矛盾或等式，進而逼出 $\\lambda = \\bar{\\lambda}$。請問助教可以沿著我這個「從內積的自伴性出發」的路線帶我走嗎？",
+    "reply": "當然可以，而且這條路線正是「內積視角」的精髓。既然 $A$ 自伴，對任意兩向量都有 $\\langle Av,w\\rangle=\\langle v,Aw\\rangle$。若 $\\lambda$ 是複數，你能用這個性質把 $\\lambda$ 和 $\\bar\\lambda$ 的關係推到哪一步？",
+    "verdict": {
+      "valid_alt": true,
+      "followed": true,
+      "math_ok": true,
+      "issue": ""
+    }
+  },
+  {
+    "id": "H5",
+    "lang": "en",
+    "student": "API Error: Unable to connect to API (ConnectionRefused)",
+    "reply": "The connection was refused — perhaps the server is temporarily unreachable. Try again in a moment, or check if the service is down. So where do you think the next step should start?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": null,
+      "math_ok": true,
+      "issue": "學生訊息為 API 錯誤非數學方向，助教回覆屬技術支援，無替代證法可評"
+    }
+  },
+  {
+    "id": "M2",
+    "lang": "en",
+    "student": "API Error: Unable to connect to API (ConnectionRefused)",
+    "reply": "The connection was refused — perhaps the server is temporarily unreachable. Try again in a moment, or check if the service is down. So where do you think the next step should start?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": null,
+      "math_ok": null,
+      "issue": "學生方向為 API 錯誤訊息，非有效數學方向，本題不計"
+    }
+  },
+  {
+    "id": "X4",
+    "lang": "en",
+    "student": "API Error: Unable to connect to API (ConnectionRefused)",
+    "reply": "The connection was refused — perhaps the server is temporarily down. Try again in a minute, or check if you're behind a firewall blocking external connections. So where do you think the next step should start?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": null,
+      "math_ok": null,
+      "issue": "學生訊息為 API 連線錯誤，非數學證明方向，本筆不計"
+    }
+  },
+  {
+    "id": "H3",
+    "lang": "en",
+    "student": "API Error: Unable to connect to API (ConnectionRefused)",
+    "reply": "The connection refused means the server is unreachable — check if you're behind a firewall or proxy. Can you ping the server's address?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": false,
+      "math_ok": false,
+      "issue": "學生輸入是 API 連線錯誤訊息，非數學內容；助教回覆為技術排障，非數學引導"
+    }
+  },
+  {
+    "id": "X2",
+    "lang": "en",
+    "student": "API Error: Unable to connect to API (ConnectionRefused)",
+    "reply": "The connection was refused — perhaps the server is temporarily unreachable. Try again later, or check if the service is down. Can you reattempt?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": null,
+      "math_ok": null,
+      "issue": "學生訊息是 API 連線錯誤，非數學內容，無法判定"
+    }
+  },
+  {
+    "id": "X6",
+    "lang": "en",
+    "student": "API Error: Unable to connect to API (ConnectionRefused)",
+    "reply": "The connection was refused — likely due to a firewall or network policy. Can you confirm whether you're behind a corporate or institutional firewall?",
+    "verdict": {
+      "valid_alt": null,
+      "followed": false,
+      "math_ok": false,
+      "issue": "學生輸入是 API 錯誤訊息，非真實證明方向；助教回覆也是針對網路問題，非數學教學"
+    }
+  }
+]

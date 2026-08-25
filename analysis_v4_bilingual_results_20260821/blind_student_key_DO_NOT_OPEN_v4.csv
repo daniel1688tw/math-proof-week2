@@ -1,0 +1,331 @@
+﻿blind_id,condition,language_mode
+S-C1-first_hint-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C1-first_hint-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-C1-first_hint-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-C1-first_hint-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C1-first_hint-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C1-first_hint-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C1-pressure-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C1-pressure-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C1-pressure-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-C1-pressure-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-C1-pressure-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C1-pressure-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C1-wrong_attempt-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-C1-wrong_attempt-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C1-wrong_attempt-ZH-R3,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C1-wrong_attempt-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C1-wrong_attempt-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-C1-wrong_attempt-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C2-first_hint-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C2-first_hint-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-C2-first_hint-ZH-R3,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C2-first_hint-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-C2-first_hint-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C2-first_hint-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C2-pressure-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C2-pressure-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C2-pressure-ZH-R3,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C2-pressure-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-C2-pressure-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C2-pressure-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-C2-wrong_attempt-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-C2-wrong_attempt-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C2-wrong_attempt-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C2-wrong_attempt-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-C2-wrong_attempt-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C2-wrong_attempt-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C3-first_hint-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C3-first_hint-ZH-R2,LoRA-only,en_problem_zh_dialogue
+S-C3-first_hint-ZH-R3,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C3-first_hint-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C3-first_hint-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C3-first_hint-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-C3-high_logic-EN-R1,Base-Instruct + 4-Shot,en_problem_en_dialogue
+S-C3-high_logic-EN-R2,LoRA + Instruct-Review,en_problem_en_dialogue
+S-C3-high_logic-EN-R3,Base-Thinking + Prompt,en_problem_en_dialogue
+S-C3-high_logic-EN-R4,LoRA-only,en_problem_en_dialogue
+S-C3-high_logic-EN-R5,Full-Project,en_problem_en_dialogue
+S-C3-high_logic-EN-R6,Base-Instruct + Prompt,en_problem_en_dialogue
+S-C3-high_logic-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C3-high_logic-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C3-high_logic-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C3-high_logic-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C3-high_logic-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-C3-high_logic-ZH-R6,LoRA-only,en_problem_zh_dialogue
+S-C3-pressure-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C3-pressure-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C3-pressure-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C3-pressure-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-C3-pressure-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-C3-pressure-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C3-wrong_attempt-ZH-R1,Full-Project,en_problem_zh_dialogue
+S-C3-wrong_attempt-ZH-R2,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-C3-wrong_attempt-ZH-R3,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-C3-wrong_attempt-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-C3-wrong_attempt-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-C3-wrong_attempt-ZH-R6,LoRA-only,en_problem_zh_dialogue
+S-D1-first_hint-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D1-first_hint-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D1-first_hint-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-D1-first_hint-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D1-first_hint-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-D1-first_hint-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D1-pressure-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D1-pressure-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D1-pressure-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-D1-pressure-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-D1-pressure-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D1-pressure-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D1-wrong_attempt-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D1-wrong_attempt-ZH-R2,LoRA-only,en_problem_zh_dialogue
+S-D1-wrong_attempt-ZH-R3,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D1-wrong_attempt-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D1-wrong_attempt-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-D1-wrong_attempt-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D2-first_hint-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D2-first_hint-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-D2-first_hint-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-D2-first_hint-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D2-first_hint-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D2-first_hint-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D2-pressure-ZH-R1,Full-Project,en_problem_zh_dialogue
+S-D2-pressure-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D2-pressure-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D2-pressure-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D2-pressure-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-D2-pressure-ZH-R6,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D2-wrong_attempt-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D2-wrong_attempt-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D2-wrong_attempt-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D2-wrong_attempt-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-D2-wrong_attempt-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-D2-wrong_attempt-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D3-first_hint-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D3-first_hint-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D3-first_hint-ZH-R3,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D3-first_hint-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-D3-first_hint-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-D3-first_hint-ZH-R6,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D3-high_logic-EN-R1,LoRA-only,en_problem_en_dialogue
+S-D3-high_logic-EN-R2,Full-Project,en_problem_en_dialogue
+S-D3-high_logic-EN-R3,Base-Instruct + 4-Shot,en_problem_en_dialogue
+S-D3-high_logic-EN-R4,LoRA + Instruct-Review,en_problem_en_dialogue
+S-D3-high_logic-EN-R5,Base-Thinking + Prompt,en_problem_en_dialogue
+S-D3-high_logic-EN-R6,Base-Instruct + Prompt,en_problem_en_dialogue
+S-D3-high_logic-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-D3-high_logic-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D3-high_logic-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D3-high_logic-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D3-high_logic-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D3-high_logic-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-D3-pressure-ZH-R1,Full-Project,en_problem_zh_dialogue
+S-D3-pressure-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D3-pressure-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-D3-pressure-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D3-pressure-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D3-pressure-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-D3-wrong_attempt-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-D3-wrong_attempt-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-D3-wrong_attempt-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-D3-wrong_attempt-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-D3-wrong_attempt-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-D3-wrong_attempt-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I1-first_hint-ZH-R1,Full-Project,en_problem_zh_dialogue
+S-I1-first_hint-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I1-first_hint-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I1-first_hint-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I1-first_hint-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I1-first_hint-ZH-R6,LoRA-only,en_problem_zh_dialogue
+S-I1-pressure-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I1-pressure-ZH-R2,LoRA-only,en_problem_zh_dialogue
+S-I1-pressure-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I1-pressure-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I1-pressure-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-I1-pressure-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I1-wrong_attempt-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I1-wrong_attempt-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I1-wrong_attempt-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-I1-wrong_attempt-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-I1-wrong_attempt-ZH-R5,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I1-wrong_attempt-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I2-first_hint-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I2-first_hint-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I2-first_hint-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I2-first_hint-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-I2-first_hint-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-I2-first_hint-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I2-pressure-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I2-pressure-ZH-R2,LoRA-only,en_problem_zh_dialogue
+S-I2-pressure-ZH-R3,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I2-pressure-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I2-pressure-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-I2-pressure-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I2-wrong_attempt-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I2-wrong_attempt-ZH-R2,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I2-wrong_attempt-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-I2-wrong_attempt-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-I2-wrong_attempt-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I2-wrong_attempt-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I3-first_hint-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I3-first_hint-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I3-first_hint-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I3-first_hint-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-I3-first_hint-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I3-first_hint-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-I3-high_logic-EN-R1,Base-Thinking + Prompt,en_problem_en_dialogue
+S-I3-high_logic-EN-R2,LoRA + Instruct-Review,en_problem_en_dialogue
+S-I3-high_logic-EN-R3,Base-Instruct + 4-Shot,en_problem_en_dialogue
+S-I3-high_logic-EN-R4,Full-Project,en_problem_en_dialogue
+S-I3-high_logic-EN-R5,LoRA-only,en_problem_en_dialogue
+S-I3-high_logic-EN-R6,Base-Instruct + Prompt,en_problem_en_dialogue
+S-I3-high_logic-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I3-high_logic-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I3-high_logic-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I3-high_logic-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I3-high_logic-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-I3-high_logic-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-I3-pressure-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I3-pressure-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I3-pressure-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-I3-pressure-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I3-pressure-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-I3-pressure-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-I3-wrong_attempt-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-I3-wrong_attempt-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-I3-wrong_attempt-ZH-R3,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-I3-wrong_attempt-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-I3-wrong_attempt-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-I3-wrong_attempt-ZH-R6,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L1-first_hint-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L1-first_hint-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L1-first_hint-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L1-first_hint-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L1-first_hint-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-L1-first_hint-ZH-R6,LoRA-only,en_problem_zh_dialogue
+S-L1-pressure-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L1-pressure-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L1-pressure-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-L1-pressure-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L1-pressure-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-L1-pressure-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L1-wrong_attempt-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L1-wrong_attempt-ZH-R2,LoRA-only,en_problem_zh_dialogue
+S-L1-wrong_attempt-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L1-wrong_attempt-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-L1-wrong_attempt-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L1-wrong_attempt-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L2-first_hint-ZH-R1,Full-Project,en_problem_zh_dialogue
+S-L2-first_hint-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L2-first_hint-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L2-first_hint-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L2-first_hint-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-L2-first_hint-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L2-pressure-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-L2-pressure-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L2-pressure-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L2-pressure-ZH-R4,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L2-pressure-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-L2-pressure-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L2-wrong_attempt-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-L2-wrong_attempt-ZH-R2,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L2-wrong_attempt-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-L2-wrong_attempt-ZH-R4,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L2-wrong_attempt-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L2-wrong_attempt-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L3-first_hint-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-L3-first_hint-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L3-first_hint-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-L3-first_hint-ZH-R4,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L3-first_hint-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L3-first_hint-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L3-high_logic-EN-R1,Base-Thinking + Prompt,en_problem_en_dialogue
+S-L3-high_logic-EN-R2,Base-Instruct + Prompt,en_problem_en_dialogue
+S-L3-high_logic-EN-R3,Full-Project,en_problem_en_dialogue
+S-L3-high_logic-EN-R4,LoRA + Instruct-Review,en_problem_en_dialogue
+S-L3-high_logic-EN-R5,Base-Instruct + 4-Shot,en_problem_en_dialogue
+S-L3-high_logic-EN-R6,LoRA-only,en_problem_en_dialogue
+S-L3-high_logic-ZH-R1,Full-Project,en_problem_zh_dialogue
+S-L3-high_logic-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L3-high_logic-ZH-R3,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L3-high_logic-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-L3-high_logic-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L3-high_logic-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L3-pressure-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-L3-pressure-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-L3-pressure-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L3-pressure-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L3-pressure-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L3-pressure-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L3-wrong_attempt-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-L3-wrong_attempt-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-L3-wrong_attempt-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-L3-wrong_attempt-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-L3-wrong_attempt-ZH-R5,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-L3-wrong_attempt-ZH-R6,LoRA-only,en_problem_zh_dialogue
+S-S1-first_hint-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S1-first_hint-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S1-first_hint-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S1-first_hint-ZH-R4,Full-Project,en_problem_zh_dialogue
+S-S1-first_hint-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-S1-first_hint-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S1-pressure-ZH-R1,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S1-pressure-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-S1-pressure-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S1-pressure-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S1-pressure-ZH-R5,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S1-pressure-ZH-R6,LoRA-only,en_problem_zh_dialogue
+S-S1-wrong_attempt-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-S1-wrong_attempt-ZH-R2,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S1-wrong_attempt-ZH-R3,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S1-wrong_attempt-ZH-R4,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S1-wrong_attempt-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-S1-wrong_attempt-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S2-first_hint-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S2-first_hint-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S2-first_hint-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-S2-first_hint-ZH-R4,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S2-first_hint-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S2-first_hint-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-S2-pressure-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-S2-pressure-ZH-R2,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S2-pressure-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-S2-pressure-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S2-pressure-ZH-R5,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S2-pressure-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S2-wrong_attempt-ZH-R1,LoRA-only,en_problem_zh_dialogue
+S-S2-wrong_attempt-ZH-R2,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S2-wrong_attempt-ZH-R3,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S2-wrong_attempt-ZH-R4,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S2-wrong_attempt-ZH-R5,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S2-wrong_attempt-ZH-R6,Full-Project,en_problem_zh_dialogue
+S-S3-first_hint-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S3-first_hint-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S3-first_hint-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-S3-first_hint-ZH-R4,LoRA-only,en_problem_zh_dialogue
+S-S3-first_hint-ZH-R5,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S3-first_hint-ZH-R6,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S3-high_logic-EN-R1,LoRA-only,en_problem_en_dialogue
+S-S3-high_logic-EN-R2,Base-Instruct + 4-Shot,en_problem_en_dialogue
+S-S3-high_logic-EN-R3,Base-Thinking + Prompt,en_problem_en_dialogue
+S-S3-high_logic-EN-R4,Full-Project,en_problem_en_dialogue
+S-S3-high_logic-EN-R5,Base-Instruct + Prompt,en_problem_en_dialogue
+S-S3-high_logic-EN-R6,LoRA + Instruct-Review,en_problem_en_dialogue
+S-S3-high_logic-ZH-R1,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S3-high_logic-ZH-R2,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S3-high_logic-ZH-R3,LoRA-only,en_problem_zh_dialogue
+S-S3-high_logic-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S3-high_logic-ZH-R5,Full-Project,en_problem_zh_dialogue
+S-S3-high_logic-ZH-R6,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S3-pressure-ZH-R1,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S3-pressure-ZH-R2,Full-Project,en_problem_zh_dialogue
+S-S3-pressure-ZH-R3,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S3-pressure-ZH-R4,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S3-pressure-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-S3-pressure-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue
+S-S3-wrong_attempt-ZH-R1,Base-Thinking + Prompt,en_problem_zh_dialogue
+S-S3-wrong_attempt-ZH-R2,LoRA + Instruct-Review,en_problem_zh_dialogue
+S-S3-wrong_attempt-ZH-R3,Full-Project,en_problem_zh_dialogue
+S-S3-wrong_attempt-ZH-R4,Base-Instruct + Prompt,en_problem_zh_dialogue
+S-S3-wrong_attempt-ZH-R5,LoRA-only,en_problem_zh_dialogue
+S-S3-wrong_attempt-ZH-R6,Base-Instruct + 4-Shot,en_problem_zh_dialogue

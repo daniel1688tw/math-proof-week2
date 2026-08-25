@@ -1,0 +1,7 @@
+﻿condition,turn_degradation_slope
+Base-Instruct + 4-Shot,-0.004195804195804236
+Base-Instruct + Prompt,-0.004615384615384638
+Base-Thinking + Prompt,0.00293706293706291
+Full-Project,-0.00013986013986014436
+LoRA + Instruct-Review,-3.298709755237954e-17
+LoRA-only,-0.004615384615384638

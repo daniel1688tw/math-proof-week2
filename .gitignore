@@ -1,0 +1,47 @@
+# 大型模型權重與量化檔（不進 repo，本機/HF Hub 管理）
+learn_path/socratic_tutor/qwen3_4b/
+gguf/
+*.gguf
+*.pt
+*.bin
+
+# LoRA adapter 權重（>100MB，超過 GitHub 單檔硬限制；程式碼與資料集已足夠重現訓練）
+qlora_adapter/
+qlora_adapter_*/
+dataset/qlora_adapter*/
+*.safetensors
+
+# build.py 的中間產物
+dataset/dialogues_core.jsonl
+dataset/dialogues_augmented.jsonl
+
+# Python
+__pycache__/
+*.pyc
+
+# 備份與暫存目錄
+.codex_backup_*
+download_temp/
+*.tmp
+
+# 工具與環境本機設定
+.claude/*
+!.claude/skills/
+.agents/*
+!.agents/skills/
+
+# 訓練/評估 log 與打包產物
+*.log
+*.zip
+qlora8b_adapter_v*/
+
+# 伺服器訓練的本地暫存
+server_train/workspace/out/
+server_train/workspace/hf_cache/
+
+# 機密：伺服器/主機清單與連線指令
+COMMANDS.md
+
+# 本機探索用 notebook
+test.ipynb
+train.ipynb

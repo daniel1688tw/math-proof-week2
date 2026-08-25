@@ -1,0 +1,11 @@
+{
+  "N1": [
+    "在步驟 'f(x) > L-1 > 0' 中，學生未證明 $L - 1 > 0$，而 $L > 0$ 不能保證 $L - 1 > 0$"
+  ],
+  "N2": [
+    "The student assumes that $A$ lies between $f(a)$ and $f(b)$ without justification, but the average value $A$ may not lie in $[f(a), f(b)]$ (e.g., for $f(x) = (x-1)^2$ on $[0,2]$)."
+  ],
+  "N3": [
+    "在步驟 'since f(0)=f(2), we have g(0)=g(1)' 中，錯誤地斷言 g(0) 等於 g(1)，而實際上 g(0) = f(0) - f(1) 且 g(1) = f(1) - f(2) = f(1) - f(0) = - (f(0) - f(1)) = -g(0)，因此 g(0) = -g(1)"
+  ]
+}
