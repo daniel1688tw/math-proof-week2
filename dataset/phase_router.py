@@ -425,6 +425,7 @@ active_clarification, not_applicable, uncertain。
 27. requested_writer 只描述目前訊息要求「誰」寫完整證明／解答：要求 Tutor 提供是
     tutor；要求系統叫學生自己提交是 student；沒有這個要求是 none；無法判定才是
     uncertain。這與學生是否已經準備好交稿是兩回事。
+28. 學生若指出一個已知數學主張及欲得到的主張，並詢問兩者如何連接（例如「我不知道要怎麼從 A 推導到 B」），屬於 active_clarification，intent 判為 request_hint，不論是否有問號。
 
 JSON 欄位固定為 intent, scope, learning_state, answers_current_question,
 has_actionable_math, advances_solution, requested_writer, phase_confidence, stuck_confidence,
@@ -546,7 +547,7 @@ def _context_phase(context: dict) -> str:
     return "guide"
 
 
-def _action_for_intent(intent: str, phase: str) -> str:
+def _action_for_intent(intent: str, phase: str, learning_state: str = "") -> str:
     if phase == "closed":
         return "post_completion_reply"
     if phase == "walkthrough":
@@ -555,7 +556,7 @@ def _action_for_intent(intent: str, phase: str) -> str:
         return "refuse_tutor_write"
     if intent in {"show_attempt", "local_revision", "full_proof_submission"}:
         return "review_local_revision" if phase == "review" else "respond_attempt"
-    if intent == "request_hint":
+    if intent == "request_hint" or learning_state == "active_clarification":
         return "answer_clarification"
     return "normal_guide"
 
@@ -744,7 +745,7 @@ def route_student_state(student_text: str, context: dict, *,
     if learning == "not_applicable":
         learning = base.learning_state
     return _decision(
-        phase, intent, learning, turn_action=_action_for_intent(intent, phase),
+        phase, intent, learning, turn_action=_action_for_intent(intent, phase, learning),
         source="thinking", evidence=judged["evidence"],
         answers_current_question=judged.get("answers_current_question"),
         has_actionable_math=judged.get("has_actionable_math"),

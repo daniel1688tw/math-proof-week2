@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """test_driver_unit.py — tutor_driver 的純邏輯單元測試（不載模型、不需 GPU、不打 Ollama）。"""
 import json
 import os
@@ -2508,6 +2508,124 @@ try:
           and _closed_summary.get("event") == "REVIEW_PASSED")
 finally:
     _phase_router._model_classify = _orig_model_classify
+
+print("[34] 核心優化：學生所有權隔離、無問號橋接問題、正向承接審查與上下文對齊保底")
+# 1. P0-1: 學生所有權隔離（Tutor 曾提示過，學生後續親自推導不被剝奪所有權）
+p01_driver = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+p01_driver.messages = [
+    {"role": "user", "content": "題目：證明極限為 0。"},
+    {"role": "assistant", "content": "試著考慮輔助函數 $g(x) = f(x) + 4x^2$。"},
+]
+check("P0-1: 學生推導 Tutor 曾提過的式子仍視為新進度",
+      p01_driver._has_new_math("那我令 $g(x) = f(x) + 4x^2$ 並計算 $g''(x) = f''(x) + 8$。"))
+ctx01 = p01_driver._student_state_context("那我令 $g(x) = f(x) + 4x^2$。")
+check("P0-1: context 中 repeats_prior_math 不受 assistant 訊息污染",
+      not ctx01.get("repeats_prior_math"))
+
+# 2. P0-2: 無問號局部橋接釐清（「我不知道要怎麼從 A 推導到 B」）
+check("P0-2: 無問號中文兩點橋接請求識別為具體問題",
+      p01_driver._asks_specific_math_question("我不知道要怎麼從 $g''(c)=0$ 推導到 $f''(c)=-8$"))
+check("P0-2: 無問號英文兩點橋接請求識別為具體問題",
+      p01_driver._asks_specific_math_question("I cannot see how to derive f''(c)=-8 from g''(c)=0"))
+
+# 3. P0-3 & P0-4: 審查器正向承接與錯誤類型分離
+p03_driver = _StubDriver(tok=None, model=_StubModel(), problem=probs["A6"])
+# 學生有步驟，但 Tutor 給予空泛問句（addresses_latest_student_step=False）
+review_unaddressed = {
+    "latest_student_step_status": "correct",
+    "first_missing_step": "由 g''(c)=0 推出 f''(c)=-8",
+    "candidate_math_error": "",
+    "candidate_ownership_error": "",
+    "addresses_latest_student_step": False,
+    "mathematically_correct": True,
+    "level_policy_pass": True,
+    "introduces_new_proof_idea": False,
+    "completes_any_unfinished_step": False,
+    "leaks_final_conclusion": False,
+    "ready_for_writeup": False,
+    "missing_core_step": "由 g''(c)=0 推出 f''(c)=-8",
+    "readiness_confidence": 0.5,
+    "feedback": "候選未承接學生最新步驟",
+}
+check("P0-3: 學生有步驟時，候選未承接學生最新步驟（addresses_latest_student_step=False）退件",
+      not p03_driver._guide_reply_review_passes(review_unaddressed, 1))
+
+# Tutor 含有明確數學錯誤（candidate_math_error）
+review_math_err = {
+    "latest_student_step_status": "correct",
+    "first_missing_step": "",
+    "candidate_math_error": "目標常數應為 -8，但候選寫成 8",
+    "candidate_ownership_error": "",
+    "addresses_latest_student_step": True,
+    "mathematically_correct": True,
+    "level_policy_pass": True,
+    "introduces_new_proof_idea": False,
+    "completes_any_unfinished_step": False,
+    "leaks_final_conclusion": False,
+    "ready_for_writeup": False,
+    "missing_core_step": "",
+    "readiness_confidence": 0.5,
+    "feedback": "候選包含常數符號錯誤",
+}
+check("P0-4: 候選包含具體數學錯誤（candidate_math_error）退件",
+      not p03_driver._guide_reply_review_passes(review_math_err, 1))
+
+# Tutor 含有所有權假定錯誤（candidate_ownership_error）
+review_owner_err = {
+    "latest_student_step_status": "correct",
+    "first_missing_step": "",
+    "candidate_math_error": "",
+    "candidate_ownership_error": "學生尚未計算 Rolle 定理，Tutor 宣稱學生已得出 g''(c)=0",
+    "addresses_latest_student_step": True,
+    "mathematically_correct": True,
+    "level_policy_pass": True,
+    "introduces_new_proof_idea": False,
+    "completes_any_unfinished_step": False,
+    "leaks_final_conclusion": False,
+    "ready_for_writeup": False,
+    "missing_core_step": "",
+    "readiness_confidence": 0.5,
+    "feedback": "候選把 Tutor 先前步驟當作學生完成",
+}
+check("P0-4: 候選包含虛假所有權歸因（candidate_ownership_error）退件",
+      not p03_driver._guide_reply_review_passes(review_owner_err, 1))
+
+# 4. P1-1: Level Policy 與 Readiness 解耦（數學正確、所有權安全、正向承接時放行）
+review_level_soft = {
+    "latest_student_step_status": "correct",
+    "first_missing_step": "利用 Rolle 定理",
+    "candidate_math_error": "",
+    "candidate_ownership_error": "",
+    "addresses_latest_student_step": True,
+    "mathematically_correct": True,
+    "level_policy_pass": False,
+    "introduces_new_proof_idea": False,
+    "completes_any_unfinished_step": False,
+    "leaks_final_conclusion": False,
+    "ready_for_writeup": False,
+    "missing_core_step": "利用 Rolle 定理",
+    "readiness_confidence": 0.5,
+    "feedback": "提示深度略深但數學正確且正向承接",
+}
+check("P1-1: 數學正確且無洩漏時，level_policy 不單獨作為退件理由",
+      p03_driver._guide_reply_review_passes(review_level_soft, 2))
+
+# 5. P1-3: 上下文對齊的保底回覆
+p03_driver.state["guide_reply_review"] = {
+    "initial": {
+        "latest_student_step_status": "correct",
+        "first_missing_step": "利用 Rolle 定理找 g''(c)=0",
+    }
+}
+fb_zh = p03_driver._safe_guide_review_fallback()
+check("P1-3: 中文保底回覆對齊第一缺口",
+      "利用 Rolle 定理找 g''(c)=0" in fb_zh and "很好，這一步是成立的" in fb_zh)
+
+p03_driver.state["lang"] = "en"
+fb_en = p03_driver._safe_guide_review_fallback()
+check("P1-3: 英文保底回覆對齊第一缺口",
+      "利用 Rolle 定理找 g''(c)=0" in fb_en and "Good, that step is established" in fb_en)
+p03_driver.state["lang"] = "zh"
 
 print()
 if FAIL:

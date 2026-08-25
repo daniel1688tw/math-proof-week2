@@ -728,6 +728,47 @@ def test_closed_proof_correctness_messages_always_recheck() -> None:
         review_backstop.review_full_proof = original_review
 
 
+def test_guide_reply_reviewer_schema_and_separation() -> None:
+    """測試引導回覆審查器之最新 Schema 解析與錯誤欄位分離 (P0-3, P0-4, P1-1)。"""
+    driver = TutorDriver(tok=None, model=None, problem={"id": "T1", "statement": "Test", "reference_proof": "Proof"}, backstop=True)
+    driver.state.update(phase="guide", turn_action="respond_attempt")
+
+    raw_json = json.dumps({
+        "latest_student_step_status": "correct",
+        "first_missing_step": "建立不等式下界",
+        "candidate_math_error": "",
+        "candidate_ownership_error": "",
+        "addresses_latest_student_step": True,
+        "mathematically_correct": True,
+        "level_policy_pass": True,
+        "introduces_new_proof_idea": False,
+        "completes_any_unfinished_step": False,
+        "leaks_final_conclusion": False,
+        "ready_for_writeup": False,
+        "missing_core_step": "建立不等式下界",
+        "readiness_confidence": 0.75,
+        "feedback": "學生已正確求出導數",
+    })
+
+    original_retry_parsed = review_backstop._retry_parsed
+
+    def fake_retry_parsed(system, user, parser, **kwargs):
+        return parser(raw_json)
+
+    review_backstop._retry_parsed = fake_retry_parsed
+    try:
+        parsed = driver._review_guide_reply("做得好，求出導數後下一步是什麼？", 1)
+        assert parsed is not None
+        assert parsed["latest_student_step_status"] == "correct"
+        assert parsed["first_missing_step"] == "建立不等式下界"
+        assert parsed["candidate_math_error"] == ""
+        assert parsed["candidate_ownership_error"] == ""
+        assert parsed["addresses_latest_student_step"] is True
+        assert driver._guide_reply_review_passes(parsed, 1) is True
+    finally:
+        review_backstop._retry_parsed = original_retry_parsed
+
+
 if __name__ == "__main__":
     test_native_schema_and_review_failure_diagnostics()
     test_issue_parser_and_two_pass_root_dedup()
@@ -747,4 +788,5 @@ if __name__ == "__main__":
     test_unactionable_issue_never_enters_local_revision_queue()
     test_review_workflow_consumes_one_router_decision_per_turn()
     test_closed_proof_correctness_messages_always_recheck()
+    test_guide_reply_reviewer_schema_and_separation()
     print("test_review_workflow: all passed")

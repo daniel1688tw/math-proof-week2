@@ -276,6 +276,19 @@ check("phase 報告含 event/action/前後 phase",
 check("運行時 phase 永遠只屬於四種值",
       ready_driver.state["phase"] in PHASES and walk.state["phase"] in PHASES)
 
+print("[7] 局部橋接釐清意圖與 action 映射 (P0-2)")
+clarify_context = {
+    "phase": "guide", "peer": False,
+    "asks_specific_question": True, "attempt_content": False,
+    "strong_stuck": False, "attempt": False, "has_new_math": False,
+}
+dec_zh = route_student_state("我不知道要怎麼從 $g''(c)=0$ 推導到 $f''(c)=-8$", clarify_context, thinking_enabled=False)
+check("無問號局部橋接中文請求路由至 answer_clarification",
+      dec_zh.turn_action == "answer_clarification" and dec_zh.intent == "request_hint")
+
+dec_en = route_student_state("I do not see how to get from premise A to conclusion B", clarify_context, thinking_enabled=False)
+check("無問號局部橋接英文請求路由至 answer_clarification",
+      dec_en.turn_action == "answer_clarification" and dec_en.intent == "request_hint")
 
 if FAIL:
     print(f"\n{len(FAIL)} 項失敗：")

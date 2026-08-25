@@ -68,21 +68,22 @@ BASE_SYSTEM_EN = """You are a Socratic tutor for advanced mathematics proofs. Th
 </REFERENCE_PROOF>"""
 
 LEVEL_INSTRUCTIONS = {
-    0: "本輪指示：只問一個聚焦問題，不要點名任何定理或技巧名稱，讓學生自己想方向。",
-    1: "本輪指示：學生剛才答不出來。把上一個問題拆成更小、更具體的子問題再問一次，仍然不要點名定理或技巧名稱。",
-    2: "本輪指示：學生已第二次無法回答同一段推導。只根據 <REFERENCE_PROOF> 與目前對話，找出緊接在學生已完成內容之後、尚未完成的第一個必要證明連結。第一句明確點出該連結需要的定理、技巧或概念方向；若沒有公認名稱，就用純文字描述一個方向。不得引用或改寫整段參考證明，不得跳到更後面的步驟，不得新增任何等式、不等式或計算結果。第二句只問一個具體問題，讓學生自己執行下一步。",
+    0: "本輪指示：只問一個宏觀聚焦問題，著重於整體證明目標與數學直覺，不要點名任何定理或技巧名稱，讓學生自己想方向。",
+    1: "本輪指示：學生剛才答不出來。把問題拆解為具體子問題，引導學生觀察題設中的關鍵條件、數值或局部性質，提供思考支架，仍然不要直接點名定理名稱。",
+    2: "本輪指示：學生已第二次無法回答同一段推導。只根據 <REFERENCE_PROOF> 與目前對話，找出緊接在學生已完成內容之後的第一個必要證明連結。第一句明確點出該連結需要的關鍵定理、技巧、概念方向或輔助構造形態；不得替學生代寫後續運算推導，不得給出最終結論。第二句只問一個具體問題，讓學生自己動手執行下一步推導。",
 }
 
 LEVEL_INSTRUCTIONS_EN = {
-    0: "This turn: ask exactly one focused question. Do not name any theorem or technique; let the student find the direction themselves.",
-    1: "This turn: the student just failed to answer. Break your previous question into a smaller, more concrete sub-question and ask again. Still do not name any theorem or technique.",
-    2: "This turn: the student has now failed twice on the same part of the derivation. Using only <REFERENCE_PROOF> and the conversation, identify the first necessary proof link immediately after the student's last completed step. In the first sentence, explicitly name the theorem, technique, or conceptual direction needed for that link; if it has no standard name, describe one direction in words. Do not quote or paraphrase a stretch of the reference proof, jump ahead, or introduce any new equation, inequality, or computed result. In the second sentence, ask exactly one concrete question that lets the student carry out the next step.",
+    0: "This turn: ask exactly one high-level focused question on the overall goal and intuition. Do not name any theorem or technique; let the student find the direction themselves.",
+    1: "This turn: the student just failed to answer. Break your previous question into a more concrete sub-question, guiding the student to observe specific conditions, values, or local properties from the statement as a scaffold. Still do not directly name any theorem.",
+    2: "This turn: the student has now failed twice on the same part of the derivation. Using only <REFERENCE_PROOF> and the conversation, identify the first necessary proof link immediately after the student's last completed step. In the first sentence, explicitly name the key theorem, technique, conceptual direction, or auxiliary construct needed for that link; do not write out the subsequent algebraic derivations or final conclusion. In the second sentence, ask exactly one concrete question that lets the student carry out the next step themselves.",
 }
 
 # 卡住偵測：短回覆且含「答不出」語彙（確定性、可測試）
 _STUCK_RE = re.compile(
     r"不知道|不會|想不到|想不出|沒(有)?頭緒|不確定|不太?懂|不明白|卡住|再提示|"
-    r"沒(有)?想法|毫無頭緒|毫無概念|完全沒(有)?概念|一頭霧水|"
+    r"沒(有)?想法|毫無頭緒|毫無概念|毫無思緒|完全沒(有)?概念|一頭霧水|"
+    r"百思不解|百思不得其解|黔驢技窮|束手無策|心有餘而力不足|丈二金剛|一竅不通|一籌莫展|無計可施|毫無辦法|"
     r"(?:好|很|十分|非常|相當)?困惑|(?:好|很|十分|非常|相當)?迷惘|"
     r"(?:好|很|十分|非常|相當)?茫然|完全陌生|不熟悉|跟不上|無法理解"
 )
@@ -99,7 +100,8 @@ _STUCK_EN_RE = re.compile(
 # 強困惑：不受長度門檻限制（學生寫了一段實質嘗試、但明說徹底卡死 → 仍該升級提示，
 # 否則 tutor 只會重述或把問題丟回去——長訊息＋強困惑正是最挫折的時刻）
 _STRONG_STUCK_RE = re.compile(
-    r"毫無頭緒|毫無概念|一頭霧水|完全沒(有)?概念|完全不懂|完全不明白|"
+    r"毫無頭緒|毫無概念|毫無思緒|一頭霧水|完全沒(有)?概念|完全不懂|完全不明白|"
+    r"百思不解|百思不得其解|黔驢技窮|束手無策|心有餘而力不足|丈二金剛|一竅不通|一籌莫展|無計可施|"
     r"完全卡住|完全陌生|真的不會|對.{0,12}毫無概念|對.{0,12}完全陌生|"
     r"聽不懂|看不懂你|不懂你(的)?意思|"
     r"(completely|totally|utterly) (lost|stuck|confused)|no idea at all|"
@@ -737,7 +739,8 @@ def math_text(s: str) -> str:
     字元層級的粗略比對就夠，也才不會被 LaTeX 寫法差異絆倒。
     """
     parts = _MATH_SPAN_RE.findall(s or "")
-    for tok in _MATH_BARE_RE.findall(s or ""):
+    remaining = _MATH_SPAN_RE.sub(" ", s or "")
+    for tok in _MATH_BARE_RE.findall(remaining):
         if re.search(r"[=<>≤≥^_\\]|\d", tok) and re.search(r"[A-Za-z\\]", tok):
             parts.append(tok)
     return _normalize("".join(parts))
@@ -1505,9 +1508,14 @@ class TutorDriver:
         return self.problem["statement"] + student
 
     def _has_new_math(self, student_text: str) -> bool:
-        """學生這則訊息有沒有帶進「對話中尚未出現過」的數學內容。"""
-        return has_new_math(student_text, self.problem.get("statement", "")
-                            + "".join(m["content"] for m in self.messages))
+        """學生這則訊息有沒有帶進「先前學生發言與題目中尚未出現過」的數學內容。
+        
+        排除所有 assistant／Tutor 訊息，避免 Tutor 先前給過提示導致學生後續親自推導被判定為無新內容。
+        """
+        student_prior = self.problem.get("statement", "") + "".join(
+            str(m.get("content") or "") for m in self.messages if m.get("role") == "user"
+        )
+        return has_new_math(student_text, student_prior)
 
     def _is_stuck_now(self, student_text: str) -> bool:
         """相容介面：讀取本輪統一路由器的 learning_state。"""
@@ -1524,14 +1532,21 @@ class TutorDriver:
         """辨識具體釐清問題；「再給提示／怎麼辦」這類泛求助不算。"""
         t = (text or "").strip()
         # 中英文都常以祈使句提出明確釐清（「請解釋為什麼…」），
-        # 不應要求必須有問號才能被認出。這裡辨識的是「請求解釋一個
-        # 具體數學對象」的語法角色，不綁定題型。
+        # 或指明「已知 A、目標 B，詢問 A 如何到 B」的局部橋接問題（「我不知道要怎麼從 A 推導到 B」）。
+        # 不應要求必須有問號才能被認出。這裡辨識的是「請求解釋一個具體數學對象或推理連結」的語法角色，不綁定題型。
+        bridging_request = bool(re.search(
+            r"(?:不知(?:道|得)|不清楚|不懂|請教|想知道|請(?:問|解釋|說明))?.{0,10}"
+            r"(?:如何|怎麼|怎樣)?(?:從|由|將|把)\s*.{1,30}\s*(?:推導|推出|推到|得出|得到|化簡到|連接到|導出|變成|證明出|走到|過渡到)\s*.{1,30}|"
+            r"(?:how|how to|how do (?:we|i)|cannot see how to|not sure how to|do not see how to|don't know how to|don't see how to).{0,20}"
+            r"(?:get|derive|obtain|deduce|go|transition|connect)\s+(?:.{1,30}\s+from\s+.{1,30}|from\s+.{1,30}\s+to\s+.{1,30})",
+            t, re.I
+        ))
         explanatory_request = bool(re.search(
             r"(?:(?:請|麻煩|能否|可以).{0,10})?(?:解釋|說明|釐清|告訴我).{0,12}"
             r"(?:為什麼|為何|如何|怎麼|哪個|何時|何處)|"
             r"(?:(?:please|can you|could you).{0,10})?(?:explain|clarify|show|tell).{0,20}"
             r"(?:why|how|which|when|where)", t, re.I))
-        if not _QMARK_RE.search(t) and not explanatory_request:
+        if not _QMARK_RE.search(t) and not explanatory_request and not bridging_request:
             return False
         if re.fullmatch(
                 r"\s*(我)?(不會|不知道|不懂|沒想法).{0,10}(怎麼辦|可以嗎|嗎)?[?？]?\s*",
@@ -1546,7 +1561,7 @@ class TutorDriver:
             r"定理|定義|前提|條件|符號|等式|不等式|導數|積分|極限|"
             r"why|how does|which (theorem|condition)|what does.{0,12}mean|"
             r"[εδ]|\\(?:epsilon|delta)|\b[a-zA-Z]\b", t, re.I)
-        return bool(concrete and not generic)
+        return bool((concrete or bridging_request) and not generic)
 
     def _is_direct_response_candidate(self, text: str) -> bool:
         """上一問要求短答時，辨認學生確實有作答；不在此判斷答案正誤。"""
@@ -1577,8 +1592,11 @@ class TutorDriver:
                               or _STUCK_RE.search(t) or _STUCK_EN_RE.search(t))
         complete_shape = self._looks_like_complete_proof(t)
         cur_math = math_text(t)
+        # 學生所有權與重複判定只比較題目與學生自己的歷史發言（student-only），
+        # 徹底排除 Tutor 先前提示過的式子與結論，避免污染學生親自推導的進度與所有權。
         prior = self.problem.get("statement", "") + "".join(
-            str(m.get("content") or "") for m in self.messages)
+            str(m.get("content") or "") for m in self.messages if m.get("role") == "user"
+        )
         prior_math = math_text(prior)
         repeats_prior = bool(cur_math and len(cur_math) >= _MATH_MIN_CHARS
                              and cur_math in prior_math)
@@ -1826,13 +1844,15 @@ class TutorDriver:
             system = (
                 "你是幕後的蘇格拉底式引導與交稿準備度合併審查器，只做審查、不要解題。"
                 "請比較題目、參考證明、對話、student_messages 與候選回覆，依序完成："
-                "(1)核對 student_messages 最後一則中的數學步驟；(2)核對 Tutor 候選是否正確處理"
-                "該步；(3)檢查引導政策；(4)獨立判斷學生是否已可交稿。\n"
-                "mathematically_correct 只評 Tutor 候選內的數學敘述，以及 Tutor 對最新學生步驟"
-                "的處理。最新學生步驟若錯，而 Tutor 稱讚、接受、沿用或跳過它，必須判 false；"
-                "若 Tutor 不斷言錯誤，只用聚焦問題要求學生重查該步，則可判 true。學生的證明"
-                "尚未完整，本身絕不能成為 mathematically_correct=false 的理由；完整度只由"
-                "ready_for_writeup 與 missing_core_step 表示。\n"
+                "(1)核對 student_messages 最後一則中的數學步驟狀態 (latest_student_step_status: correct/incorrect/no_step) 與第一個缺少連結 (first_missing_step)。"
+                "(2)核對 Tutor 候選回覆：\n"
+                "   - mathematically_correct 只評 Tutor 候選內的數學敘述，以及 Tutor 對最新學生步驟的處理。最新學生步驟若錯，而 Tutor 稱讚、接受、沿用或跳過它，必須判 false；若 Tutor 不斷言錯誤，只用聚焦問題要求學生重查該步，則可判 true。學生的證明尚未完整，本身絕不能成為 mathematically_correct=false 的理由；候選中若包含符號、常數、正負號、導數階數、不等號或等式推導錯誤，填入 candidate_math_error，否則填空字串。重述題目結論必須與題目數學等價。\n"
+                "   - 是否假定、宣稱或沿用學生尚未親自完成的步驟 (candidate_ownership_error: 若 Tutor 宣稱「你自己已算出/證明了某事」但學生在 student_messages 中未曾算出，填具體主張；否則填空字串)。\n"
+                "   - 是否真正承接並回應最新學生步驟 (addresses_latest_student_step: boolean)。若學生剛答對，Tutor 應簡短確認該步並引導至第一個缺口；若學生答錯，應聚焦引導修正該步；若學生卡住/提問，應引導目前缺口。若學生提出具體步驟，Tutor 卻只說「你想從哪個方向試試看」等空泛無關問句，必須為 false。\n"
+                "   - completes_any_unfinished_step 不只包含 Tutor 直接斷言、計算或推導任何學生尚未完成的中間步驟；也包含假定該步已完成、稱讚錯誤步驟、沿用錯誤結果，或跳過第一個缺口而前往更後面的步驟。即使 Tutor 後面仍留下一個問題，也必須判 true。\n"
+                "   - 是否洩漏題目最終結論 (leaks_final_conclusion: boolean)。\n"
+                "   - level_policy_pass: boolean。\n"
+                "(3)獨立判斷學生整體證明是否已可交稿 (ready_for_writeup, missing_core_step, readiness_confidence, feedback)。\n"
                 "下列規則與題型無關。normal_guide 才使用 level：\n"
                 "L0：只問一個聚焦問題，不可替學生新增定理、技巧、構造或證明步驟。\n"
                 "L1：只把上一問縮小成更具體的子問題，仍不可新增定理、公式或結果。\n"
@@ -1845,24 +1865,14 @@ class TutorDriver:
                 "refuse_tutor_write：必須拒絕代寫，不可提供證明步驟、算式或結論，並用一個問題"
                 "把主導權還給學生。\n"
                 "判斷『學生已提出／已完成』時，只能以 student_messages 為證據；conversation 裡"
-                "Tutor 說過的提示、候選回覆及參考證明只可用於理解順序或核對正確性，絕不能"
-                "取得學生所有權。"
-                "introduces_new_proof_idea 表示 Tutor 是否提出學生尚未提出的定理、輔助物件、"
-                "構造或證明策略；normal_guide 的 L0/L1 或 respond_attempt 若為 true，"
-                "level_policy_pass 必須 false。\n"
-                "completes_any_unfinished_step 不只包含 Tutor 直接斷言、計算或推導任何學生尚未"
-                "完成的中間步驟；也包含假定該步已完成、稱讚錯誤步驟、沿用錯誤結果，或跳過"
-                "第一個缺口而前往更後面的步驟。即使 Tutor 後面仍留下一個問題，也必須判 true。"
-                "answer_clarification 對學生明確詢問的局部連結作必要解釋不算，但超出該局部連結"
-                "並完成後續步驟仍算 true。若 Tutor 說出或推導學生尚未得到的題目最終結論，"
-                "leaks_final_conclusion 為 true。\n"
-                "若 readiness_eligible=true，另從整段對話判斷學生是否已親自提出或正確確認"
-                "參考證明所有不可缺少的證明環節；不要把 Tutor 提供的步驟、學生一句『懂了』或"
-                "候選回覆當成學生已完成的證據。完整才令 ready_for_writeup=true；否則填入第一個"
-                "missing_core_step。若 readiness_eligible=false，ready_for_writeup 必須 false。"
-                "學生若已完整證完，Controller 會忽略 guide policy 並優先要求交稿。"
+                "Tutor 說過的提示、候選回覆及參考證明只可用於理解順序或核對正確性，絕不能取得學生所有權。\n"
                 "只輸出 JSON，且恰有："
-                "{\"mathematically_correct\":true/false,\"level_policy_pass\":true/false,"
+                "{\"latest_student_step_status\":\"correct|incorrect|no_step\","
+                "\"first_missing_step\":\"第一個缺少連結或空字串\","
+                "\"candidate_math_error\":\"候選中的數學錯誤或空字串\","
+                "\"candidate_ownership_error\":\"所有權假定錯誤或空字串\","
+                "\"addresses_latest_student_step\":true/false,"
+                "\"mathematically_correct\":true/false,\"level_policy_pass\":true/false,"
                 "\"introduces_new_proof_idea\":true/false,"
                 "\"completes_any_unfinished_step\":true/false,"
                 "\"leaks_final_conclusion\":true/false,\"ready_for_writeup\":true/false,"
@@ -1873,6 +1883,14 @@ class TutorDriver:
             review_schema = {
                 "type": "object",
                 "properties": {
+                    "latest_student_step_status": {
+                        "type": "string",
+                        "enum": ["correct", "incorrect", "no_step"]
+                    },
+                    "first_missing_step": {"type": "string"},
+                    "candidate_math_error": {"type": "string"},
+                    "candidate_ownership_error": {"type": "string"},
+                    "addresses_latest_student_step": {"type": "boolean"},
                     "mathematically_correct": {"type": "boolean"},
                     "level_policy_pass": {"type": "boolean"},
                     "introduces_new_proof_idea": {"type": "boolean"},
@@ -1885,10 +1903,13 @@ class TutorDriver:
                     "feedback": {"type": "string"},
                 },
                 "required": [
-                    "mathematically_correct", "level_policy_pass",
-                    "introduces_new_proof_idea", "completes_any_unfinished_step",
-                    "leaks_final_conclusion", "ready_for_writeup",
-                    "missing_core_step", "readiness_confidence", "feedback",
+                    "latest_student_step_status", "first_missing_step",
+                    "candidate_math_error", "candidate_ownership_error",
+                    "addresses_latest_student_step", "mathematically_correct",
+                    "level_policy_pass", "introduces_new_proof_idea",
+                    "completes_any_unfinished_step", "leaks_final_conclusion",
+                    "ready_for_writeup", "missing_core_step",
+                    "readiness_confidence", "feedback",
                 ],
                 "additionalProperties": False,
             }
@@ -1897,10 +1918,16 @@ class TutorDriver:
                 value = _parse_any_object(raw or "")
                 if not isinstance(value, dict):
                     return None
-                bool_keys = ("mathematically_correct", "level_policy_pass",
-                             "introduces_new_proof_idea",
+                bool_keys = ("addresses_latest_student_step", "mathematically_correct",
+                             "level_policy_pass", "introduces_new_proof_idea",
                              "completes_any_unfinished_step",
                              "leaks_final_conclusion", "ready_for_writeup")
+                # 相容舊測試與呼叫：若缺欄位給予合理預設值
+                value.setdefault("addresses_latest_student_step", True)
+                value.setdefault("candidate_math_error", "")
+                value.setdefault("candidate_ownership_error", "")
+                value.setdefault("latest_student_step_status", "no_step")
+                value.setdefault("first_missing_step", "")
                 if not all(isinstance(value.get(key), bool) for key in bool_keys):
                     return None
                 if (not isinstance(value.get("feedback"), str)
@@ -1908,6 +1935,10 @@ class TutorDriver:
                         or not isinstance(value.get("readiness_confidence"), (int, float))):
                     return None
                 return {key: value[key] for key in bool_keys} | {
+                    "latest_student_step_status": str(value.get("latest_student_step_status") or "no_step").strip()[:50],
+                    "first_missing_step": str(value.get("first_missing_step") or "").strip()[:500],
+                    "candidate_math_error": str(value.get("candidate_math_error") or "").strip()[:500],
+                    "candidate_ownership_error": str(value.get("candidate_ownership_error") or "").strip()[:500],
                     "missing_core_step": value["missing_core_step"].strip()[:500],
                     "readiness_confidence": max(
                         0.0, min(1.0, float(value["readiness_confidence"]))),
@@ -1942,15 +1973,40 @@ class TutorDriver:
         return action == "respond_attempt" or (action == "normal_guide" and level < 2)
 
     def _guide_reply_review_passes(self, review: dict | None, level: int) -> bool:
+        if not review:
+            return False
+        # P0-4: 候選含有具體數學錯誤（如錯號、錯等式、錯目標）時退件
+        if review.get("candidate_math_error"):
+            return False
+        if review.get("mathematically_correct") is False:
+            return False
+            
+        # P0-4: 候選含有錯誤所有權歸因（把 Tutor 先前提示當成學生已證明）時退件
+        if review.get("candidate_ownership_error"):
+            return False
+            
+        # P0-3: 學生有具體步驟時，候選必須正向承接，不得輸出脫節空泛問句
+        step_status = str(review.get("latest_student_step_status") or "")
+        if step_status in ("correct", "incorrect"):
+            if review.get("addresses_latest_student_step") is False:
+                return False
+                
+        # 禁止代寫與洩漏最終結論
+        if review.get("completes_any_unfinished_step") is True:
+            return False
+        if review.get("leaks_final_conclusion") is True:
+            return False
+            
+        # 想法控制（L0/L1 與 respond_attempt 不得帶入學生未提出的新想法）
         level_idea_ok = not (
             self._guide_action_forbids_new_idea(level)
-            and review and review.get("introduces_new_proof_idea") is True)
-        return bool(review
-                    and review.get("mathematically_correct") is True
-                    and review.get("level_policy_pass") is True
-                    and level_idea_ok
-                    and review.get("completes_any_unfinished_step") is False
-                    and review.get("leaks_final_conclusion") is False)
+            and review.get("introduces_new_proof_idea") is True)
+        if not level_idea_ok:
+            return False
+            
+        # P1-1: 若數學正確、所有權安全、正向承接且無洩漏，單純 level_policy_pass=false
+        # 暫時不單獨作為退件理由，避免抹煞高品質提示退回通用保底句
+        return True
 
     def _combined_readiness_ready(self, review: dict) -> bool:
         """保存合併審查中的 readiness；基本進度未達門檻時忽略該欄位。"""
@@ -1986,13 +2042,38 @@ class TutorDriver:
         self.state.pop("writeup_readiness_check_key", None)
 
     def _safe_guide_review_fallback(self) -> str:
-        """語意審查不可用或二稿仍失敗時，不送出未驗證的數學內容。"""
+        """語意審查不可用或二稿仍失敗時，對齊審查器判定的上下文輸出安全保底回覆。"""
         en = self.lang == "en"
         if self.state.get("turn_action") == "refuse_tutor_write":
             return (
                 "I can't write the proof for you. What is the last step you have established "
                 "yourself?" if en else
                 "我不能代寫完整證明。你目前自己已經確定的最後一步是什麼？")
+                
+        # P1-3: 若 Reviewer 已判斷出學生的步驟狀態與第一個缺口，優先使用對齊上下文的保底句
+        rev = (self.state.get("guide_reply_review") or {}).get("initial") or {}
+        step_status = str(rev.get("latest_student_step_status") or "")
+        first_missing = str(rev.get("first_missing_step") or "").strip()
+        
+        if step_status == "correct" and first_missing:
+            return (
+                f"Good, that step is established. How do you connect this to establishing {first_missing}?"
+                if en else
+                f"很好，這一步是成立的。接下來你打算如何連接到「{first_missing}」？"
+            )
+        elif step_status == "incorrect":
+            return (
+                "Please carefully check the premise and reasoning of your last calculation."
+                if en else
+                "請仔細檢查你剛才計算或推導的依據與前提是否有誤？"
+            )
+        elif first_missing:
+            return (
+                f"Let's focus on the current gap: what idea can help establish {first_missing}?"
+                if en else
+                f"我們先聚焦在目前的缺口：你有什麼想法可以得出「{first_missing}」？"
+            )
+
         pool = (_SAFE_GUIDE_REVIEW_FALLBACKS_EN if en
                 else _SAFE_GUIDE_REVIEW_FALLBACKS)
         index = int(self.state.get("guide_safe_fb_idx", 0))
@@ -2070,26 +2151,35 @@ class TutorDriver:
             log.guards.append("guide_policy_unresolved")
             return self._safe_guide_review_fallback()
 
-        feedback = str(first.get("feedback") or "").strip()
-        if first.get("mathematically_correct") is False:
-            feedback = ((feedback + "；") if feedback else "") + (
+        feedback_parts = []
+        fb = str(first.get("feedback") or "").strip()
+        if fb:
+            feedback_parts.append(fb)
+        if first.get("candidate_math_error"):
+            feedback_parts.append(f"修正候選中的數學錯誤：{first['candidate_math_error']}")
+        elif first.get("mathematically_correct") is False:
+            feedback_parts.append(
                 "先核對最新學生數學步驟；若該步錯誤，不得稱讚、沿用或跳過，只能用聚焦問題"
                 "請學生修正。學生尚未完成證明本身不代表 Tutor 的數學敘述錯誤")
+        if first.get("candidate_ownership_error"):
+            feedback_parts.append(f"修正所有權歸因錯誤：{first['candidate_ownership_error']}（不能把 Tutor 先前提過的結果說成學生已證明）")
+        if first.get("addresses_latest_student_step") is False:
+            feedback_parts.append("必須明確承接並回應學生最新提出的數學步驟，不得輸出脫離該步的空泛問句")
         if (self._guide_action_forbids_new_idea(level)
                 and first.get("introduces_new_proof_idea") is True):
-            feedback = ((feedback + "；") if feedback else "") + (
-                "本輪不得提出學生尚未提出的新定理、輔助物件、構造或證明策略")
+            feedback_parts.append("本輪不得提出學生尚未提出的新定理、輔助物件、構造或證明策略")
         if first.get("completes_any_unfinished_step") is True:
-            feedback = ((feedback + "；") if feedback else "") + (
-                "不得直接完成、假定完成、稱讚後跳過或沿用任何尚未完成／錯誤的中間步驟")
+            feedback_parts.append("不得直接完成、假定完成、稱讚後跳過或沿用任何尚未完成／錯誤的中間步驟")
+            
+        feedback = "；".join(feedback_parts)
         en = self.lang == "en"
         note = (
             "The semantic policy review rejected the draft. Rewrite it once so the student must do "
             "the next inference themselves; make every mathematical statement correct, obey the "
-            "current guide action and its level when applicable, and do not state the final "
-            "conclusion. Review feedback: " + feedback if en else
+            "current guide action and its level when applicable, address the student's latest step, "
+            "and do not state the final conclusion. Review feedback: " + feedback if en else
             "語意政策審查未通過。只重寫一次：所有數學敘述都必須正確，嚴格遵守目前的 guide "
-            "action（適用時也遵守 level），下一個推理必須由學生自己完成，不可說出最終結論。"
+            "action（適用時也遵守 level），承接最新學生步驟，下一個推理必須由學生自己完成，不可說出最終結論。"
             "審查原因：" + feedback)
         regenerated = self._content_guards(self._regen(level, note), level, log)
         log.regenerated = True
@@ -2205,15 +2295,15 @@ class TutorDriver:
                 "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。"))
             log.regenerated = True
 
-        # 等級 2 禁算式：提示只能點名想法/名稱，不得出現白名單外的新等式
+        # 等級 2 算式守衛：可給關鍵構造形態/定理方向，但不得直接代寫後續推導等式或結論
         if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
             log.guards.append("formula")
             reply = self._regen(level, (
-                "Your previous draft contained a formula. Rewrite: state only the theorem/technique "
-                "name or core idea, and never write any equation or inequality; let the "
-                "student derive it themselves." if en else
-                "上一稿包含了算式。重寫：只說出該步驟的定理／技巧名稱或核心想法，"
-                "絕對不要寫出任何等式或不等式，讓學生自己動筆推。"))
+                "Your previous draft wrote out subsequent derivation formulas or conclusions. Rewrite: "
+                "state the theorem/technique name, conceptual direction, or auxiliary construct, "
+                "and let the student carry out the algebraic derivation themselves." if en else
+                "上一稿直接替學生寫出了推導算式或結論。重寫：只指出該步驟的定理／技巧名稱、"
+                "核心想法或輔助構造形態，不要替學生代寫具體運算過程，讓學生自己動筆推導。"))
             log.regenerated = True
 
         # 稱讚校準：後盾已回報缺漏卻無條件背書（＝把錯誤寫法確認掉，最嚴重的過譽），
