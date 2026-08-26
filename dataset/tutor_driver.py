@@ -1396,6 +1396,38 @@ class TutorDriver:
             result.get("verdict") if result else "unavailable")
         return result
 
+    def _get_ladder_hint(self, level: int) -> str | None:
+        """根據題目配置或 hint_ladders.json 庫取得當前等級的提示內容。"""
+        en = self.lang == "en"
+        pid = self.problem.get("id")
+        
+        # 1. 優先從 problem 字典取得
+        ladder = self.problem.get("hint_ladder_en" if en else "hint_ladder")
+        
+        # 2. 若無，嘗試從 hint_ladders.json / hint_ladders_en.json 讀取
+        if not ladder and pid:
+            ladder_file = HERE / ("hint_ladders_en.json" if en else "hint_ladders.json")
+            if ladder_file.exists():
+                try:
+                    all_ladders = json.loads(ladder_file.read_text(encoding="utf-8"))
+                    ladder = all_ladders.get(pid)
+                except Exception:
+                    ladder = None
+        
+        if ladder and isinstance(ladder, list) and len(ladder) > 0:
+            if level == 1:
+                # Level 1: 若梯子有 2 條以上，取第 0 條作為局部子問題方向
+                if len(ladder) >= 2:
+                    return str(ladder[0]).strip()
+            elif level == 2:
+                # Level 2: 取第 1 條（或最新梯次）作為關鍵突破口
+                idx = min(self.state.get("ladder_idx", 1), len(ladder) - 1)
+                hint = str(ladder[idx]).strip()
+                self.state["ladder_idx"] = min(idx + 1, len(ladder) - 1)
+                return hint
+
+        return None
+
     def _system(self, level: int) -> str:
         en = self.lang == "en"
         phase = self.state.get("phase")
@@ -1423,7 +1455,21 @@ class TutorDriver:
             if phase == "review":
                 instr += self._backstop_block()
         else:
-            instr = level_map[level]
+            ladder_hint = self._get_ladder_hint(level)
+            if level == 1 and ladder_hint:
+                instr = (
+                    f"This turn: the student just failed to answer. Guide the student using this sub-question direction: '{ladder_hint}'. Still do not directly name any theorem."
+                    if en else
+                    f"本輪指示：學生剛才答不出來。請參考以下子問題方向引導學生：『{ladder_hint}』。仍然不要直接點名定理名稱，只問一個具體子問題。"
+                )
+            elif level == 2 and ladder_hint:
+                instr = (
+                    f"This turn: the student has now failed twice on the same part of the derivation. In the first sentence, explicitly point out the key direction or construct: '{ladder_hint}'; do not write out the subsequent algebraic derivations or final conclusion. In the second sentence, ask exactly one concrete question that lets the student carry out the next step themselves."
+                    if en else
+                    f"本輪指示：學生已第二次無法回答同一段推導。第一句明確點出關鍵方向或構造：『{ladder_hint}』；不得替學生代寫後續運算推導，不得給出最終結論。第二句只問一個具體問題，讓學生自己動手執行下一步推導。"
+                )
+            else:
+                instr = level_map[level]
         return sys_txt + "\n\n" + instr
 
     def _raw_generate(self, msgs: list, max_new: int) -> str:
@@ -2864,11 +2910,32 @@ class TutorDriver:
 
 
 def load_problems() -> dict:
-    """載入題目與參考證明。"""
+    """載入題目、參考證明與分級提示庫（hint ladders）。"""
     problems = {}
     for fname in ("problems.json", "held_out.json", "hard_math_major.json"):
         p = HERE / fname
         if p.exists():
             for item in json.loads(p.read_text(encoding="utf-8")):
                 problems[item["id"]] = item
+    
+    # 掛載中文提示梯
+    lad_zh = HERE / "hint_ladders.json"
+    if lad_zh.exists():
+        try:
+            for pid, ladder in json.loads(lad_zh.read_text(encoding="utf-8")).items():
+                if pid in problems:
+                    problems[pid]["hint_ladder"] = ladder
+        except Exception:
+            pass
+    
+    # 掛載英文提示梯
+    lad_en = HERE / "hint_ladders_en.json"
+    if lad_en.exists():
+        try:
+            for pid, ladder in json.loads(lad_en.read_text(encoding="utf-8")).items():
+                if pid in problems:
+                    problems[pid]["hint_ladder_en"] = ladder
+        except Exception:
+            pass
+
     return problems

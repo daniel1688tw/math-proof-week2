@@ -140,11 +140,17 @@ _CORE_MARKER_A = "CORE_IDEA_SHOULD_NOT_REACH_LEVEL2_A"
 _CORE_MARKER_B = "CORE_IDEA_SHOULD_NOT_REACH_LEVEL2_B"
 _core_problem_a = dict(
     probs["A6"],
+    id="NO_LADDER_TEST_A",
+    hint_ladder=None,
+    hint_ladder_en=None,
     teach_steps=[{"explain": "步驟", "core_idea": _CORE_MARKER_A,
                   "check": "下一步？", "expected_answer": "答案"}],
 )
 _core_problem_b = dict(
     probs["A6"],
+    id="NO_LADDER_TEST_B",
+    hint_ladder=None,
+    hint_ladder_en=None,
     teach_steps=[{"explain": "步驟", "core_idea": _CORE_MARKER_B,
                   "check": "下一步？", "expected_answer": "答案"}],
 )
