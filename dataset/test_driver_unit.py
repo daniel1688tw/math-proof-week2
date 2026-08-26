@@ -707,7 +707,7 @@ check("學生改講中文（夠長）→ 切換 lang=zh", dm2.state.get("lang") 
 dm2.step("ok")
 check("短訊息不觸發誤切（維持 zh）", dm2.state.get("lang") == "zh")
 
-print("[12] 回問保底：措辭輪換＋連續缺問句不硬補")
+print("[12] 回問保底：措辭輪換＋每個引導輪都必須有問句")
 
 
 class _NoQStub(TutorDriver):
@@ -728,16 +728,18 @@ nq = _NoQStub(tok=None, model=_StubModel(), problem=dict(_en_prob))
 r1 = nq.start(opener="Please guide me on this problem, I want to try it myself.")
 check("首輪保底附上追問（第 1 種措辭）", r1.rstrip().endswith("should start?"))
 r2 = nq.step("Here is my full attempt with all steps written out, please take a look at the whole thing and tell me.")
-check("上一輪已補過 → 連續缺問句不再硬補", not r2.rstrip().endswith("?"))
+check("連續第二個引導輪仍補問句", r2.rstrip().endswith("?"))
+check("連續補問句會輪換措辭", r2 != r1 and r2.rstrip().endswith("next?"))
 r3 = nq.step("I double-checked the boundary case works too, and here is the cleaned-up version of that part.")
-check("隔一輪再缺問句 → 換第 2 種措辭", r3.rstrip().endswith("next?"))
-check("fb_idx 已輪轉到 2", nq.state.get("fb_idx") == 2)
+check("連續第三個引導輪仍補問句", r3.rstrip().endswith("?"))
+check("fb_idx 已逐輪輪轉到 3", nq.state.get("fb_idx") == 3)
 r4 = nq.step("Thanks, that's all — my proof is now complete and I have no further questions.")
-check("學生致謝宣告完成 → 不再追問", not r4.rstrip().endswith("?"))
+check("尚未通過 readiness 時，學生自行宣告完成仍須留下核對問題", r4.rstrip().endswith("?"))
 nqz = _NoQStub(tok=None, model=_StubModel(), problem=probs["A6"])
 nqz.start(opener="請引導我，我想自己試試看。")
 rz = nqz.step("謝謝，我都清楚了，沒有其他問題。")
-check("中文致謝收尾 → 不再追問", not rz.rstrip().endswith("？") and not rz.rstrip().endswith("?"))
+check("中文尚未通過 readiness 的自行收尾仍須留下核對問題",
+      rz.rstrip().endswith("？") or rz.rstrip().endswith("?"))
 
 print("[12b] repeat 的重生成若宣告整份證明完成 → arm done_closed，不得再補保底句")
 # repeat 守衛排在回問保底之前，因此它的重生成稿會成為本輪最終回覆。若那一稿親口
@@ -925,8 +927,9 @@ op4.messages = [{"role": "user", "content": "證明：……（完整草稿）"}
 op4.state.update(phase="guide", turn_action="respond_attempt")
 op4.state["backstop_gaps"] = []          # 後盾複核無誤 → 肯定是正當的
 op4._tutor_turn()
-check("後盾複核無誤時的『完全正確』→ 不觸發 overpraise",
-      op4.messages[-1]["content"] == op4.first)
+check("後盾複核無誤時的『完全正確』→ 不誤觸 overpraise，guide 仍留下下一問",
+      "overpraise" not in op4.state["turns"][-1].guards
+      and any(mark in op4.messages[-1]["content"] for mark in ("?", "？")))
 
 print("[15] 助教自行要求交稿也要記錄（守門對話 H5 型）")
 # driver 只在 _UNDERSTOOD_RE 命中時才進 writeup_request；但模型常自己開口要求交稿，
@@ -2630,7 +2633,8 @@ check("P1-3: 中文保底回覆對齊第一缺口",
 p03_driver.state["lang"] = "en"
 fb_en = p03_driver._safe_guide_review_fallback()
 check("P1-3: 英文保底回覆對齊第一缺口",
-      "利用 Rolle 定理找 g''(c)=0" in fb_en and "Good, that step is established" in fb_en)
+      "利用 Rolle 定理找 g''(c)=0" in fb_en
+      and ("Good, that step is established" in fb_en or "That step holds" in fb_en))
 p03_driver.state["lang"] = "zh"
 
 print()

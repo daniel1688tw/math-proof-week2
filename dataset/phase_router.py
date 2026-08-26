@@ -100,6 +100,9 @@ def normalize_persisted_state(state: dict) -> dict:
     state["phase"] = phase
     state["review_status"] = status
     state["mode"] = "peer" if state.get("mode") == "peer" else state.get("mode", "tutor")
+    state.setdefault("active_gap", "")
+    state.setdefault("last_guide_question", "")
+    state.setdefault("guide_gap_fb_idx", 0)
     _sync_compatibility_flags(state)
     return state
 
@@ -116,7 +119,8 @@ def apply_phase_event(state: dict, event: str, *, source: str = "controller") ->
         reject_reason = "unknown_event"
     elif event == "RESET":
         accepted = True
-        state.update(phase="guide", review_status=None, stuck_count=0, walk_idx=0)
+        state.update(phase="guide", review_status=None, stuck_count=0, walk_idx=0,
+                     active_gap="", last_guide_question="", guide_gap_fb_idx=0)
         for key in (
             "walk_lang", "walk_feedback", "review_issues", "review_issue_idx",
             "review_base_proof", "current_proof_draft", "review_last_full_proof",
@@ -198,6 +202,10 @@ def update_stuck_count(count: int, learning_state: str, *,
     可審閱的嘗試仍會中斷連續卡住。純重複、離題或不確定則保留原計數。
     """
     current = max(0, int(count))
+    # 直接回答或含數學內容不等於「有新進度」；若只是重複學生自己先前已完成的
+    # 關係，保留目前卡住層級，避免靠重貼舊式子把提示深度洗回 Level 0。
+    if advances_solution is False and learning_state != "stuck":
+        return current
     if has_actionable_math or answers_current_question is True:
         return 0
     if learning_state == "stuck":
@@ -675,7 +683,9 @@ def route_student_state(student_text: str, context: dict, *,
                 and not context.get("explicit_stuck"))):
         return _decision(
             phase, "show_attempt", "partial_progress",
-            turn_action="respond_attempt", evidence=text)
+            turn_action="respond_attempt",
+            advances_solution=not bool(context.get("repeats_prior_math")),
+            evidence=text)
     mixed_attempt_and_stuck = bool(
         context.get("attempt") and context.get("explicit_stuck")
         and not context.get("attempt_content") and not context.get("has_new_math"))
@@ -739,6 +749,8 @@ def route_student_state(student_text: str, context: dict, *,
             if (context.get("explicit_stuck")
                     and (context.get("has_new_math") or context.get("attempt_content"))):
                 base.learning_state = "uncertain"
+            if context.get("repeats_prior_math"):
+                base.advances_solution = False
         return base
 
     judged = _model_classify(text, context, classifier)
@@ -746,6 +758,8 @@ def route_student_state(student_text: str, context: dict, *,
         base.source = "fallback"
         base.phase_confidence = 0.0
         base.stuck_confidence = 0.0
+        if context.get("repeats_prior_math"):
+            base.advances_solution = False
         return base
 
     intent = base.intent
@@ -759,12 +773,17 @@ def route_student_state(student_text: str, context: dict, *,
         learning = judged["learning_state"]
     if learning == "not_applicable":
         learning = base.learning_state
+    advances = judged.get("advances_solution")
+    # 文字／數學關係已由 deterministic student-only 比對確認為舊內容時，
+    # 不允許 Thinking 把它翻成新進度；正誤與是否回應上一問仍保留給審查器。
+    if context.get("repeats_prior_math"):
+        advances = False
     return _decision(
         phase, intent, learning, turn_action=_action_for_intent(intent, phase, learning),
         source="thinking", evidence=judged["evidence"],
         answers_current_question=judged.get("answers_current_question"),
         has_actionable_math=judged.get("has_actionable_math"),
-        advances_solution=judged.get("advances_solution"),
+        advances_solution=advances,
         requested_writer=judged.get("requested_writer", "none"),
         phase_confidence=judged["phase_confidence"],
         stuck_confidence=judged["stuck_confidence"])

@@ -58,10 +58,15 @@ for initial, event, expected_phase, expected_status in cases:
           and initial.get("review_status") == expected_status
           and initial["phase_events"][-1]["accepted"] is True)
 
-reset = state("closed", current_proof_draft="proof", review_issues=[{"x": 1}])
+reset = state(
+    "closed", current_proof_draft="proof", review_issues=[{"x": 1}],
+    active_gap="old gap", last_guide_question="old question?",
+    guide_gap_fb_idx=4)
 apply_phase_event(reset, "RESET", source="test")
 check("RESET 回 guide 並清除工作流狀態",
-      reset["phase"] == "guide" and "current_proof_draft" not in reset)
+      reset["phase"] == "guide" and "current_proof_draft" not in reset
+      and reset["active_gap"] == "" and reset["last_guide_question"] == ""
+      and reset["guide_gap_fb_idx"] == 0)
 
 
 print("[2] 非法轉移與不足條件一律拒絕")
@@ -289,6 +294,22 @@ check("無問號局部橋接中文請求路由至 answer_clarification",
 dec_en = route_student_state("I do not see how to get from premise A to conclusion B", clarify_context, thinking_enabled=False)
 check("無問號局部橋接英文請求路由至 answer_clarification",
       dec_en.turn_action == "answer_clarification" and dec_en.intent == "request_hint")
+
+print("[8] 重複舊步驟不得清除既有卡住計數 (P1-4)")
+check("可審閱但沒有新進度的重複內容保留 stuck_count",
+      update_stuck_count(
+          2, "uncertain", answers_current_question=True,
+          has_actionable_math=True, advances_solution=False) == 2)
+repeat_context = {
+    "phase": "guide", "peer": False, "has_new_math": True,
+    "repeats_prior_math": True, "explicit_stuck": False,
+    "attempt_content": True,
+}
+repeat_decision = route_student_state(
+    r"Again, $|a_n b_n| <= M|a_n|$.", repeat_context,
+    thinking_enabled=False)
+check("Thinking 離線時，重貼舊式子仍明確標為無新進度",
+      repeat_decision.advances_solution is False)
 
 if FAIL:
     print(f"\n{len(FAIL)} 項失敗：")

@@ -800,6 +800,7 @@ class TutorDriver:
     state: dict = field(default_factory=lambda: {
         "phase": "guide", "review_status": None,
         "turn_action": "normal_guide", "mode": "tutor",
+        "active_gap": "", "last_guide_question": "", "guide_gap_fb_idx": 0,
         "stuck_count": 0, "turns": [], "phase_history": [], "phase_events": [],
         # turns: list[TurnLog]；phase_history: 每則學生訊息的完整路由／切換診斷
     })
@@ -816,6 +817,9 @@ class TutorDriver:
         self.state.setdefault("phase_history", [])
         self.state.setdefault("phase_events", [])
         self.state.setdefault("turn_action", "normal_guide")
+        self.state.setdefault("active_gap", "")
+        self.state.setdefault("last_guide_question", "")
+        self.state.setdefault("guide_gap_fb_idx", 0)
 
     @property
     def lang(self) -> str:
@@ -1470,7 +1474,31 @@ class TutorDriver:
                 )
             else:
                 instr = level_map[level]
-        return sys_txt + "\n\n" + instr
+        return sys_txt + "\n\n" + instr + self._guide_context_block(level)
+
+    def _guide_context_block(self, level: int) -> str:
+        """L1/L2 只能縮小或支撐同一個持久化缺口。"""
+        if self.state.get("phase") != "guide" or level < 1:
+            return ""
+        gap = str(self.state.get("active_gap") or "").strip()
+        question = str(self.state.get("last_guide_question") or "").strip()
+        if not (gap or question):
+            return ""
+        if self.lang == "en":
+            return (
+                "\n\n[GUIDE CONTINUITY]\n"
+                f"Active gap (the only gap this turn may address): {gap or '(not established)'}\n"
+                f"Last actual tutor question: {question or '(none)'}\n"
+                "Do not switch proof steps. Level 1 may only narrow that question once; "
+                "Level 2 may add exactly one scaffold for the same gap."
+            )
+        return (
+            "\n\n【引導連續性】\n"
+            f"當前唯一缺口（本輪只可處理此項）：{gap or '尚未建立'}\n"
+            f"上一個實際送給學生的問題：{question or '無'}\n"
+            "不得切換證明步驟。Level 1 只能把上一問縮小一次；"
+            "Level 2 只能為同一缺口增加一個支架。"
+        )
 
     def _raw_generate(self, msgs: list, max_new: int) -> str:
         """實際生成：本機模型，或 REMOTE_GEN_URL 指定的遠端推論服務（大模型放伺服器
@@ -1891,6 +1919,9 @@ class TutorDriver:
                 "level": int(level),
                 "turn_action": self.state.get("turn_action"),
                 "student_state": self.state.get("student_state_decision") or {},
+                "active_gap": str(self.state.get("active_gap") or ""),
+                "last_guide_question": str(
+                    self.state.get("last_guide_question") or ""),
                 "readiness_eligible": (
                     int(self.state.get("proof_progress_revision", 0)) >= 2),
                 "candidate_tutor_reply": reply,
@@ -1903,6 +1934,7 @@ class TutorDriver:
                 "   - mathematically_correct 只評 Tutor 候選內的數學敘述，以及 Tutor 對最新學生步驟的處理。最新學生步驟若錯，而 Tutor 稱讚、接受、沿用或跳過它，必須判 false；若 Tutor 不斷言錯誤，只用聚焦問題要求學生重查該步，則可判 true。學生的證明尚未完整，本身絕不能成為 mathematically_correct=false 的理由；候選中若包含符號、常數、正負號、導數階數、不等號或等式推導錯誤，填入 candidate_math_error，否則填空字串。重述題目結論必須與題目數學等價。\n"
                 "   - 是否假定、宣稱或沿用學生尚未親自完成的步驟 (candidate_ownership_error: 若 Tutor 宣稱「你自己已算出/證明了某事」但學生在 student_messages 中未曾算出，填具體主張；否則填空字串)。\n"
                 "   - 是否真正承接並回應最新學生步驟 (addresses_latest_student_step: boolean)。若學生剛答對，Tutor 應簡短確認該步並引導至第一個缺口；若學生答錯，應聚焦引導修正該步；若學生卡住/提問，應引導目前缺口。若學生提出具體步驟，Tutor 卻只說「你想從哪個方向試試看」等空泛無關問句，必須為 false。\n"
+                "   - stays_on_active_gap: 候選是否只處理 payload.active_gap，並在 L1/L2 延續 payload.last_guide_question。學生只說卡住，或上一個錯誤尚未修正時，若改問其他證明步驟必須為 false。\n"
                 "   - completes_any_unfinished_step 不只包含 Tutor 直接斷言、計算或推導任何學生尚未完成的中間步驟；也包含假定該步已完成、稱讚錯誤步驟、沿用錯誤結果，或跳過第一個缺口而前往更後面的步驟。即使 Tutor 後面仍留下一個問題，也必須判 true。\n"
                 "   - 是否洩漏題目最終結論 (leaks_final_conclusion: boolean)。\n"
                 "   - level_policy_pass: boolean。\n"
@@ -1926,6 +1958,7 @@ class TutorDriver:
                 "\"candidate_math_error\":\"候選中的數學錯誤或空字串\","
                 "\"candidate_ownership_error\":\"所有權假定錯誤或空字串\","
                 "\"addresses_latest_student_step\":true/false,"
+                "\"stays_on_active_gap\":true/false,"
                 "\"mathematically_correct\":true/false,\"level_policy_pass\":true/false,"
                 "\"introduces_new_proof_idea\":true/false,"
                 "\"completes_any_unfinished_step\":true/false,"
@@ -1945,6 +1978,7 @@ class TutorDriver:
                     "candidate_math_error": {"type": "string"},
                     "candidate_ownership_error": {"type": "string"},
                     "addresses_latest_student_step": {"type": "boolean"},
+                    "stays_on_active_gap": {"type": "boolean"},
                     "mathematically_correct": {"type": "boolean"},
                     "level_policy_pass": {"type": "boolean"},
                     "introduces_new_proof_idea": {"type": "boolean"},
@@ -1959,7 +1993,8 @@ class TutorDriver:
                 "required": [
                     "latest_student_step_status", "first_missing_step",
                     "candidate_math_error", "candidate_ownership_error",
-                    "addresses_latest_student_step", "mathematically_correct",
+                    "addresses_latest_student_step", "stays_on_active_gap",
+                    "mathematically_correct",
                     "level_policy_pass", "introduces_new_proof_idea",
                     "completes_any_unfinished_step", "leaks_final_conclusion",
                     "ready_for_writeup", "missing_core_step",
@@ -1972,16 +2007,20 @@ class TutorDriver:
                 value = _parse_any_object(raw or "")
                 if not isinstance(value, dict):
                     return None
-                bool_keys = ("addresses_latest_student_step", "mathematically_correct",
+                bool_keys = ("addresses_latest_student_step", "stays_on_active_gap",
+                             "mathematically_correct",
                              "level_policy_pass", "introduces_new_proof_idea",
                              "completes_any_unfinished_step",
                              "leaks_final_conclusion", "ready_for_writeup")
                 # 相容舊測試與呼叫：若缺欄位給予合理預設值
                 value.setdefault("addresses_latest_student_step", True)
+                value.setdefault("stays_on_active_gap", True)
                 value.setdefault("candidate_math_error", "")
                 value.setdefault("candidate_ownership_error", "")
                 value.setdefault("latest_student_step_status", "no_step")
                 value.setdefault("first_missing_step", "")
+                if value.get("ready_for_writeup") is True:
+                    value["first_missing_step"] = ""
                 if not all(isinstance(value.get(key), bool) for key in bool_keys):
                     return None
                 if (not isinstance(value.get("feedback"), str)
@@ -2040,10 +2079,10 @@ class TutorDriver:
             return False
             
         # P0-3: 學生有具體步驟時，候選必須正向承接，不得輸出脫節空泛問句
-        step_status = str(review.get("latest_student_step_status") or "")
-        if step_status in ("correct", "incorrect"):
-            if review.get("addresses_latest_student_step") is False:
-                return False
+        if review.get("addresses_latest_student_step") is False:
+            return False
+        if level >= 1 and review.get("stays_on_active_gap") is False:
+            return False
                 
         # 禁止代寫與洩漏最終結論
         if review.get("completes_any_unfinished_step") is True:
@@ -2095,7 +2134,32 @@ class TutorDriver:
         self.state["readiness_pending"] = True
         self.state.pop("writeup_readiness_check_key", None)
 
-    def _safe_guide_review_fallback(self) -> str:
+    def _update_guide_context_from_review(self, review: dict | None) -> None:
+        """依學生步驟狀態推進唯一缺口；no_step 不可覆寫既有缺口。"""
+        if not review:
+            return
+        if review.get("ready_for_writeup") is True:
+            self.state["active_gap"] = ""
+            return
+        current = str(self.state.get("active_gap") or "").strip()
+        missing = str(review.get("first_missing_step") or "").strip()
+        status = str(review.get("latest_student_step_status") or "no_step")
+        if status == "correct" and missing:
+            self.state["active_gap"] = missing
+        elif status == "incorrect":
+            self.state["active_gap"] = current or missing
+        elif status == "no_step" and not current and missing:
+            self.state["active_gap"] = missing
+
+    def _guide_turn_requires_question(self) -> bool:
+        """只要本輪仍在 guide，所有 guide action 都要留下恰好一問。"""
+        return (self.state.get("phase") == "guide"
+                and self.state.get("turn_action") in {
+                    "normal_guide", "respond_attempt", "answer_clarification",
+                    "refuse_tutor_write",
+                })
+
+    def _safe_guide_review_fallback(self, level: int | None = None) -> str:
         """語意審查不可用或二稿仍失敗時，對齊審查器判定的上下文輸出安全保底回覆。"""
         en = self.lang == "en"
         if self.state.get("turn_action") == "refuse_tutor_write":
@@ -2105,28 +2169,70 @@ class TutorDriver:
                 "我不能代寫完整證明。你目前自己已經確定的最後一步是什麼？")
                 
         # P1-3: 若 Reviewer 已判斷出學生的步驟狀態與第一個缺口，優先使用對齊上下文的保底句
-        rev = (self.state.get("guide_reply_review") or {}).get("initial") or {}
+        diagnostic = self.state.get("guide_reply_review") or {}
+        rev = (diagnostic.get("regenerated") or diagnostic.get("retry")
+               or diagnostic.get("initial") or {})
         step_status = str(rev.get("latest_student_step_status") or "")
-        first_missing = str(rev.get("first_missing_step") or "").strip()
+        first_missing = (str(self.state.get("active_gap") or "").strip()
+                         or str(rev.get("first_missing_step") or "").strip())
+        if level is None:
+            level = min(2, max(0, int(self.state.get("stuck_count", 0))))
+        gap_index = int(self.state.get("guide_gap_fb_idx", 0))
+        if first_missing:
+            self.state["guide_gap_fb_idx"] = gap_index + 1
         
         if step_status == "correct" and first_missing:
-            return (
-                f"Good, that step is established. How do you connect this to establishing {first_missing}?"
-                if en else
-                f"很好，這一步是成立的。接下來你打算如何連接到「{first_missing}」？"
-            )
-        elif step_status == "incorrect":
-            return (
-                "Please carefully check the premise and reasoning of your last calculation."
-                if en else
-                "請仔細檢查你剛才計算或推導的依據與前提是否有誤？"
-            )
+            pool = ((
+                f"Good, that step is established. How do you connect this to establishing {first_missing}?",
+                f"That step holds. What is the first link you still need in order to establish {first_missing}?",
+            ) if en else (
+                f"很好，這一步是成立的。接下來你打算如何連接到「{first_missing}」？",
+                f"這一步成立。為了得到「{first_missing}」，你還要先補上哪一個連結？",
+            ))
+            return pool[gap_index % len(pool)]
+        elif step_status == "incorrect" and first_missing:
+            pool = ((
+                f"Your unresolved gap is {first_missing}. Which premise, sign, or equality in that step should you check first?",
+                f"Stay with the unresolved gap {first_missing}. What is the first part of that step you can verify directly?",
+            ) if en else (
+                f"目前仍要修正的缺口是「{first_missing}」。你要先核對這一步的哪個前提、符號或等式？",
+                f"先不要離開尚未修正的缺口「{first_missing}」。這一步哪一部分可以先直接核對？",
+            ))
+            return pool[gap_index % len(pool)]
         elif first_missing:
-            return (
-                f"Let's focus on the current gap: what idea can help establish {first_missing}?"
-                if en else
-                f"我們先聚焦在目前的缺口：你有什麼想法可以得出「{first_missing}」？"
-            )
+            if en:
+                templates = {
+                    0: (
+                        f"Which stated condition is most directly related to the current gap, {first_missing}?",
+                        f"Looking only at the problem statement, what information could help with {first_missing}?",
+                    ),
+                    1: (
+                        f"What smaller equality, bound, or prerequisite would you establish first for {first_missing}?",
+                        f"Can you split {first_missing} into one smaller claim that you can verify now?",
+                    ),
+                    2: (
+                        f"For {first_missing}, which single required premise will you check before carrying out that step?",
+                        f"Stay with {first_missing}: what is the first explicit mathematical check you can perform?",
+                    ),
+                }
+            else:
+                templates = {
+                    0: (
+                        f"題目中哪一個已知條件與目前缺口「{first_missing}」最直接相關？",
+                        f"先只看題目明示的資訊，哪一項可能幫你處理「{first_missing}」？",
+                    ),
+                    1: (
+                        f"為了完成「{first_missing}」，你會先建立哪一個更小的等式、界或前提？",
+                        f"你能把「{first_missing}」拆成一個現在可核對的較小主張嗎？",
+                    ),
+                    2: (
+                        f"針對「{first_missing}」，先只核對一個必要前提：你要核對的是哪一項？",
+                        f"維持在「{first_missing}」：你現在能執行的第一個明確數學檢查是什麼？",
+                    ),
+                }
+            bounded_level = min(2, max(0, level))
+            pool = templates[bounded_level]
+            return pool[gap_index % len(pool)]
 
         pool = (_SAFE_GUIDE_REVIEW_FALLBACKS_EN if en
                 else _SAFE_GUIDE_REVIEW_FALLBACKS)
@@ -2134,7 +2240,8 @@ class TutorDriver:
         self.state["guide_safe_fb_idx"] = index + 1
         return pool[index % len(pool)]
 
-    def _final_guide_repeat_guard(self, reply: str, log: TurnLog) -> str:
+    def _final_guide_repeat_guard(self, reply: str, log: TurnLog,
+                                  level: int | None = None) -> str:
         """合併審查後再做一次通用去重，涵蓋 Controller 安全保底。"""
         if (not self.backstop or self.is_peer()
                 or self.state.get("phase") != "guide"
@@ -2146,7 +2253,7 @@ class TutorDriver:
         pool = (_SAFE_GUIDE_REVIEW_FALLBACKS_EN if self.lang == "en"
                 else _SAFE_GUIDE_REVIEW_FALLBACKS)
         for _ in range(len(pool)):
-            candidate = self._safe_guide_review_fallback()
+            candidate = self._safe_guide_review_fallback(level)
             if not self._repeats_previous(candidate):
                 break
         return candidate
@@ -2179,11 +2286,13 @@ class TutorDriver:
                 diagnostic["status"] = "unavailable"
                 log.guards.append("guide_policy_unavailable")
                 self._mark_combined_review_unavailable()
-                return self._safe_guide_review_fallback()
+                return self._safe_guide_review_fallback(level)
             diagnostic["status"] = "retry_parsed"
             may_regenerate = False       # 已用完本輪兩次 Thinking 配額
         else:
             may_regenerate = True
+
+        self._update_guide_context_from_review(first)
 
         # readiness 優先：學生已走完骨架時直接用確定性交稿模板，不能再因「沒有下一問」
         # 被 guide policy 打回通用保底句。
@@ -2203,7 +2312,7 @@ class TutorDriver:
         if not may_regenerate:
             diagnostic["status"] = "unresolved"
             log.guards.append("guide_policy_unresolved")
-            return self._safe_guide_review_fallback()
+            return self._safe_guide_review_fallback(level)
 
         feedback_parts = []
         fb = str(first.get("feedback") or "").strip()
@@ -2219,6 +2328,8 @@ class TutorDriver:
             feedback_parts.append(f"修正所有權歸因錯誤：{first['candidate_ownership_error']}（不能把 Tutor 先前提過的結果說成學生已證明）")
         if first.get("addresses_latest_student_step") is False:
             feedback_parts.append("必須明確承接並回應學生最新提出的數學步驟，不得輸出脫離該步的空泛問句")
+        if first.get("stays_on_active_gap") is False:
+            feedback_parts.append("只能處理目前 active gap；學生未修正錯誤或只表示卡住時不得切換證明步驟")
         if (self._guide_action_forbids_new_idea(level)
                 and first.get("introduces_new_proof_idea") is True):
             feedback_parts.append("本輪不得提出學生尚未提出的新定理、輔助物件、構造或證明策略")
@@ -2245,7 +2356,9 @@ class TutorDriver:
         if second is None:
             diagnostic["status"] = "recheck_unavailable"
             log.guards.append("guide_policy_recheck_unavailable")
-            return self._safe_guide_review_fallback()
+            return self._safe_guide_review_fallback(level)
+
+        self._update_guide_context_from_review(second)
 
         if self._combined_readiness_ready(second):
             diagnostic["status"] = "ready_for_writeup"
@@ -2262,7 +2375,7 @@ class TutorDriver:
         # 這是服務／模型雙重失敗的安全出口，不含題型關鍵詞，也不碰 walkthrough。
         diagnostic["status"] = "unresolved"
         log.guards.append("guide_policy_unresolved")
-        return self._safe_guide_review_fallback()
+        return self._safe_guide_review_fallback(level)
 
     def _enter_awaiting_submission(self, *, event: str, source: str) -> None:
         """readiness 或 walkthrough 完成後，進入 review 等待學生全文。"""
@@ -2540,18 +2653,13 @@ class TutorDriver:
         # Tutor 候選文字不具有 phase 轉移權；只有 review judge 能結案。
 
         # 回問保底：引導輪/拒絕輪/同學輪都必須以問題收尾；
-        # 但學生已致謝/宣告完成 → 對話收尾，不強迫再問
+        # 只有 readiness 已通過並切出 guide 才能不再追問。
         # （教學輪不在此列：確認問題本來就是模板的一部分，不可能缺。）
-        last_user = next((m["content"] for m in reversed(self.messages)
-                          if m["role"] == "user"), "")
         # done_closed 後一律不硬補：證明已確認完成還被追問「下一步該從哪裡下手」是
         # 最突兀的扣分項（update.md 稽核）。closed 階段本就不補，這道是階段判定沒落在
         # closed（例如學生質疑而落回一般流程）時的保險。
-        needs_q = (peer or (level < 2 and phase == "guide"
-                            and self.state.get("turn_action") in {
-                                "normal_guide", "refuse_tutor_write"})) \
-            and phase != "closed" \
-            and not (phase == "guide" and _DONE_RE.search(last_user))
+        needs_q = (peer or self._guide_turn_requires_question()) \
+            and phase != "closed"
         if needs_q and not _QMARK_RE.search(reply):
             log.guards.append("no_question")
             # 配額用盡就不再賭模型服從，直接走下面的確定性補救（保底句／交稿請求）
@@ -2564,16 +2672,13 @@ class TutorDriver:
                 reply = self._content_guards(regen, level, log)
                 log.regenerated = True
             else:
-                # 上一輪才剛補過保底句 → 這輪不再硬補（避免對話收尾時連輪追問）；
-                # 其餘情況輪換措辭補上（不會連續出現同一句）。
-                prev = self.state["turns"][-1].guards if self.state["turns"] else []
-                if "fallback" not in prev:
-                    # 是否其實已完成由本輪最後的合併審查決定；這裡只補一般問句。
-                    log.guards.append("fallback")
-                    pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
-                    i = self.state.get("fb_idx", 0)
-                    reply = reply.rstrip() + pool[i % len(pool)]
-                    self.state["fb_idx"] = i + 1
+                # guide 契約要求每一輪都留下一個可作答的問題；是否已完成由
+                # phase/done 判定負責，不能因上一輪曾用保底句就讓本輪無問句。
+                log.guards.append("fallback")
+                pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
+                i = self.state.get("fb_idx", 0)
+                reply = reply.rstrip() + pool[i % len(pool)]
+                self.state["fb_idx"] = i + 1
 
         # 同學模式首輪：確定性補上誠實聲明（不賭模型自己說）
         if peer and not any(m["role"] == "assistant" for m in self.messages):
@@ -2596,7 +2701,11 @@ class TutorDriver:
         reply = self._enforce_guide_reply_policy(reply, level, log)
         # 前面的重複守衛看不到合併審查最後換上的 Controller 保底；落地前再做一次相同的
         # 通用近三輪比對。只替換為無題型數學內容的輪換問句，不增加模型呼叫。
-        reply = self._final_guide_repeat_guard(reply, log)
+        reply = self._final_guide_repeat_guard(reply, log, level)
+        if self.state.get("phase") == "guide":
+            questions = re.findall(r"[^?？\n]*[?？]", reply)
+            if questions:
+                self.state["last_guide_question"] = questions[-1].strip()
         self.state["turns"].append(log)
         self.messages.append({"role": "assistant", "content": reply})
         return reply
@@ -2711,6 +2820,7 @@ class TutorDriver:
             "walkthrough_review_status", "writeup_readiness",
             "readiness_pending", "guide_reply_review",
             "proof_progress_revision", "turn_action", "review_error",
+            "active_gap", "last_guide_question",
         )
         result = {key: self.state.get(key) for key in keys}
         result["phase_event_count"] = len(self.state.get("phase_events") or [])
