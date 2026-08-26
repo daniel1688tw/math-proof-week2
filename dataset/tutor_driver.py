@@ -1661,13 +1661,20 @@ class TutorDriver:
             r"展開|化簡|代入|比較|上界|下界|界限|"
             r"theorem|definition|contradiction|induction|function|derivative|"
             r"integral|limit|inequal|equation|expand|simplif|substitut|compare|bound|"
-             r"[$\\=<>≤≥∈]", t, re.I))
+            r"[$\\=<>≤≥∈]", t, re.I))
         draft_signal = bool(_DRAFT_RE.search(t))
-        # 「證明：」後只寫一個數學結論，是未完整作答，不是請 Tutor
-        # 提供證明。用作答標籤、數學內容與缺乏完整論證外形判定，
-        # 不需要學生逐字抄題，也不綁定任何題型。
         goal_restatement = bool(
             draft_signal and cur_math and not complete_shape)
+        math_reasoning = bool(
+            (cur_math or re.search(r"[$\\=<>≤≥∈+\-*/^_{}]", t)) and
+            re.search(
+                r"因為|所以|因此|由此|故|則|可得|可知|成立|滿足|代入|得出|得到|推導|根據|由.+定理|"
+                r"連續|可微|導函數|導數|積分|極限|收斂|絕對收斂|發散|有界|零點|大於|小於|等於|"
+                r"because|therefore|hence|since|thus|we have|substitut|obtain|derive|by .+ theorem|"
+                r"continuous|differentiable|derivative|integral|limit|converge|diverge|bounded|zero",
+                t, re.I
+            )
+        )
         return {
             "peer": self.is_peer(),
             "phase": self.state.get("phase"),
@@ -1690,6 +1697,7 @@ class TutorDriver:
                 "student" if student_requests_to_submit_proof(t) else "none"),
             "attempt": bool(_ATTEMPT_RE.search(t)),
             "attempt_content": attempt_content,
+            "math_reasoning": math_reasoning,
             "understood": bool(_UNDERSTOOD_RE.search(t)),
             "understood_whole": bool(_UNDERSTOOD_WHOLE_RE.search(t)),
             "claim_done": bool(_CLAIM_DONE_RE.search(t)),
@@ -2414,6 +2422,8 @@ class TutorDriver:
         peer = self.is_peer()
         walkthrough = phase == "walkthrough" and not peer
         self.state["_regens"] = 0          # 本輪重生成配額歸零（見 _MAX_REGEN_PER_TURN）
+        last_user = next((m["content"] for m in reversed(self.messages)
+                          if m["role"] == "user"), "")
 
         # 逐步教學：確定性輸出，完全不經生成模型與各道重生成守衛
         # （內容是預寫的教學步驟，本來就允許寫式子；問句就是該步的確認問題）。
@@ -2461,25 +2471,35 @@ class TutorDriver:
 
         reply = self._content_guards(reply, level, log)
 
-        # 一般引導中，Tutor 候選若自行要求完整交稿，先改成聚焦問題；本輪最後的合併
-        # Thinking 審查若判學生其實已 ready，仍會以確定性模板覆蓋成正式交稿要求。
+        # 一般引導中，Tutor 候選若自行要求完整交稿：
+        # 如果學生並非處於剛卡住狀態（stuck_count == 0 且非 explicit_stuck），
+        # 且已有實質對話推導（對話輪數 >= 3 或已有實質數學進展），
+        # 助教主動請學生寫出完整證明是合理的教學轉折，合法進入 review / awaiting_submission。
+        # 只有在學生首輪或學生剛卡住時，才視為 premature_writeup 進行重生成。
         if not peer and phase == "guide" and asks_for_full_writeup(reply):
-            log.guards.append("premature_writeup")
-            note = (
-                "The proof skeleton is not yet verified as complete. Do not ask for a full proof. "
-                "Ask one focused question about the next missing mathematical link." if en else
-                "目前尚未確認證明骨架完整。不要要求提交完整證明；請針對下一個尚未完成的"
-                "數學連結問一個聚焦問題。")
-            regenerated = (self._content_guards(self._regen(level, note), level, log)
-                           if self._regen_budget_left() else "")
-            if regenerated and not asks_for_full_writeup(regenerated):
-                reply = regenerated
-                log.regenerated = True
+            recent_stuck = bool(self.state.get("stuck_count", 0) > 0 or self._is_stuck_now(last_user))
+            turn_count = len(self.state.get("turns") or [])
+            if not recent_stuck and turn_count >= 3:
+                log.guards.append("tutor_writeup_requested")
+                self._enter_awaiting_submission(
+                    event="READINESS_PASSED", source="tutor_model_readiness")
             else:
-                pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
-                i = self.state.get("fb_idx", 0)
-                reply = pool[i % len(pool)]
-                self.state["fb_idx"] = i + 1
+                log.guards.append("premature_writeup")
+                note = (
+                    "The proof skeleton is not yet verified as complete. Do not ask for a full proof. "
+                    "Ask one focused question about the next missing mathematical link." if en else
+                    "目前尚未確認證明骨架完整。不要要求提交完整證明；請針對下一個尚未完成的"
+                    "數學連結問一個聚焦問題。")
+                regenerated = (self._content_guards(self._regen(level, note), level, log)
+                               if self._regen_budget_left() else "")
+                if regenerated and not asks_for_full_writeup(regenerated):
+                    reply = regenerated
+                    log.regenerated = True
+                else:
+                    pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
+                    i = self.state.get("fb_idx", 0)
+                    reply = pool[i % len(pool)]
+                    self.state["fb_idx"] = i + 1
 
         # 同學模式的權威背書守衛：沒有參考解可對照，任何「整份論證」等級的總評式背書
         # 都是不該有的口吻（v11 端對端：首輪誠實聲明有效，之後卻大量「完全正確／

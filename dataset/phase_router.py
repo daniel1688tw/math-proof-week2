@@ -685,6 +685,13 @@ def route_student_state(student_text: str, context: dict, *,
         return _decision(
             phase, "stuck", "stuck", turn_action="normal_guide", evidence=text)
 
+    # 實質數學作答與推理判定（即使包含先前出現過的符號或定理名稱）
+    math_reasoning = bool(
+        context.get("math_reasoning") or context.get("has_new_math")
+        or context.get("attempt_content") or context.get("direct_response_candidate")
+        or (context.get("has_actionable_math") and not context.get("explicit_stuck"))
+    )
+
     if mixed_attempt_and_stuck:
         base = _decision(
             phase, "uncertain", "uncertain", turn_action="normal_guide",
@@ -694,10 +701,18 @@ def route_student_state(student_text: str, context: dict, *,
         base = _decision(
             phase, "understood_single_step", "progressing",
             turn_action="normal_guide", evidence=text)
+    elif math_reasoning and not context.get("explicit_stuck"):
+        base = _decision(
+            phase, "show_attempt", "partial_progress",
+            turn_action="respond_attempt", evidence=text,
+            has_actionable_math=True, answers_current_question=True,
+            advances_solution=True)
     elif context.get("has_new_math") and not context.get("explicit_stuck"):
         base = _decision(
             phase, "show_attempt", "partial_progress",
-            turn_action="respond_attempt", evidence=text)
+            turn_action="respond_attempt", evidence=text,
+            has_actionable_math=True, answers_current_question=True,
+            advances_solution=True)
     else:
         base = _decision(
             phase, "uncertain", "uncertain", turn_action="normal_guide",
@@ -710,7 +725,7 @@ def route_student_state(student_text: str, context: dict, *,
         or mixed_attempt_and_stuck
         or (context.get("understood") and not context.get("understood_whole"))
         or (context.get("draft_signal") and not context.get("explicit_full_proof"))
-        or context.get("repeats_prior_math") or context.get("goal_restatement")
+        or (context.get("repeats_prior_math") and not math_reasoning) or context.get("goal_restatement")
         or base.intent == "uncertain")
     if not ambiguous or (not thinking_enabled and classifier is None):
         if ambiguous:
