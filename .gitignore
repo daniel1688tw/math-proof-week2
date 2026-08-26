@@ -1,3 +1,6 @@
+# 機敏資訊（連線帳號、金鑰路徑等，勿上傳）
+COMMANDS.md
+
 # 大型模型權重與量化檔（不進 repo，本機/HF Hub 管理）
 learn_path/socratic_tutor/qwen3_4b/
 gguf/
