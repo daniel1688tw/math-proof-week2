@@ -1,0 +1,85 @@
+Custom problem: Prove that if \(f\) is continuous on \([a,b]\), then there exists \(c\in(a,b)\) such that \(\int_a^b f(x)\,dx=f(c)(b-a)\).
+正在自動生成並驗證參考證明；此步驟可能需要數分鐘……
+  [PROVER 1/3] 生成候選證明…
+  [VERIFIER] 驗證候選 1（459 字）…
+  [SEGMENTER] 切分教學步驟…
+自動備課成功：參考證明已通過驗證，開始助教模式。
+輸入 quit 結束，輸入 reset 重開同一題。
+You: 我毫無思緒，不知道該從哪裡開始。
+
+Tutor: 先問自己：要證的是「某個平均值等於函數在某點的值」，這跟哪個定理給出的「某點斜率等於割線斜率」很像？
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 0, "walk_idx": null, "intent": "stuck", "turn_action": "normal_guide", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 我依然毫無頭緒。
+
+Tutor: 換個角度：若把 $\int_a^b f(x)\,dx$ 看成 $F(b)-F(a)$，其中 $F(x)=\int_a^x f(t)\,dt$，這跟哪個定理的框架完全一致？
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 1, "walk_idx": null, "intent": "stuck", "turn_action": "normal_guide", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 我仍然毫無頭緒，不知道該怎麼進行。
+
+Tutor: 最後一次提示：$F$ 是變上限積分，$f$ 連續，$F$ 有什麼樣的可微性質，以及它的導數是多少？
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 2, "walk_idx": null, "intent": "stuck", "turn_action": "normal_guide", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 由基本積分定理（第一基本定理），若 \(F(x)=\int_a^{x}f(t)\,dt\)，且 \(f\) 在 \([a,b]\) 連續，則 \(F\) 在 \((a,b)\) 可微且其導數為  
+
+\[
+F'(x)=f(x)\quad\text{對所有 }x\in(a,b).
+\]
+
+Tutor: 很好，$F$ 的導數正是 $f$。現在對 $F$ 在 $[a,b]$ 上套用拉格朗日中值定理，會得到什麼？
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 0, "walk_idx": null, "intent": "show_attempt", "turn_action": "respond_attempt", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 我仍然不知道應該怎麼套用拉格朗日中值定理。
+
+Tutor: 再提醒一次：Lagrange MVT 説明 $F(b)-F(a)$ 等於什麼形式的量？
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 1, "walk_idx": null, "intent": "stuck", "turn_action": "normal_guide", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 根據拉格朗日中值定理，存在 \(c\in(a,b)\) 使得  
+
+\[
+F(b)-F(a)=F'(c)\,(b-a).
+\]
+
+Tutor: 非常好，你已經自己把整個證明的骨架搭好了。請把它寫成完整的句子。
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 0, "walk_idx": null, "intent": "show_attempt", "turn_action": "respond_attempt", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 根據拉格朗日中值定理，對 \(F\) 有  
+\[
+F(b)-F(a)=F'(c)\,(b-a),\qquad c\in(a,b).
+\]  
+因為 \(F(b)=\displaystyle\int_{a}^{b}f(x)\,dx,\;F(a)=0,\;F'(c)=f(c)\)，可得  
+\[
+\int_{a}^{b}f(x)\,dx = f(c)\,(b-a).
+\]
+
+Tutor: 完全正確，而且每一步都是你自己推導出來的。這就是標準的「平均值定理」證明。
+
+狀態: {"phase": "guide", "review_status": null, "stuck_count": 0, "walk_idx": null, "intent": "show_attempt", "turn_action": "respond_attempt", "event": null, "event_accepted": null, "reject_reason": "", "events": []}
+
+You: 由於 \(F(b)=\displaystyle\int_{a}^{b}f(x)\,dx\)、\(F(a)=0\) 以及由微積分第一基本定理知 \(F'(c)=f(c)\)，因此將這些條件代入中值定理等式即可得到 \(\int_a^b f(x)\,dx = f(c)(b-a)\)。這份證明已經完整涵蓋連續可微性、輔助函數構造與端點代入計算。
+
+Tutor: 審閱通過！證明定義明確、前提完備且邏輯無懈可擊，表現非常優秀。
+
+狀態: {"phase": "closed", "review_status": null, "stuck_count": 0, "walk_idx": null, "intent": "show_attempt", "turn_action": "respond_attempt", "event": "REVIEW_PASSED", "event_accepted": true, "reject_reason": "", "events": ["REVIEW_PASSED:review>closed"]}
+
+You: quit
+
+=== Phase 切換狀態｜CUSTOM｜題目測試結束 ===
+{
+  "problem_id": "CUSTOM_MVT_INT",
+  "statement": "Prove that if \\(f\\) is continuous on \\([a,b]\\), then there exists \\(c\\in(a,b)\\) such that \\(\\int_a^b f(x)\\,dx=f(c)(b-a)\\).",
+  "turn_count": 8,
+  "final_state": {
+    "phase": "closed",
+    "stuck_count": 0,
+    "walk_active": false,
+    "review_active": false,
+    "done_closed": true
+  }
+}
