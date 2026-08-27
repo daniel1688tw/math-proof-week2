@@ -48,6 +48,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -797,6 +798,8 @@ class TutorDriver:
     # 審閱後盾開關（預設開；Ollama 不在線會自動降級，REVIEW_BACKSTOP=0 強制關）
     backstop: bool = field(
         default_factory=lambda: os.environ.get("REVIEW_BACKSTOP", "1") == "1")
+    verify_then_generate: bool = field(
+        default_factory=lambda: os.environ.get("VERIFY_THEN_GENERATE", "1") == "1")
     state: dict = field(default_factory=lambda: {
         "phase": "guide", "review_status": None,
         "turn_action": "normal_guide", "mode": "tutor",
@@ -820,6 +823,10 @@ class TutorDriver:
         self.state.setdefault("active_gap", "")
         self.state.setdefault("last_guide_question", "")
         self.state.setdefault("guide_gap_fb_idx", 0)
+        self.state.setdefault("pre_generation_verification", {
+            "status": "not_applicable", "issues": [], "first_issue": "",
+            "latency_seconds": 0.0,
+        })
 
     @property
     def lang(self) -> str:
@@ -1376,6 +1383,47 @@ class TutorDriver:
             return
         self.state["backstop_gaps"] = find_gaps(
             self.problem["statement"], self.problem["reference_proof"], student_text)
+
+    def _record_pre_generation_verification(self, status, issues=None, latency=0.0):
+        clean = [str(item).strip() for item in (issues or []) if str(item).strip()]
+        self.state["pre_generation_verification"] = {
+            "status": status,
+            "issues": clean,
+            "first_issue": clean[0] if clean else "",
+            "latency_seconds": round(max(0.0, float(latency)), 4),
+        }
+
+    def _run_pre_generation_verifier(self, student_text):
+        try:
+            from review_backstop import find_gaps
+        except ImportError:
+            return None
+        return find_gaps(
+            self.problem["statement"], self.problem["reference_proof"], student_text)
+
+    def _prepare_backstop_context(self, student_text):
+        self.state["backstop_gaps"] = None
+        phase = self.state.get("phase")
+        action = self.state.get("turn_action")
+        if not self.is_peer() and phase == "review":
+            self._record_pre_generation_verification("not_applicable")
+            self._consult_backstop(student_text)
+            return
+        if self.is_peer() or phase != "guide" or action != "respond_attempt":
+            self._record_pre_generation_verification("not_applicable")
+            return
+        if not self.backstop or not self.verify_then_generate:
+            self._record_pre_generation_verification("disabled")
+            return
+        started = time.perf_counter()
+        issues = self._run_pre_generation_verifier(student_text)
+        elapsed = time.perf_counter() - started
+        if issues is None:
+            self._record_pre_generation_verification("unavailable", latency=elapsed)
+            return
+        self.state["backstop_gaps"] = list(issues)
+        self._record_pre_generation_verification(
+            "issues" if issues else "clear", issues, elapsed)
 
     def _judge_walkthrough_answer(self, student_text: str, step: dict) -> dict | None:
         """以審閱後盾做數學語意判定；絕不退回答案字串比對。
@@ -3014,10 +3062,7 @@ class TutorDriver:
                 return reply
         # router 只看學生實際說的內容，不把題目敘述混進意圖／卡住分類。
         self._detect_phase(opener)
-        # guide（含 respond_attempt）的數學檢查已併入最終單一審查；只有正式全文
-        # review 仍在生成前使用舊 backstop，避免同一 guide 輪重複呼叫 Thinking。
-        if not self.is_peer() and self.state.get("phase") == "review":
-            self._consult_backstop(first)
+        self._prepare_backstop_context(user_opener or first)
         self.messages = [{"role": "user", "content": first}]
         reply = self._tutor_turn()
         # opener 的 router 決策仍保留供 action／診斷使用，但 stuck_count 固定維持 0；
@@ -3053,11 +3098,7 @@ class TutorDriver:
                 student_text, trace_before, transition_source="review_workflow")
             return reply
         self._detect_phase(student_text)
-        # guide/respond 的數學正確性由合併審查處理；全文 review 才保留舊 backstop。
-        if not self.is_peer() and self.state.get("phase") == "review":
-            self._consult_backstop(student_text)
-        else:
-            self.state["backstop_gaps"] = None
+        self._prepare_backstop_context(student_text)
         # learning_state 已由同一個 router 依 phase gate、明確規則與必要時的 Thinking
         # 判斷完成；在單一位置更新，避免其他流程各自加減造成不同步。
         self._update_stuck_from_decision()

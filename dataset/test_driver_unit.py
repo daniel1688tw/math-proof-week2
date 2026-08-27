@@ -2744,6 +2744,87 @@ check("P1-3: 只有 Level 2 明示可執行支架",
       "|b_n| <= M" in fb_broad_l2 and "Use this step directly" in fb_broad_l2)
 p03_driver.state["lang"] = "zh"
 
+print("[35] verify-then-generate generation controller")
+
+
+class _VerifyThenGenerateStub(_StubDriver):
+    """Record the controller sequence without invoking a real verifier/model."""
+    call_order: list
+    generated_system: str
+    verifier_result: list | None
+
+    def _run_pre_generation_verifier(self, student_text):
+        self.call_order.append(("verify", student_text))
+        return self.verifier_result
+
+    def _generate(self, level):
+        self.call_order.append(("generate", level))
+        self.generated_system = self._system(level)
+        return "Which continuity hypothesis still needs to be used?"
+
+    def _enforce_guide_reply_policy(self, reply, level, log):
+        return reply
+
+
+vtg = _VerifyThenGenerateStub(
+    tok=None, model=_StubModel(), problem=probs["H4"],
+    backstop=True, verify_then_generate=True)
+vtg.call_order = []
+vtg.verifier_result = ["The Heine-Cantor theorem has not yet been justified."]
+vtg.start(opener="I think the Heine-Cantor theorem gives uniform continuity on [a,b], so the result follows. Is this correct?")
+check("respond_attempt calls verifier before generation",
+      [item[0] for item in vtg.call_order[:2]] == ["verify", "generate"])
+check("verifier issue is injected into the v9 prompt",
+      "Heine-Cantor" in vtg.generated_system
+      and vtg.state["pre_generation_verification"]["status"] == "issues")
+
+for label, phase, action, peer, backstop, enabled in (
+    ("normal guide", "guide", "normal_guide", False, True, True),
+    ("clarification", "guide", "answer_clarification", False, True, True),
+    ("refusal", "guide", "refuse_tutor_write", False, True, True),
+    ("walkthrough", "walkthrough", "normal_guide", False, True, True),
+    ("closed", "closed", "post_completion_reply", False, True, True),
+    ("peer", "guide", "respond_attempt", True, True, True),
+    ("backstop off", "guide", "respond_attempt", False, False, True),
+    ("feature off", "guide", "respond_attempt", False, True, False),
+):
+    problem = dict(probs["H4"])
+    if peer:
+        problem["grounding"] = "unverified"
+    probe = _VerifyThenGenerateStub(
+        tok=None, model=_StubModel(), problem=problem,
+        backstop=backstop, verify_then_generate=enabled)
+    probe.call_order, probe.verifier_result = [], ["unexpected verifier call"]
+    probe.state.update(phase=phase, turn_action=action)
+    probe._prepare_backstop_context("A mathematical attempt.")
+    check(f"{label} does not call the verifier",
+          not any(item[0] == "verify" for item in probe.call_order))
+
+vtg_clear = _VerifyThenGenerateStub(
+    tok=None, model=_StubModel(), problem=probs["H4"],
+    backstop=True, verify_then_generate=True)
+vtg_clear.call_order, vtg_clear.verifier_result = [], []
+vtg_clear.start(opener="I think we keep only the quadratic term as a lower bound. Is this correct?")
+check("clear verifier result preserves guide phase invariants",
+      vtg_clear.state["pre_generation_verification"]["status"] == "clear"
+      and vtg_clear.state["phase"] == "guide"
+      and not vtg_clear.state.get("done_closed"))
+
+vtg_down = _VerifyThenGenerateStub(
+    tok=None, model=_StubModel(), problem=probs["H4"],
+    backstop=True, verify_then_generate=True)
+vtg_down.call_order, vtg_down.verifier_result = [], None
+reply_down = vtg_down.start(opener="I think we keep only the quadratic term as a lower bound. Is this correct?")
+check("unavailable verifier silently degrades",
+      bool(reply_down)
+      and vtg_down.state["pre_generation_verification"]["status"] == "unavailable"
+      and vtg_down.state.get("backstop_gaps") is None)
+check("pre-generation diagnostic survives session serialization",
+      vtg_down.dump_state()["state"]["pre_generation_verification"]["status"] == "unavailable")
+check("verifier context preserves one-question and no-reference invariants",
+      not leaks_reference(vtg.messages[-1]["content"], probs["H4"]["reference_proof"])
+      and vtg.messages[-1]["content"].count("?") == 1)
+
 print()
 if FAIL:
     print(f"✗ {len(FAIL)} 項失敗：{FAIL}")
