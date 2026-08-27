@@ -307,7 +307,7 @@ d10.step("Wait, so is that everything here, or should I check something else?")
 check("EN Tutor 文字不得 arm closed",
       not d10.state.get("done_closed") and d10.state["phase"] == "guide")
 
-print("[6] on-track 防奉送 / 等級 2 禁算式 / 回問保底（跨域 X2/X4 教訓）")
+print("[6] on-track 防奉送 / Level 2 單步支架 / 回問保底（跨域 X2/X4 教訓）")
 check("『左乘 A』指定操作 → 奉送",
       is_spoonfeeding(r"接著對它左乘 $A$，會得到什麼樣的新方程？"))
 check("『減去 λ1 倍的原式』→ 奉送",
@@ -370,11 +370,14 @@ g3.regen = "這一步的關鍵想法是用特徵值乘原式再相減。你能�
 g3.messages = [{"role": "user", "content": "題目…我不會"}]
 g3.state["stuck_count"] = 2
 g3._tutor_turn()
-check("等級 2 出現新算式 → 觸發重生成", g3.messages[-1]["content"] == g3.regen)
-check("log.guards 記錄 formula", "formula" in g3.state["turns"][-1].guards)
+check("Level 2 可給一個明確算式支架，保留後續推導給學生",
+      g3.messages[-1]["content"] == g3.first)
+check("Level 2 單步支架不再被公式守衛打回",
+      "formula" not in g3.state["turns"][-1].guards)
 
 print("[7] 審閱後盾注入（混合架構）")
 from review_backstop import _parse_gaps, _parse_object  # noqa: E402
+import review_backstop as _review_module  # noqa: E402
 
 check("純 JSON 陣列可解析",
       _parse_gaps('["缺 v2≠0 的依據", "區間寫錯"]') == ["缺 v2≠0 的依據", "區間寫錯"])
@@ -394,8 +397,44 @@ check("逐步回答後盾的結構化 verdict 可從夾雜文字中解析",
                      {"correct", "incorrect", "partial", "not_answer", "uncertain"}) or {})
       .get("verdict") == "partial")
 
+# 真實 e2e：學生回答含 expected_answer 並額外給正確端點推導，第一輪評審卻誤判
+# not_answer。此時必須再做語意複審，不可把一次假陰性直接面向學生。
+_walk_retry_original = _review_module._retry_parsed
+_walk_retry_outputs = [
+    '{"verdict":"not_answer","root_error":"","correct_basis":"",'
+    '"feedback":"did not identify the function"}',
+    '{"verdict":"correct","root_error":"","correct_basis":"",'
+    '"feedback":"The answer states the requested function and adds correct consequences."}',
+    '{"verdict":"correct","root_error":"","correct_basis":"",'
+    '"feedback":"The additional endpoint relations are also correct."}',
+]
+_walk_retry_calls = []
+
+def _walk_retry_sequence(system, user, parser, **kwargs):
+    _walk_retry_calls.append((system, user))
+    return parser(_walk_retry_outputs.pop(0))
+
+_review_module._retry_parsed = _walk_retry_sequence
+try:
+    _walk_rechecked = _review_module.judge_walkthrough_answer(
+        "Let f be continuous on [0,2].",
+        "Define g(x)=f(x+1)-f(x), then compare endpoint values.",
+        {
+            "explain": "Define g(x)=f(x+1)-f(x) on [0,1].",
+            "check": "What auxiliary function are we using?",
+            "expected_answer": "g(x)=f(x+1)-f(x)",
+            "accepted_answers": ["g(x)=f(x+1)-f(x)"],
+            "common_errors": [],
+        },
+        "We use g(x)=f(x+1)-f(x). Also g(1)=-g(0).",
+    )
+finally:
+    _review_module._retry_parsed = _walk_retry_original
+check("walkthrough 的可作答數學內容被誤判 not_answer 時強制語意複審",
+      (_walk_rechecked or {}).get("verdict") == "correct"
+      and len(_walk_retry_calls) == 3)
+
 # TutorDriver 必須呼叫語意後盾，而不是在本地拿 expected_answer 做字串比較。
-import review_backstop as _review_module  # noqa: E402
 _judge_original = _review_module.judge_walkthrough_answer
 _judge_call = {}
 
@@ -1117,6 +1156,9 @@ try:
                                  student_state_decision={"advances_solution": True})
         _guide_probe_results.append(
             guide_probe._review_guide_reply("那下一個理由是什麼？", 2))
+    guide_probe.state["lang"] = "en"
+    _guide_probe_results.append(
+        guide_probe._review_guide_reply("What should I justify next?", 1))
 finally:
     _readiness_backstop._retry_parsed = _old_retry_parsed
 check("所有 tutor guide action 共用同一個 Thinking 語意審查器",
@@ -1138,6 +1180,10 @@ check("所有 tutor guide action 共用同一個 Thinking 語意審查器",
               and call["kwargs"].get("per_attempt_timeout", 0) >= 120
               and isinstance(call["kwargs"].get("response_format"), dict)
               for call in _guide_review_calls))
+check("英文 session 的語意審查契約要求缺口欄位使用英文",
+      _guide_review_calls[-1]["payload"].get("language") == "en"
+      and "payload.language" in _guide_review_calls[-1]["system"]
+      and "first_missing_step" in _guide_review_calls[-1]["system"])
 
 
 class _GuidePolicyStub(TutorDriver):
@@ -2619,6 +2665,25 @@ review_level_soft = {
 check("P1-1: 數學正確且無洩漏時，level_policy 不單獨作為退件理由",
       p03_driver._guide_reply_review_passes(review_level_soft, 2))
 
+# Level 2 可以明講一個微步驟，但不可越過該支架繼續代寫後續推導。
+review_l2_scaffold = dict(review_level_soft)
+review_l2_scaffold.update(
+    completes_any_unfinished_step=True,
+    advances_beyond_one_scaffold=False,
+    deeper_than_last_question=True,
+)
+p03_driver.state.update(turn_action="normal_guide", last_guide_question="你會先找哪個條件？")
+check("P1-1: Level 2 可完成一個微步驟作為更深支架",
+      p03_driver._guide_reply_review_passes(review_l2_scaffold, 2))
+check("P1-1: Level 1 仍不可直接完成微步驟",
+      not p03_driver._guide_reply_review_passes(review_l2_scaffold, 1))
+review_l2_too_far = dict(review_l2_scaffold, advances_beyond_one_scaffold=True)
+check("P1-1: Level 2 不可越過單一支架代寫後續推導",
+      not p03_driver._guide_reply_review_passes(review_l2_too_far, 2))
+review_same_depth = dict(review_level_soft, deeper_than_last_question=False)
+check("P1-1: L1/L2 只換句話重問而未加深時退件",
+      not p03_driver._guide_reply_review_passes(review_same_depth, 2))
+
 # 5. P1-3: 上下文對齊的保底回覆
 p03_driver.state["guide_reply_review"] = {
     "initial": {
@@ -2632,9 +2697,51 @@ check("P1-3: 中文保底回覆對齊第一缺口",
 
 p03_driver.state["lang"] = "en"
 fb_en = p03_driver._safe_guide_review_fallback()
-check("P1-3: 英文保底回覆對齊第一缺口",
-      "利用 Rolle 定理找 g''(c)=0" in fb_en
+check("P1-3: 英文保底回覆不洩漏中文評審缺口",
+      not any("\u4e00" <= ch <= "\u9fff" for ch in fb_en)
+      and "current unresolved step" in fb_en
       and ("Good, that step is established" in fb_en or "That step holds" in fb_en))
+
+# 學生連續 no_step 時，L1 要縮小問題，L2 則直接給一個可執行支架；
+# 這個差異不能只靠換句話或禁止公式來製造。
+p03_driver.state["guide_reply_review"] = {
+    "initial": {
+        "latest_student_step_status": "no_step",
+        "first_missing_step": "Define g(x) = f(x+1) - f(x) on [0,1].",
+    }
+}
+p03_driver.state["active_gap"] = "Define g(x) = f(x+1) - f(x) on [0,1]."
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_l1 = p03_driver._safe_guide_review_fallback(level=1)
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_l2 = p03_driver._safe_guide_review_fallback(level=2)
+check("P1-3: Level 1 把上一問縮成可立即執行的單一子目標",
+      "executable subgoal" in fb_l1.lower()
+      and "write down now" in fb_l1.lower()
+      and "Use this step directly" not in fb_l1)
+check("P1-3: Level 2 保底明給單一支架並要求學生執行",
+      "Use this step directly" in fb_l2
+      and "write the first relation" in fb_l2.lower()
+      and "g(x) = f(x+1) - f(x)" in fb_l2)
+
+# Reviewer 的 first_missing_step 偶爾會包含兩個以上步驟；L0/L1 若原樣插入，
+# 淺提示會比 L2 更早洩漏整條推導（實驗室乘積級數題的真實回歸）。
+p03_driver.state["active_gap"] = (
+    "Bounding |b_n| <= M and showing |a_n b_n| <= M|a_n| "
+    "to apply the comparison test."
+)
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_broad_l0 = p03_driver._safe_guide_review_fallback(level=0)
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_broad_l1 = p03_driver._safe_guide_review_fallback(level=1)
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_broad_l2 = p03_driver._safe_guide_review_fallback(level=2)
+check("P1-3: Level 0 不逐字展開可能含多步驟的 active gap",
+      "|b_n|" not in fb_broad_l0 and "comparison test" not in fb_broad_l0)
+check("P1-3: Level 1 不逐字展開可能含多步驟的 active gap",
+      "|b_n|" not in fb_broad_l1 and "comparison test" not in fb_broad_l1)
+check("P1-3: 只有 Level 2 明示可執行支架",
+      "|b_n| <= M" in fb_broad_l2 and "Use this step directly" in fb_broad_l2)
 p03_driver.state["lang"] = "zh"
 
 print()

@@ -664,6 +664,18 @@ def _walkthrough_output_lang(step: dict, student_answer: str) -> str:
     return "zh" if re.search(r"[\u3400-\u9fff]", student_answer or "") else "en"
 
 
+def _walkthrough_answer_mentions_expected(step: dict, student_answer: str) -> bool:
+    """只判斷 not_answer 是否值得複審，不以字串命中直接判定數學正確。"""
+    compact_answer = re.sub(r"[\s$\\{}]", "", student_answer or "").lower()
+    candidates = [step.get("expected_answer")]
+    candidates.extend(step.get("accepted_answers") or [])
+    return any(
+        len(compact) >= 3 and compact in compact_answer
+        for candidate in candidates
+        if (compact := re.sub(r"[\s$\\{}]", "", str(candidate or "")).lower())
+    )
+
+
 def judge_walkthrough_answer(statement: str, reference_proof: str, step: dict,
                              student_answer: str, timeout: int = 300) -> dict | None:
     """以與 review/rectify 相同的思考型後盾，兩輪語意審閱 walkthrough 回答。
@@ -722,6 +734,11 @@ def judge_walkthrough_answer(statement: str, reference_proof: str, step: dict,
         ANSWER_JUDGE_SYSTEM, user, parser, timeout=timeout,
         num_predict=8192, temperature=0.05, attempts=3,
         per_attempt_timeout=timeout)
+    # not_answer 不需具體錯因，偶爾會把「含參考答案且另附正確推導」誤當沒作答。
+    # 字串命中只觸發另一個語意審查，不直接宣告正確；額外推導仍由模型完整核對。
+    if (obj and obj.get("verdict") == "not_answer"
+            and _walkthrough_answer_mentions_expected(step, student_answer)):
+        obj = None
     if not obj:
         # 完整參考證明可能過長；仍失敗時縮成判定所需的最小充分語境，仍交給同一
         # Thinking 模型做語意審閱，不退回 expected_answer 字串比對。

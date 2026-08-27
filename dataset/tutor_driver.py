@@ -6,7 +6,7 @@
 
   等級 0（預設）    ：只問一個聚焦問題，禁止點名任何定理/技巧名稱（修 C8 提前點名）。
   等級 1（卡住 1 次）：把上一問拆成更小、更具體的子問題，仍不點名。
-  等級 2（卡住 2 次）：透露已驗證教學步驟的核心想法（不給算式、不完成推導）。
+  等級 2（卡住 2 次）：明給一個可執行的微步驟支架（可含公式，但不代寫後續推導）。
 
 推論端防護（不需重訓即生效）：
   * 單問句截斷：回覆若含多個問號，截到第一個問號為止（修複合問句）。
@@ -14,8 +14,8 @@
     即以更強約束重生成一次（greedy 下改變輸入才會改變輸出）。
   * on-track 防奉送（跨域評估 X2/X4 教訓）：等級 <2 且無特殊階段時，回覆若替學生
     指定具體代數操作（左乘/減去…倍/代入…）即重生成——學生方向正確時只肯定不奉送。
-  * 等級 2 禁算式：提示只能點名想法，回覆若出現參考解之外的新等式/不等式即重生成
-    （允許重現題目敘述或學生自己寫過的式子）。
+  * 等級 2 深度守衛：可給一個公式／構造作為微步驟支架，但必須比上一問更深入，且不可
+    越過這個支架代寫後續推導或最終結論；由語意審查器對照參考解判斷。
   * 回問保底：等級 <2 的引導輪與 refuse_tutor_write 輪必須以問題收尾，缺問句先重生成，
     仍缺則附上固定追問（確定性優於賭模型服從）。
   * 審閱後盾（混合架構，review_backstop.py）：review/respond_attempt 輪先讓思考型模型
@@ -70,13 +70,13 @@ BASE_SYSTEM_EN = """You are a Socratic tutor for advanced mathematics proofs. Th
 LEVEL_INSTRUCTIONS = {
     0: "本輪指示：只問一個宏觀聚焦問題，著重於整體證明目標與數學直覺，不要點名任何定理或技巧名稱，讓學生自己想方向。",
     1: "本輪指示：學生剛才答不出來。把問題拆解為具體子問題，引導學生觀察題設中的關鍵條件、數值或局部性質，提供思考支架，仍然不要直接點名定理名稱。",
-    2: "本輪指示：學生已第二次無法回答同一段推導。只根據 <REFERENCE_PROOF> 與目前對話，找出緊接在學生已完成內容之後的第一個必要證明連結。第一句明確點出該連結需要的關鍵定理、技巧、概念方向或輔助構造形態；不得替學生代寫後續運算推導，不得給出最終結論。第二句只問一個具體問題，讓學生自己動手執行下一步推導。",
+    2: "本輪指示：學生已第二次無法回答同一段推導。只根據 <REFERENCE_PROOF> 與目前對話，找出緊接在學生已完成內容之後的第一個必要證明連結。第一句直接給一個可執行的微步驟支架，可包含一個關鍵定理、技巧、輔助構造或公式；提示必須明顯比上一問更深入，但不得越過這個支架代寫後續推導，也不得給出最終結論。第二句只問一個具體問題，讓學生自己執行這個微步驟。",
 }
 
 LEVEL_INSTRUCTIONS_EN = {
     0: "This turn: ask exactly one high-level focused question on the overall goal and intuition. Do not name any theorem or technique; let the student find the direction themselves.",
     1: "This turn: the student just failed to answer. Break your previous question into a more concrete sub-question, guiding the student to observe specific conditions, values, or local properties from the statement as a scaffold. Still do not directly name any theorem.",
-    2: "This turn: the student has now failed twice on the same part of the derivation. Using only <REFERENCE_PROOF> and the conversation, identify the first necessary proof link immediately after the student's last completed step. In the first sentence, explicitly name the key theorem, technique, conceptual direction, or auxiliary construct needed for that link; do not write out the subsequent algebraic derivations or final conclusion. In the second sentence, ask exactly one concrete question that lets the student carry out the next step themselves.",
+    2: "This turn: the student has now failed twice on the same part of the derivation. Using only <REFERENCE_PROOF> and the conversation, identify the first necessary proof link immediately after the student's last completed step. In the first sentence, directly give one executable micro-scaffold; it may contain one key theorem, technique, auxiliary construct, or formula. It must be clearly deeper than the previous question, but must not continue beyond that scaffold into later derivations or the final conclusion. In the second sentence, ask exactly one concrete question that makes the student execute that micro-step.",
 }
 
 # 卡住偵測：短回覆且含「答不出」語彙（確定性、可測試）
@@ -1468,9 +1468,9 @@ class TutorDriver:
                 )
             elif level == 2 and ladder_hint:
                 instr = (
-                    f"This turn: the student has now failed twice on the same part of the derivation. In the first sentence, explicitly point out the key direction or construct: '{ladder_hint}'; do not write out the subsequent algebraic derivations or final conclusion. In the second sentence, ask exactly one concrete question that lets the student carry out the next step themselves."
+                    f"This turn: the student has now failed twice on the same part of the derivation. In the first sentence, directly give this one executable micro-scaffold: '{ladder_hint}'. A formula is allowed when it is part of that single scaffold. Make the hint clearly deeper than the previous question, but do not continue into subsequent derivations or the final conclusion. In the second sentence, ask exactly one concrete question that makes the student execute this micro-step."
                     if en else
-                    f"本輪指示：學生已第二次無法回答同一段推導。第一句明確點出關鍵方向或構造：『{ladder_hint}』；不得替學生代寫後續運算推導，不得給出最終結論。第二句只問一個具體問題，讓學生自己動手執行下一步推導。"
+                    f"本輪指示：學生已第二次無法回答同一段推導。第一句直接給這一個可執行的微步驟支架：『{ladder_hint}』；若該支架本身需要公式可以寫出。提示必須明顯比上一問更深入，但不得繼續代寫後續推導，也不得給出最終結論。第二句只問一個具體問題，讓學生自己執行這個微步驟。"
                 )
             else:
                 instr = level_map[level]
@@ -1919,6 +1919,7 @@ class TutorDriver:
                 "level": int(level),
                 "turn_action": self.state.get("turn_action"),
                 "student_state": self.state.get("student_state_decision") or {},
+                "language": self.lang,
                 "active_gap": str(self.state.get("active_gap") or ""),
                 "last_guide_question": str(
                     self.state.get("last_guide_question") or ""),
@@ -1927,6 +1928,9 @@ class TutorDriver:
                 "candidate_tutor_reply": reply,
             }
             system = (
+                "All natural-language diagnostic string fields must use payload.language "
+                "(zh = Traditional Chinese, en = English), especially first_missing_step, "
+                "missing_core_step, candidate_math_error, candidate_ownership_error, and feedback.\n"
                 "你是幕後的蘇格拉底式引導與交稿準備度合併審查器，只做審查、不要解題。"
                 "請比較題目、參考證明、對話、student_messages 與候選回覆，依序完成："
                 "(1)核對 student_messages 最後一則中的數學步驟狀態 (latest_student_step_status: correct/incorrect/no_step) 與第一個缺少連結 (first_missing_step)。"
@@ -1935,15 +1939,17 @@ class TutorDriver:
                 "   - 是否假定、宣稱或沿用學生尚未親自完成的步驟 (candidate_ownership_error: 若 Tutor 宣稱「你自己已算出/證明了某事」但學生在 student_messages 中未曾算出，填具體主張；否則填空字串)。\n"
                 "   - 是否真正承接並回應最新學生步驟 (addresses_latest_student_step: boolean)。若學生剛答對，Tutor 應簡短確認該步並引導至第一個缺口；若學生答錯，應聚焦引導修正該步；若學生卡住/提問，應引導目前缺口。若學生提出具體步驟，Tutor 卻只說「你想從哪個方向試試看」等空泛無關問句，必須為 false。\n"
                 "   - stays_on_active_gap: 候選是否只處理 payload.active_gap，並在 L1/L2 延續 payload.last_guide_question。學生只說卡住，或上一個錯誤尚未修正時，若改問其他證明步驟必須為 false。\n"
+                "   - deeper_than_last_question: 若 payload.last_guide_question 非空，候選是否增加實質提示深度，而非只換句話重問。L1 應縮成子目標；L2 應直接提供一個可執行的微步驟支架。若上一問為空則填 true。\n"
                 "   - completes_any_unfinished_step 不只包含 Tutor 直接斷言、計算或推導任何學生尚未完成的中間步驟；也包含假定該步已完成、稱讚錯誤步驟、沿用錯誤結果，或跳過第一個缺口而前往更後面的步驟。即使 Tutor 後面仍留下一個問題，也必須判 true。\n"
+                "   - advances_beyond_one_scaffold: 候選是否在給出第一個微步驟支架後，又繼續代寫第二個步驟、後續推導或結論。\n"
                 "   - 是否洩漏題目最終結論 (leaks_final_conclusion: boolean)。\n"
                 "   - level_policy_pass: boolean。\n"
                 "(3)獨立判斷學生整體證明是否已可交稿 (ready_for_writeup, missing_core_step, readiness_confidence, feedback)。\n"
                 "下列規則與題型無關。normal_guide 才使用 level：\n"
                 "L0：只問一個聚焦問題，不可替學生新增定理、技巧、構造或證明步驟。\n"
                 "L1：只把上一問縮小成更具體的子問題，仍不可新增定理、公式或結果。\n"
-                "L2：只點出緊接學生已完成內容之後的一個定理、技巧或概念方向，不可寫出新的"
-                "等式、計算結果或更後面的步驟；必須用一個具體問題把執行交回學生。\n"
+                "L2：必須明顯比上一問深入；可以直接給一個可執行的微步驟支架（包含一個公式、"
+                "定理、技巧或輔助構造），但不可越過該支架代寫第二步、後續推導或最終結論。\n"
                 "respond_attempt：只能肯定學生已親自完成且正確的部分，再問第一個缺少的連結；"
                 "不可引入 student_messages 尚未出現的新定理、輔助物件、構造或策略，也不可替"
                 "學生斷言或推導尚未完成的連結。answer_clarification：只回答學生明確詢問的"
@@ -1959,9 +1965,11 @@ class TutorDriver:
                 "\"candidate_ownership_error\":\"所有權假定錯誤或空字串\","
                 "\"addresses_latest_student_step\":true/false,"
                 "\"stays_on_active_gap\":true/false,"
+                "\"deeper_than_last_question\":true/false,"
                 "\"mathematically_correct\":true/false,\"level_policy_pass\":true/false,"
                 "\"introduces_new_proof_idea\":true/false,"
                 "\"completes_any_unfinished_step\":true/false,"
+                "\"advances_beyond_one_scaffold\":true/false,"
                 "\"leaks_final_conclusion\":true/false,\"ready_for_writeup\":true/false,"
                 "\"missing_core_step\":\"缺少內容或空字串\",\"readiness_confidence\":0到1,"
                 "\"feedback\":\"簡短原因\"}。"
@@ -1979,10 +1987,12 @@ class TutorDriver:
                     "candidate_ownership_error": {"type": "string"},
                     "addresses_latest_student_step": {"type": "boolean"},
                     "stays_on_active_gap": {"type": "boolean"},
+                    "deeper_than_last_question": {"type": "boolean"},
                     "mathematically_correct": {"type": "boolean"},
                     "level_policy_pass": {"type": "boolean"},
                     "introduces_new_proof_idea": {"type": "boolean"},
                     "completes_any_unfinished_step": {"type": "boolean"},
+                    "advances_beyond_one_scaffold": {"type": "boolean"},
                     "leaks_final_conclusion": {"type": "boolean"},
                     "ready_for_writeup": {"type": "boolean"},
                     "missing_core_step": {"type": "string"},
@@ -1994,9 +2004,11 @@ class TutorDriver:
                     "latest_student_step_status", "first_missing_step",
                     "candidate_math_error", "candidate_ownership_error",
                     "addresses_latest_student_step", "stays_on_active_gap",
+                    "deeper_than_last_question",
                     "mathematically_correct",
                     "level_policy_pass", "introduces_new_proof_idea",
                     "completes_any_unfinished_step", "leaks_final_conclusion",
+                    "advances_beyond_one_scaffold",
                     "ready_for_writeup", "missing_core_step",
                     "readiness_confidence", "feedback",
                 ],
@@ -2008,13 +2020,17 @@ class TutorDriver:
                 if not isinstance(value, dict):
                     return None
                 bool_keys = ("addresses_latest_student_step", "stays_on_active_gap",
+                             "deeper_than_last_question",
                              "mathematically_correct",
                              "level_policy_pass", "introduces_new_proof_idea",
                              "completes_any_unfinished_step",
+                             "advances_beyond_one_scaffold",
                              "leaks_final_conclusion", "ready_for_writeup")
                 # 相容舊測試與呼叫：若缺欄位給予合理預設值
                 value.setdefault("addresses_latest_student_step", True)
                 value.setdefault("stays_on_active_gap", True)
+                value.setdefault("deeper_than_last_question", True)
+                value.setdefault("advances_beyond_one_scaffold", False)
                 value.setdefault("candidate_math_error", "")
                 value.setdefault("candidate_ownership_error", "")
                 value.setdefault("latest_student_step_status", "no_step")
@@ -2065,6 +2081,15 @@ class TutorDriver:
         action = self.state.get("turn_action")
         return action == "respond_attempt" or (action == "normal_guide" and level < 2)
 
+    def _allows_level2_micro_scaffold(self, review: dict, level: int) -> bool:
+        """Level 2 可直接給一個微步驟，但不可藉此繼續代寫後續推導。"""
+        return bool(
+            level == 2
+            and self.state.get("turn_action") == "normal_guide"
+            and review.get("advances_beyond_one_scaffold") is not True
+            and review.get("leaks_final_conclusion") is not True
+        )
+
     def _guide_reply_review_passes(self, review: dict | None, level: int) -> bool:
         if not review:
             return False
@@ -2083,9 +2108,15 @@ class TutorDriver:
             return False
         if level >= 1 and review.get("stays_on_active_gap") is False:
             return False
+        if (level >= 1 and self.state.get("last_guide_question")
+                and review.get("deeper_than_last_question") is False):
+            return False
                 
-        # 禁止代寫與洩漏最終結論
-        if review.get("completes_any_unfinished_step") is True:
+        # L0/L1 禁止代寫；L2 只放行一個微步驟支架。
+        if (review.get("completes_any_unfinished_step") is True
+                and not self._allows_level2_micro_scaffold(review, level)):
+            return False
+        if review.get("advances_beyond_one_scaffold") is True:
             return False
         if review.get("leaks_final_conclusion") is True:
             return False
@@ -2175,6 +2206,8 @@ class TutorDriver:
         step_status = str(rev.get("latest_student_step_status") or "")
         first_missing = (str(self.state.get("active_gap") or "").strip()
                          or str(rev.get("first_missing_step") or "").strip())
+        if en and _CJK_RE.search(first_missing):
+            first_missing = "the current unresolved step"
         if level is None:
             level = min(2, max(0, int(self.state.get("stuck_count", 0))))
         gap_index = int(self.state.get("guide_gap_fb_idx", 0))
@@ -2203,31 +2236,31 @@ class TutorDriver:
             if en:
                 templates = {
                     0: (
-                        f"Which stated condition is most directly related to the current gap, {first_missing}?",
-                        f"Looking only at the problem statement, what information could help with {first_missing}?",
+                        "Which stated condition is most directly related to the current unresolved gap?",
+                        "Looking only at the problem statement, what information could help with the current unresolved gap?",
                     ),
                     1: (
-                        f"What smaller equality, bound, or prerequisite would you establish first for {first_missing}?",
-                        f"Can you split {first_missing} into one smaller claim that you can verify now?",
+                        "Narrow the previous question to one executable subgoal: what exact object, equality, or bound can you write down now?",
+                        "Turn the previous question into one executable subgoal: what single mathematical statement can you write down now?",
                     ),
                     2: (
-                        f"For {first_missing}, which single required premise will you check before carrying out that step?",
-                        f"Stay with {first_missing}: what is the first explicit mathematical check you can perform?",
+                        f"Use this step directly: {first_missing} Can you now write the first relation or conclusion that follows from this one step?",
+                        f"Here is the next micro-step: {first_missing} What is the first relation it gives you when you carry it out?",
                     ),
                 }
             else:
                 templates = {
                     0: (
-                        f"題目中哪一個已知條件與目前缺口「{first_missing}」最直接相關？",
-                        f"先只看題目明示的資訊，哪一項可能幫你處理「{first_missing}」？",
+                        "題目中哪一個已知條件與目前尚未解決的缺口最直接相關？",
+                        "先只看題目明示的資訊，哪一項可能幫你處理目前的缺口？",
                     ),
                     1: (
-                        f"為了完成「{first_missing}」，你會先建立哪一個更小的等式、界或前提？",
-                        f"你能把「{first_missing}」拆成一個現在可核對的較小主張嗎？",
+                        "把上一問縮成一個可立即執行的子目標：你現在能寫下哪個明確物件、等式或界？",
+                        "把上一問轉成一個可執行的子目標：你現在能寫下哪一條數學敘述？",
                     ),
                     2: (
-                        f"針對「{first_missing}」，先只核對一個必要前提：你要核對的是哪一項？",
-                        f"維持在「{first_missing}」：你現在能執行的第一個明確數學檢查是什麼？",
+                        f"直接使用這個微步驟：「{first_missing}」你現在能寫出由這一步得到的第一個關係式或結論嗎？",
+                        f"下一個微步驟是：「{first_missing}」你動手執行後，首先得到哪個關係式？",
                     ),
                 }
             bounded_level = min(2, max(0, level))
@@ -2330,21 +2363,29 @@ class TutorDriver:
             feedback_parts.append("必須明確承接並回應學生最新提出的數學步驟，不得輸出脫離該步的空泛問句")
         if first.get("stays_on_active_gap") is False:
             feedback_parts.append("只能處理目前 active gap；學生未修正錯誤或只表示卡住時不得切換證明步驟")
+        if (level >= 1 and self.state.get("last_guide_question")
+                and first.get("deeper_than_last_question") is False):
+            feedback_parts.append("不可只換句話重問；L1 要縮成子目標，L2 要直接給一個可執行的微步驟支架")
         if (self._guide_action_forbids_new_idea(level)
                 and first.get("introduces_new_proof_idea") is True):
             feedback_parts.append("本輪不得提出學生尚未提出的新定理、輔助物件、構造或證明策略")
-        if first.get("completes_any_unfinished_step") is True:
+        if (first.get("completes_any_unfinished_step") is True
+                and not self._allows_level2_micro_scaffold(first, level)):
             feedback_parts.append("不得直接完成、假定完成、稱讚後跳過或沿用任何尚未完成／錯誤的中間步驟")
+        if first.get("advances_beyond_one_scaffold") is True:
+            feedback_parts.append("Level 2 只能給一個微步驟支架，不可繼續代寫第二步、後續推導或結論")
             
         feedback = "；".join(feedback_parts)
         en = self.lang == "en"
         note = (
             "The semantic policy review rejected the draft. Rewrite it once so the student must do "
-            "the next inference themselves; make every mathematical statement correct, obey the "
+            "the next inference themselves (except that Level 2 may directly give one micro-scaffold); "
+            "make every mathematical statement correct, obey the "
             "current guide action and its level when applicable, address the student's latest step, "
             "and do not state the final conclusion. Review feedback: " + feedback if en else
             "語意政策審查未通過。只重寫一次：所有數學敘述都必須正確，嚴格遵守目前的 guide "
-            "action（適用時也遵守 level），承接最新學生步驟，下一個推理必須由學生自己完成，不可說出最終結論。"
+            "action（適用時也遵守 level），承接最新學生步驟；Level 2 可直接給一個微步驟支架，"
+            "但學生必須自己完成其後推理，不可說出最終結論。"
             "審查原因：" + feedback)
         regenerated = self._content_guards(self._regen(level, note), level, log)
         log.regenerated = True
@@ -2423,7 +2464,7 @@ class TutorDriver:
             for p in prev if p)
 
     def _content_guards(self, reply: str, level: int, log: TurnLog) -> str:
-        """四道內容防護：洩漏／on-track 防奉送／等級 2 禁算式／稱讚校準。
+        """內容防護：洩漏／on-track 防奉送／稱讚校準。
 
         只在有參考解、且非教學輪時運作（同學模式無解可護；教學步驟本就要講出來）。
 
@@ -2460,17 +2501,6 @@ class TutorDriver:
                 "student an open question like how they plan to proceed." if en else
                 "上一稿替學生指定了具體代數操作（如左乘、相減、代入）。"
                 "重寫：不要說出任何操作步驟，改問學生「打算怎麼處理」這類開放問題。"))
-            log.regenerated = True
-
-        # 等級 2 算式守衛：可給關鍵構造形態/定理方向，但不得直接代寫後續推導等式或結論
-        if level == 2 and gives_new_equation(reply, self._allowed_equation_src()):
-            log.guards.append("formula")
-            reply = self._regen(level, (
-                "Your previous draft wrote out subsequent derivation formulas or conclusions. Rewrite: "
-                "state the theorem/technique name, conceptual direction, or auxiliary construct, "
-                "and let the student carry out the algebraic derivation themselves." if en else
-                "上一稿直接替學生寫出了推導算式或結論。重寫：只指出該步驟的定理／技巧名稱、"
-                "核心想法或輔助構造形態，不要替學生代寫具體運算過程，讓學生自己動筆推導。"))
             log.regenerated = True
 
         # 稱讚校準：後盾已回報缺漏卻無條件背書（＝把錯誤寫法確認掉，最嚴重的過譽），
