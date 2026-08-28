@@ -251,8 +251,8 @@ def tier0() -> bool:
     # 與 test_driver_unit.py 互補——後者的台詞是人寫的（證明狀態機邏輯正確），前者用
     # 真模型講過的話（證明那些散文比對的正則在真實措辭下不會誤判）。
     for script in ("test_driver_unit.py", "test_review_workflow.py", "test_phase_routing.py",
-                   "test_segmenter_unit.py", "test_verify_then_generate_eval.py", "validate.py",
-                   "test_dataset.py"):
+                   "test_segmenter_unit.py", "test_verify_then_generate_eval.py",
+                   "../server_train/test_vtg_docker.py", "validate.py", "test_dataset.py"):
         r = subprocess.run([PY, str(HERE / script)], capture_output=True, text=True,
                            encoding="utf-8", errors="replace")
         print(f"  [{'✓' if r.returncode == 0 else '✗'}] {script}")

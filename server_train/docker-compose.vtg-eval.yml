@@ -1,0 +1,59 @@
+name: daniel-vtg
+
+services:
+  daniel-vtg-eval:
+    image: daniel-qlora-train:latest
+    container_name: daniel-vtg-eval
+    working_dir: /workspace
+    command: ["bash", "/workspace/server_train/run_vtg_eval.sh"]
+    network_mode: none
+    environment:
+      FINAL_ADAPTER: qlora_adapter_v9
+      REVIEW_BACKSTOP: "1"
+      VERIFY_THEN_GENERATE: "1"
+      REVIEW_MODEL: qwen3-4b-thinking-2507:latest
+      OLLAMA_URL: http://127.0.0.1:11434/api/chat
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_MODELS: /workspace/.ollama_models
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      PYTHONNOUSERSITE: "1"
+      PYTHONUTF8: "1"
+      TOKENIZERS_PARALLELISM: "false"
+      HF_HOME: /workspace/hf_cache
+      VTG_OUTPUT: /workspace/dataset/eval_out_xdomain/verify_then_generate_remote.json
+    volumes:
+      - type: bind
+        source: ${VTG_PROJECT_DIR:?set VTG_PROJECT_DIR}
+        target: /workspace
+      - type: bind
+        source: ${VTG_BASE_MODEL_DIR:?set VTG_BASE_MODEL_DIR}
+        target: /workspace/learn_path/socratic_tutor/qwen3_4b
+        read_only: true
+      - type: bind
+        source: ${VTG_ADAPTER_DIR:?set VTG_ADAPTER_DIR}
+        target: /workspace/dataset/qlora_adapter_v9
+        read_only: true
+      - type: bind
+        source: ${VTG_GGUF_DIR:?set VTG_GGUF_DIR}
+        target: /assets
+        read_only: true
+      - type: bind
+        source: ${VTG_OLLAMA_MODELS_DIR:?set VTG_OLLAMA_MODELS_DIR}
+        target: /workspace/.ollama_models
+      - type: bind
+        source: /usr/local/bin/ollama
+        target: /usr/local/bin/ollama
+        read_only: true
+    shm_size: 8gb
+    deploy:
+      resources:
+        limits:
+          cpus: "12"
+          memory: 48G
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${VTG_GPU_ID:-1}"]
+              capabilities: [gpu]
+    restart: "no"
