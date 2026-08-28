@@ -14,6 +14,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 COMPOSE = HERE / "docker-compose.vtg-eval.yml"
 RUNNER = HERE / "run_vtg_eval.sh"
+MODELFILE = HERE / "Modelfile.vtg"
 
 
 def main() -> None:
@@ -46,6 +47,7 @@ def main() -> None:
     assert service["environment"]["OLLAMA_URL"] == "http://127.0.0.1:11434/api/chat"
     assert service["environment"]["VERIFY_THEN_GENERATE"] == "1"
     assert service["environment"]["REVIEW_BACKSTOP"] == "1"
+    assert service["environment"]["OLLAMA_THINK"] == "1"
 
     devices = service["deploy"]["resources"]["reservations"]["devices"]
     assert devices == [{"capabilities": ["gpu"], "device_ids": ["1"], "driver": "nvidia"}]
@@ -55,6 +57,7 @@ def main() -> None:
     assert volumes["/workspace/dataset/qlora_adapter_v9"]["read_only"] is True
     assert volumes["/assets"]["read_only"] is True
     assert volumes["/usr/local/bin/ollama"]["read_only"] is True
+    assert volumes["/usr/local/lib/ollama"]["read_only"] is True
 
     bash = shutil.which("bash")
     assert bash, "bash is required to validate the Linux runner"
@@ -64,6 +67,14 @@ def main() -> None:
     )
     assert syntax.returncode == 0, syntax.stderr
     assert b"\r\n" not in RUNNER.read_bytes(), "Linux runner must be stored with LF endings"
+
+    modelfile = MODELFILE.read_text(encoding="utf-8")
+    assert ".Messages" in modelfile
+    assert ".Thinking" in modelfile
+    assert "<think>" in modelfile and "</think>" in modelfile
+    assert "PARAMETER stop <|im_start|>" in modelfile
+    assert "PARAMETER stop <|im_end|>" in modelfile
+    assert "Modelfile.vtg" in RUNNER.read_text(encoding="utf-8")
 
     archived = subprocess.run(
         ["git", "archive", "--worktree-attributes", "--format=tar", "HEAD",

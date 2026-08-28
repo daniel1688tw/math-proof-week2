@@ -30,6 +30,13 @@ from difflib import SequenceMatcher
 MODEL = os.environ.get("REVIEW_MODEL", "qwen3-4b-thinking-2507:latest")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 
+
+def _ollama_think_enabled() -> bool:
+    """Allow GGUF imports that reason internally but lack Ollama's think capability."""
+    return os.environ.get("OLLAMA_THINK", "1").strip().lower() not in {
+        "0", "false", "no", "off",
+    }
+
 # 找碴員 system：只做判斷、只輸出結構化清單（不需引導語氣——那是微調模型的事）
 CRITIC_SYSTEM = """你是數學系課程的證明審閱助教。使用者會給你：題目、正確的參考解、學生寫的草稿或嘗試。
 
@@ -352,7 +359,7 @@ def _chat_content(system: str, user: str, timeout: int, *, num_predict: int = 81
         "messages": [{"role": "system", "content": system},
                      {"role": "user", "content": user}],
         "stream": False,
-        "think": True,
+        "think": _ollama_think_enabled(),
         "options": {"temperature": temperature, "top_p": 0.95, "top_k": 20,
                     "num_predict": num_predict, "num_ctx": 16384},
     }
@@ -518,7 +525,7 @@ def find_gaps(statement: str, reference_proof: str, draft: str,
         "messages": [{"role": "system", "content": CRITIC_SYSTEM},
                      {"role": "user", "content": user}],
         "stream": False,
-        "think": True,
+        "think": _ollama_think_enabled(),
         # num_predict 必須留給思考鏈足夠空間：3072 在真實證明案例會被思考吃光
         # （done_reason=length、正文空白）。8192 實測 X4/H3 案例思考 4-6k token。
         "options": {"temperature": 0.2, "top_p": 0.95, "top_k": 20,

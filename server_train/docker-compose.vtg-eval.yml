@@ -17,6 +17,7 @@ services:
       OLLAMA_MODELS: /workspace/.ollama_models
       OLLAMA_NUM_PARALLEL: "1"
       OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_THINK: "1"
       PYTHONNOUSERSITE: "1"
       PYTHONUTF8: "1"
       TOKENIZERS_PARALLELISM: "false"
@@ -48,6 +49,10 @@ services:
       - type: bind
         source: /usr/local/bin/ollama
         target: /usr/local/bin/ollama
+        read_only: true
+      - type: bind
+        source: /usr/local/lib/ollama
+        target: /usr/local/lib/ollama
         read_only: true
     shm_size: 8gb
     deploy:

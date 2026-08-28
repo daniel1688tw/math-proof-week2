@@ -48,8 +48,7 @@ if [[ "$ready" != "1" ]]; then
   exit 1
 fi
 
-printf 'FROM %s\n' "$GGUF" >/tmp/Modelfile.vtg
-ollama create "$REVIEW_MODEL" -f /tmp/Modelfile.vtg
+ollama create "$REVIEW_MODEL" -f /workspace/server_train/Modelfile.vtg
 ollama show "$REVIEW_MODEL" >/dev/null
 
 python /workspace/dataset/eval_verify_then_generate.py \

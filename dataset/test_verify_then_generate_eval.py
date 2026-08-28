@@ -5,6 +5,7 @@ import sys
 import types
 
 from eval_verify_then_generate import (
+    CASE_IDS,
     _v9_adapter_dir,
     build_judge_prompt,
     evaluation_exit_code,
@@ -13,6 +14,11 @@ from eval_verify_then_generate import (
     successful_treatment_n,
     summarize,
 )
+
+
+def test_case_manifest_contains_only_feature_eligible_routes():
+    """H6 routes to the existing review backstop, not guide/respond_attempt."""
+    assert CASE_IDS == ("H1", "H2", "H3", "H4", "H5", "H7", "H8")
 
 
 def test_summarize_compares_the_paired_conditions():
@@ -177,6 +183,7 @@ def test_judge_prompt_requires_the_first_error_and_safe_socratic_rubric():
 
 
 if __name__ == "__main__":
+    test_case_manifest_contains_only_feature_eligible_routes()
     test_summarize_compares_the_paired_conditions()
     test_summary_counts_successful_treatment_verifier_calls()
     test_incomplete_treatment_verification_cannot_be_reported_as_a_valid_evaluation()

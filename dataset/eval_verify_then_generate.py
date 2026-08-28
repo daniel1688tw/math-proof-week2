@@ -20,7 +20,10 @@ HERE = Path(__file__).resolve().parent
 OUT_DIR = HERE / "eval_out_xdomain"
 
 CONDITIONS = (("baseline", False), ("verify_then_generate", True))
-CASE_IDS = tuple(f"H{i}" for i in range(1, 9))
+CASE_IDS = ("H1", "H2", "H3", "H4", "H5", "H7", "H8")
+EXCLUDED_CASES = {
+    "H6": "deployment routes this draft to review, not guide/respond_attempt",
+}
 JUDGE_KEYS = (
     "first_error_hit", "targetedness", "math_correct", "guidance", "reveal_safe", "rationale",
 )
@@ -303,6 +306,7 @@ def main() -> None:
             "generator": f"Qwen3-4B + {adapter_dir}",
             "adapter_dir": str(adapter_dir),
             "verifier": os.environ.get("REVIEW_MODEL", "qwen3-4b-thinking-2507:latest"),
+            "excluded_cases": dict(EXCLUDED_CASES),
         }
 
     if not args.generate_only:
