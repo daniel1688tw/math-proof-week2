@@ -77,9 +77,28 @@ def successful_treatment_n(records: list[dict]) -> int:
     )
 
 
+def evaluation_validity(records: list[dict]) -> tuple[bool, str | None]:
+    """Require a complete paired comparison with successful treatment verification."""
+    case_ids = {row.get("id") for row in records if row.get("id") is not None}
+    if not case_ids:
+        return False, "no selected cases"
+    for case_id in case_ids:
+        baseline = [row for row in records
+                    if row.get("id") == case_id and row.get("condition") == "baseline"]
+        treatment = [row for row in records
+                     if row.get("id") == case_id
+                     and row.get("condition") == "verify_then_generate"]
+        if len(baseline) != 1 or len(treatment) != 1:
+            return False, f"incomplete pair for {case_id}"
+        if treatment[0].get("verification", {}).get("status") not in SUCCESSFUL_VERIFIER_STATUSES:
+            return False, f"unsuccessful treatment verifier for {case_id}"
+    return True, None
+
+
 def evaluation_exit_code(records: list[dict], judge_requested: bool) -> int:
     """Return the documented nonzero result for invalid or incomplete evaluations."""
-    if successful_treatment_n(records) == 0:
+    valid, _ = evaluation_validity(records)
+    if not valid:
         return 1
     if judge_requested and any(record.get("judge") is None for record in records):
         return 2
@@ -158,12 +177,17 @@ def summarize(records: list[dict]) -> dict:
     result = {}
     for condition, _ in CONDITIONS:
         rows = [row for row in records if row["condition"] == condition]
-        judged = [row for row in rows if isinstance(row.get("judge"), dict)]
+        evidence_rows = rows if condition == "baseline" else [
+            row for row in rows
+            if row.get("verification", {}).get("status") in SUCCESSFUL_VERIFIER_STATUSES
+        ]
+        judged = [row for row in evidence_rows if isinstance(row.get("judge"), dict)]
         status_counts = Counter(
             row.get("verification", {}).get("status", "missing") for row in rows)
         mean = lambda values: round(statistics.fmean(values), 4) if values else None
         result[condition] = {
             "n": len(rows),
+            "evidence_n": len(evidence_rows),
             "judged_n": len(judged),
             "verification_status_counts": dict(status_counts),
             "valid_treatment_n": sum(
@@ -180,11 +204,11 @@ def summarize(records: list[dict]) -> dict:
                 [row["judge"]["guidance"] / 5 for row in judged]),
             "reveal_safe_rate": mean(
                 [row["judge"]["reveal_safe"] for row in judged]),
-            "single_question_rate": mean([row["single_question"] for row in rows]),
-            "no_reference_leak_rate": mean([not row["leaks_reference"] for row in rows]),
-            "mean_latency_seconds": mean([row["latency_seconds"] for row in rows]),
+            "single_question_rate": mean([row["single_question"] for row in evidence_rows]),
+            "no_reference_leak_rate": mean([not row["leaks_reference"] for row in evidence_rows]),
+            "mean_latency_seconds": mean([row["latency_seconds"] for row in evidence_rows]),
             "mean_verifier_latency_seconds": mean(
-                [row["verification"]["latency_seconds"] for row in rows]),
+                [row["verification"]["latency_seconds"] for row in evidence_rows]),
         }
     return result
 
@@ -291,12 +315,12 @@ def main() -> None:
     if any(isinstance(record.get("judge"), dict) for record in records):
         metadata["judge"] = dict(current_judge)
 
-    treatment_n = successful_treatment_n(records)
-    valid = treatment_n > 0
+    valid, invalid_reason = evaluation_validity(records)
     payload = {
         "metadata": metadata,
         "valid": valid,
-        "invalid_reason": None if valid else "no successful treatment verifier calls",
+        "verdict": "EVALUATED" if valid else "INCONCLUSIVE",
+        "invalid_reason": invalid_reason,
         "summary": summarize(records),
         "records": records,
     }

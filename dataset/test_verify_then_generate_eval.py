@@ -20,7 +20,7 @@ def test_summarize_compares_the_paired_conditions():
     sample = [{
         "id": "H4", "condition": "verify_then_generate",
         "reply": "你能先檢查這個定理的假設是否足夠嗎？",
-        "verification": {"latency_seconds": 2.0},
+        "verification": {"status": "clear", "latency_seconds": 2.0},
         "single_question": True, "leaks_reference": False,
         "latency_seconds": 3.0,
         "judge": {"first_error_hit": True, "targetedness": 5,
@@ -67,6 +67,38 @@ def test_summary_counts_successful_treatment_verifier_calls():
     assert summary["verify_then_generate"]["valid_treatment_n"] == 0
     assert successful_treatment_n(records) == 0
     assert evaluation_exit_code(records, judge_requested=False) == 1
+
+
+def test_incomplete_treatment_verification_cannot_be_reported_as_a_valid_evaluation():
+    """One verified pair cannot validate an eight-pair treatment comparison."""
+    records = []
+    for index in range(1, 9):
+        case_id = f"H{index}"
+        records.append({
+            "id": case_id, "condition": "baseline",
+            "verification": {"status": "not_applicable", "latency_seconds": 0.0},
+            "single_question": True, "leaks_reference": False, "latency_seconds": 1.0,
+            "judge": {"first_error_hit": False, "targetedness": 1,
+                      "math_correct": True, "guidance": 1,
+                      "reveal_safe": True, "rationale": "baseline"},
+        })
+        verified = index == 1
+        records.append({
+            "id": case_id, "condition": "verify_then_generate",
+            "verification": {
+                "status": "clear" if verified else "unavailable",
+                "latency_seconds": 1.0,
+            },
+            "single_question": True, "leaks_reference": False, "latency_seconds": 2.0,
+            "judge": {"first_error_hit": verified, "targetedness": 5 if verified else 1,
+                      "math_correct": True, "guidance": 5 if verified else 1,
+                      "reveal_safe": True, "rationale": "treatment"},
+        })
+
+    summary = summarize(records)
+
+    assert summary["verify_then_generate"]["first_error_hit_rate"] == 1.0
+    assert evaluation_exit_code(records, judge_requested=True) == 1
 
 
 def test_v9_adapter_guard_rejects_a_non_v9_override():
@@ -147,6 +179,7 @@ def test_judge_prompt_requires_the_first_error_and_safe_socratic_rubric():
 if __name__ == "__main__":
     test_summarize_compares_the_paired_conditions()
     test_summary_counts_successful_treatment_verifier_calls()
+    test_incomplete_treatment_verification_cannot_be_reported_as_a_valid_evaluation()
     test_v9_adapter_guard_rejects_a_non_v9_override()
     test_judge_record_rejects_boolean_scores()
     test_rejudge_preserves_generation_provenance_and_rejects_mixed_judges()
