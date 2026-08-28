@@ -3,6 +3,7 @@
 import os
 import sys
 import types
+import review_backstop
 
 from eval_verify_then_generate import (
     CASE_IDS,
@@ -19,6 +20,19 @@ from eval_verify_then_generate import (
 def test_case_manifest_contains_only_feature_eligible_routes():
     """H6 routes to the existing review backstop, not guide/respond_attempt."""
     assert CASE_IDS == ("H1", "H2", "H3", "H4", "H5", "H7", "H8")
+
+
+def test_find_gaps_retries_once_when_structured_output_is_invalid():
+    """A single malformed verifier sample must not invalidate the whole A/B run."""
+    replies = iter(["not JSON", '["first issue"]'])
+    original = review_backstop._chat_content
+    review_backstop._chat_content = lambda *args, **kwargs: next(replies)
+    try:
+        assert review_backstop.find_gaps("statement", "reference", "draft", timeout=10) == [
+            "first issue",
+        ]
+    finally:
+        review_backstop._chat_content = original
 
 
 def test_summarize_compares_the_paired_conditions():
@@ -184,6 +198,7 @@ def test_judge_prompt_requires_the_first_error_and_safe_socratic_rubric():
 
 if __name__ == "__main__":
     test_case_manifest_contains_only_feature_eligible_routes()
+    test_find_gaps_retries_once_when_structured_output_is_invalid()
     test_summarize_compares_the_paired_conditions()
     test_summary_counts_successful_treatment_verifier_calls()
     test_incomplete_treatment_verification_cannot_be_reported_as_a_valid_evaluation()

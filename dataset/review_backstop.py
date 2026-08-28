@@ -520,25 +520,11 @@ def find_gaps(statement: str, reference_proof: str, draft: str,
     """回傳缺漏清單（[] = 複核無誤）；Ollama 失敗/逾時/輸出不可解析 → None（降級）。"""
     user = (f"【題目】\n{statement}\n\n【參考解（正確）】\n{reference_proof}\n\n"
             f"【學生草稿】\n{draft}")
-    payload = json.dumps({
-        "model": MODEL,
-        "messages": [{"role": "system", "content": CRITIC_SYSTEM},
-                     {"role": "user", "content": user}],
-        "stream": False,
-        "think": _ollama_think_enabled(),
-        # num_predict 必須留給思考鏈足夠空間：3072 在真實證明案例會被思考吃光
-        # （done_reason=length、正文空白）。8192 實測 X4/H3 案例思考 4-6k token。
-        "options": {"temperature": 0.2, "top_p": 0.95, "top_k": 20,
-                    "num_predict": 8192, "num_ctx": 12288},
-    }).encode("utf-8")
-    req = urllib.request.Request(OLLAMA_URL, data=payload,
-                                 headers={"Content-Type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.loads(r.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError):
-        return None
-    return _parse_gaps((data.get("message", {}).get("content") or "").strip())
+    # num_predict 必須留給思考鏈足夠空間：3072 在真實證明案例會被思考吃光。
+    # 數學判斷正確但 JSON 格式偶發失敗時重取一次，仍不把不可解析輸出當成「無缺漏」。
+    return _retry_parsed(
+        CRITIC_SYSTEM, user, _parse_gaps,
+        timeout=timeout, num_predict=8192, temperature=0.2, attempts=2)
 
 
 def review_full_proof(statement: str, reference_proof: str, draft: str,
