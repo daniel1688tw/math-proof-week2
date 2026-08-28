@@ -10,6 +10,7 @@ import re
 import statistics
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 from tutor_driver import TutorDriver, leaks_reference, load_problems
@@ -23,6 +24,83 @@ CASE_IDS = tuple(f"H{i}" for i in range(1, 9))
 JUDGE_KEYS = (
     "first_error_hit", "targetedness", "math_correct", "guidance", "reveal_safe", "rationale",
 )
+V9_ADAPTER_DIR = (HERE / "qlora_adapter_v9").resolve()
+SUCCESSFUL_VERIFIER_STATUSES = frozenset(("issues", "clear"))
+
+
+def _v9_adapter_dir() -> Path:
+    """Reject any adapter override that would invalidate the v9 comparison."""
+    configured = os.environ.get("FINAL_ADAPTER")
+    if configured:
+        candidate = Path(configured)
+        candidate = candidate if candidate.is_absolute() else HERE / candidate
+        if candidate.resolve() != V9_ADAPTER_DIR:
+            raise ValueError(
+                "verify-then-generate 評估必須使用 qlora_adapter_v9；"
+                f"拒絕 FINAL_ADAPTER={configured!r}"
+            )
+    return V9_ADAPTER_DIR
+
+
+def load_v9_model():
+    """Load only the locked v9 adapter and return its resolved provenance path."""
+    expected = _v9_adapter_dir()
+    from eval_final_driver import ADAPTER_DIR, load
+
+    actual = Path(ADAPTER_DIR).resolve()
+    if actual != expected:
+        raise RuntimeError(
+            f"eval_final_driver adapter 為 {actual}，預期 {expected}；拒絕非 v9 評估。"
+        )
+    tok, model = load()
+    return tok, model, actual
+
+
+def judge_provenance() -> dict:
+    """Describe the configured judge so mixed backends cannot be hidden."""
+    backend = os.environ.get("JUDGE_BACKEND", "antigravity")
+    if backend == "antigravity":
+        model = os.environ.get("AGY_MODEL", "Gemini 3.6 Flash (Medium)")
+    elif backend == "gemini":
+        model = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
+    else:
+        model = os.environ.get("JUDGE_MODEL", "sonnet")
+    return {"backend": backend, "model": model}
+
+
+def successful_treatment_n(records: list[dict]) -> int:
+    """Count treatment replies whose pre-generation verifier actually answered."""
+    return sum(
+        row.get("condition") == "verify_then_generate"
+        and row.get("verification", {}).get("status") in SUCCESSFUL_VERIFIER_STATUSES
+        for row in records
+    )
+
+
+def evaluation_exit_code(records: list[dict], judge_requested: bool) -> int:
+    """Return the documented nonzero result for invalid or incomplete evaluations."""
+    if successful_treatment_n(records) == 0:
+        return 1
+    if judge_requested and any(record.get("judge") is None for record in records):
+        return 2
+    return 0
+
+
+def prepare_rejudge_metadata(saved_metadata: dict, records: list[dict], current_judge: dict) -> dict:
+    """Preserve generation provenance and reject a rejudge that would mix judges."""
+    metadata = dict(saved_metadata)
+    old_requested_backend = metadata.pop("judge_backend", None)
+    if old_requested_backend is not None:
+        metadata["generation_requested_judge_backend"] = old_requested_backend
+
+    prior_judges = [row.get("judge") for row in records if isinstance(row.get("judge"), dict)]
+    for judge in prior_judges:
+        provenance = judge.get("provenance")
+        if not isinstance(provenance, dict) or provenance != current_judge:
+            raise ValueError("不允許跨 backend 或未知 provenance 的 --rejudge 接續。")
+    if prior_judges:
+        metadata["judge"] = dict(current_judge)
+    return metadata
 
 
 def build_judge_prompt(statement: str, planted_error: str, attempt: str, reply: str) -> str:
@@ -66,7 +144,8 @@ def judge_record(record: dict) -> dict | None:
     if not all(isinstance(value.get(key), bool)
                for key in ("first_error_hit", "math_correct", "reveal_safe")):
         return None
-    if not all(isinstance(value.get(key), (int, float)) and 1 <= value[key] <= 5
+    if not all(isinstance(value.get(key), (int, float)) and not isinstance(value.get(key), bool)
+               and 1 <= value[key] <= 5
                for key in ("targetedness", "guidance")):
         return None
     if not isinstance(value.get("rationale"), str):
@@ -80,10 +159,17 @@ def summarize(records: list[dict]) -> dict:
     for condition, _ in CONDITIONS:
         rows = [row for row in records if row["condition"] == condition]
         judged = [row for row in rows if isinstance(row.get("judge"), dict)]
+        status_counts = Counter(
+            row.get("verification", {}).get("status", "missing") for row in rows)
         mean = lambda values: round(statistics.fmean(values), 4) if values else None
         result[condition] = {
             "n": len(rows),
             "judged_n": len(judged),
+            "verification_status_counts": dict(status_counts),
+            "valid_treatment_n": sum(
+                row.get("verification", {}).get("status") in SUCCESSFUL_VERIFIER_STATUSES
+                for row in rows
+            ) if condition == "verify_then_generate" else 0,
             "first_error_hit_rate": mean(
                 [row["judge"]["first_error_hit"] for row in judged]),
             "targetedness_mean": mean(
@@ -179,27 +265,41 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
+    current_judge = judge_provenance()
     if args.rejudge:
         saved = json.loads(args.rejudge.read_text(encoding="utf-8"))
         records = saved["records"]
+        metadata = prepare_rejudge_metadata(saved.get("metadata", {}), records, current_judge)
     else:
-        # Tier 0 imports only the CPU-only helpers above; loading this module
-        # initializes Transformers and is needed solely for real generation.
-        from eval_final_driver import load as load_model
-        tok, model = load_model()
+        # Tier 0 imports only the CPU-only helpers above; this initializes
+        # Transformers only for real generation and locks the v9 adapter.
+        tok, model, adapter_dir = load_v9_model()
         records = generate_records(tok, model, args.limit)
+        metadata = {
+            "generator": f"Qwen3-4B + {adapter_dir}",
+            "adapter_dir": str(adapter_dir),
+            "verifier": os.environ.get("REVIEW_MODEL", "qwen3-4b-thinking-2507:latest"),
+        }
 
     if not args.generate_only:
         for record in records:
             if record.get("judge") is None:
-                record["judge"] = judge_record(record)
+                judgement = judge_record(record)
+                if judgement is not None:
+                    judgement["provenance"] = dict(current_judge)
+                    record["judge"] = judgement
+    if any(isinstance(record.get("judge"), dict) for record in records):
+        metadata["judge"] = dict(current_judge)
 
-    metadata = {
-        "generator": "Qwen3-4B + qlora_adapter_v9",
-        "verifier": os.environ.get("REVIEW_MODEL", "qwen3-4b-thinking-2507:latest"),
-        "judge_backend": os.environ.get("JUDGE_BACKEND", "antigravity"),
+    treatment_n = successful_treatment_n(records)
+    valid = treatment_n > 0
+    payload = {
+        "metadata": metadata,
+        "valid": valid,
+        "invalid_reason": None if valid else "no successful treatment verifier calls",
+        "summary": summarize(records),
+        "records": records,
     }
-    payload = {"metadata": metadata, "summary": summarize(records), "records": records}
     stamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
     json_path = args.output or OUT_DIR / f"verify_then_generate_{stamp}.json"
     md_path = json_path.with_suffix(".md")
@@ -207,7 +307,11 @@ def main() -> None:
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     md_path.write_text(render_markdown(records, payload["summary"], metadata), encoding="utf-8")
     print(json_path)
-    if not args.generate_only and any(record["judge"] is None for record in records):
+    exit_code = evaluation_exit_code(records, judge_requested=not args.generate_only)
+    if exit_code == 1:
+        print("實驗組沒有 successful verifier call；本次 A/B 評估無效。")
+        sys.exit(1)
+    if exit_code == 2:
         print("評審不完整；已保存輸出，可用 --rejudge 接續。")
         sys.exit(2)
 
