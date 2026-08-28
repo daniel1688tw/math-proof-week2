@@ -60,8 +60,8 @@ H1–H8 均沒有 baseline/treatment reply，因此無從逐案比較，也不�
 
 ## Decision
 
-**Reject（本輪不採用；待先決條件修復後重新評估）。**
+**BLOCKED / INCONCLUSIVE（評估受阻、暫不採用；待 runtime/model prerequisites 修復後重評）。**
 
-採用條件要求 deterministic tests 與 regression gates 均通過、安全／數學指標不下降，且 first-error targeting 或 targetedness 有可量測改善。本輪只有 deterministic gate 與 quick suite 通過；paired quality、latency、逐案退化及 full regression 都沒有完成，所以沒有證據支持 adopt 或 conditional adopt。
+採用條件要求 deterministic tests 與 regression gates 均通過、安全／數學指標不下降，且 first-error targeting 或 targetedness 有可量測改善。本輪只有 deterministic gate 與 quick suite 通過；paired quality、latency、逐案退化及 full regression 都沒有完成，所以目前無法判斷方法品質，也沒有證據支持 adopt 或 conditional adopt。這是評估受阻後的暫不採用，不是對 verify-then-generate 方法的品質否決。
 
 重跑前至少需：恢復鎖定的 `qlora_adapter_v9`、補齊 `lora_project` 的 `accelerate`／`peft`、提供指定 Ollama verifier tag，並確認硬體可載入部署精度模型。功能 rollback／保持停用方式：`VERIFY_THEN_GENERATE=0`。
