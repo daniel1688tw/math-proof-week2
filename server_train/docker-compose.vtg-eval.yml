@@ -31,6 +31,10 @@ services:
         target: /workspace/learn_path/socratic_tutor/qwen3_4b
         read_only: true
       - type: bind
+        source: ${VTG_BASE_MODEL_BLOBS_DIR:?set VTG_BASE_MODEL_BLOBS_DIR}
+        target: /workspace/learn_path/blobs
+        read_only: true
+      - type: bind
         source: ${VTG_ADAPTER_DIR:?set VTG_ADAPTER_DIR}
         target: /workspace/dataset/qlora_adapter_v9
         read_only: true

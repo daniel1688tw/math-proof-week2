@@ -19,6 +19,7 @@ def main() -> None:
     env.update({
         "VTG_PROJECT_DIR": "/srv/daniel-vtg/project",
         "VTG_BASE_MODEL_DIR": "/srv/daniel-vtg/base",
+        "VTG_BASE_MODEL_BLOBS_DIR": "/srv/daniel-vtg/base-blobs",
         "VTG_ADAPTER_DIR": "/srv/daniel-vtg/adapter",
         "VTG_GGUF_DIR": "/srv/daniel-vtg/gguf",
         "VTG_OLLAMA_MODELS_DIR": "/srv/daniel-vtg/ollama-models",
@@ -48,6 +49,7 @@ def main() -> None:
     assert devices == [{"capabilities": ["gpu"], "device_ids": ["1"], "driver": "nvidia"}]
     volumes = {item["target"]: item for item in service["volumes"]}
     assert volumes["/workspace/learn_path/socratic_tutor/qwen3_4b"]["read_only"] is True
+    assert volumes["/workspace/learn_path/blobs"]["read_only"] is True
     assert volumes["/workspace/dataset/qlora_adapter_v9"]["read_only"] is True
     assert volumes["/assets"]["read_only"] is True
     assert volumes["/usr/local/bin/ollama"]["read_only"] is True
