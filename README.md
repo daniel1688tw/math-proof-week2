@@ -35,8 +35,10 @@ v10／v11 兩輪整體重訓皆經守門判退，**版號越新不代表越該�
              · 完整證明審閱：Thinking 模型做兩輪全文檢查並建立根本問題佇列；
                Driver 一次只呈現一項，局部回答經 Thinking 語意確認後才合併 current_proof_draft；
                全部修完再審閱合併草稿，並要求乾淨完整證明做最後兩輪審閱
-             · 一般 review/rectify 輪仍可使用既有審閱後盾；REVIEW_BACKSTOP=0 可關閉
-           → QLoRA 微調模型（4-bit nf4）+ grounded system prompt（內含該題參考解）
+             · 一般 review/rectify 輪仍可使用既有審閱後盾；REVIEW_BACKSTOP=0 是所有後盾使用的總開關
+           → 僅 tutor 模式的 guide/respond_attempt：Thinking 先對照參考解找缺漏，將診斷注入本輪 prompt
+             （其他 guide action 不付出這次呼叫；Thinking 不可用時安全降級，沿用既有生成後審閱）
+           → Qwen3-4B + `qlora_adapter_v9`（4-bit nf4）生成 grounded 回覆（內含該題參考解）
            → 內容防護（每次重生成後重跑）：參考解洩漏 n-gram 檢查、on-track 防奉送、
              等級 2 禁算式、稱讚校準；其後單問句截斷、重複偵測、回問保底
 ```
@@ -128,6 +130,13 @@ python test_dataset.py                # 資料集結構與內容檢查
 conda run -n lora_project python test_driver_integration.py   # 分級提示行為（GPU）
 conda run -n lora_project python test_driver_phase.py         # 階段管理行為（GPU）
 conda run -n lora_project python eval_final_driver.py         # 部署形態三情境評估
+
+# verify-then-generate 成對評估：正常執行會生成並評審兩個條件
+conda run -n lora_project python eval_verify_then_generate.py
+# 只生成、保留結果供之後評審
+conda run -n lora_project python eval_verify_then_generate.py --generate-only --output eval_out_xdomain/verify_then_generate_run.json
+# 讀取既有生成結果重新評審（不重跑 GPU 生成）
+conda run -n lora_project python eval_verify_then_generate.py --rejudge eval_out_xdomain/verify_then_generate_run.json
 
 # 推送前守門（版本只進不退）：
 python regression_suite.py --quick    # 單元＋資料集（~1 分鐘）
@@ -225,7 +234,8 @@ conda run -n lora_project --live-stream python dataset\app.py
 | 變數 | 預設 | 作用 |
 |---|---|---|
 | `FINAL_ADAPTER` | `qlora_adapter_v9` | 切換 adapter（評估腳本另有 `HELDOUT_/HARD_/XDOMAIN_ADAPTER`） |
-| `REVIEW_BACKSTOP` | `1` | 設 `0` 關閉審閱後盾 |
+| `REVIEW_BACKSTOP` | `1` | 所有審閱後盾使用的總開關；設 `0` 時也不做生成前驗證 |
+| `VERIFY_THEN_GENERATE` | `1` | 僅 tutor 模式 `guide/respond_attempt` 在生成前用 Thinking 對照參考解；設 `0` 回退原本 `full-project` 流程 |
 | `REVIEW_MODEL` | `qwen3-4b-thinking-2507:latest` | 備課／後盾用的 Ollama 模型 |
 | `OLLAMA_URL` | `http://localhost:11434/api/chat` | Ollama 端點 |
 | `PROVER_K` | `3` | 備課生成幾份候選參考解 |
