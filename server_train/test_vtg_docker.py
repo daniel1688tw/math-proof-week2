@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import io
 import os
 import shutil
 import subprocess
+import tarfile
 from pathlib import Path
 
 
@@ -61,6 +63,17 @@ def main() -> None:
         errors="replace", capture_output=True,
     )
     assert syntax.returncode == 0, syntax.stderr
+    assert b"\r\n" not in RUNNER.read_bytes(), "Linux runner must be stored with LF endings"
+
+    archived = subprocess.run(
+        ["git", "archive", "--worktree-attributes", "--format=tar", "HEAD",
+         "server_train/run_vtg_eval.sh"],
+        cwd=HERE.parent, capture_output=True,
+    )
+    assert archived.returncode == 0, archived.stderr.decode("utf-8", errors="replace")
+    with tarfile.open(fileobj=io.BytesIO(archived.stdout), mode="r:") as bundle:
+        deployed_runner = bundle.extractfile("server_train/run_vtg_eval.sh").read()
+    assert b"\r\n" not in deployed_runner, "git archive must preserve LF for Linux runners"
     print("PASS: isolated VTG Docker contract")
 
 
