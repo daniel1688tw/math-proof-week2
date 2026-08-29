@@ -15,7 +15,7 @@ except Exception:
 
 from tutor_driver import (
     PHASE_INSTRUCTIONS, REVIEW_PASS, WRITEUP_FALLBACK, TurnLog, TutorDriver, detect_lang,
-    enforce_single_question,
+    asks_for_full_writeup, enforce_single_question,
     gives_new_equation, is_overpraising, is_spoonfeeding,
     is_stuck, leaks_reference, load_problems, requests_tutor_to_supply_solution,
     student_requests_to_submit_proof,
@@ -1149,6 +1149,12 @@ try:
         {"role": "assistant", "content": "Tutor 曾提出一個新構造。"},
         {"role": "user", "content": "我只確認自己剛才寫的內容。"},
     ]
+    guide_probe.state["pre_generation_verification"] = {
+        "status": "issues",
+        "issues": ["最新回答可能漏掉去心鄰域條件"],
+        "first_issue": "最新回答可能漏掉去心鄰域條件",
+        "latency_seconds": 0.1,
+    }
     _guide_probe_results = []
     for _guide_action in ("normal_guide", "respond_attempt",
                           "answer_clarification", "refuse_tutor_write"):
@@ -1184,6 +1190,44 @@ check("英文 session 的語意審查契約要求缺口欄位使用英文",
       _guide_review_calls[-1]["payload"].get("language") == "en"
       and "payload.language" in _guide_review_calls[-1]["system"]
       and "first_missing_step" in _guide_review_calls[-1]["system"])
+check("合併審查會收到 V-T-G 預檢診斷並要求依完整對話重新核對",
+      all(call["payload"].get("pre_generation_verification", {}).get("status") == "issues"
+              and call["payload"]["pre_generation_verification"]["issues"] == [
+                  "最新回答可能漏掉去心鄰域條件"]
+              and "逐項重新核對" in call["system"]
+              and "不能只因預檢列出缺漏就判未完成" in call["system"]
+              for call in _guide_review_calls))
+
+
+def _fake_unknown_status(system, user, parser, **kwargs):
+    return parser(json.dumps({
+        "latest_student_step_status": "wrong",
+        "first_missing_step": "",
+        "candidate_math_error": "",
+        "candidate_ownership_error": "",
+        "addresses_latest_student_step": True,
+        "stays_on_active_gap": True,
+        "deeper_than_last_question": True,
+        "mathematically_correct": True,
+        "level_policy_pass": True,
+        "introduces_new_proof_idea": False,
+        "completes_any_unfinished_step": False,
+        "advances_beyond_one_scaffold": False,
+        "leaks_final_conclusion": False,
+        "ready_for_writeup": True,
+        "missing_core_step": "",
+        "readiness_confidence": 1.0,
+        "feedback": "",
+    }, ensure_ascii=False))
+
+
+try:
+    _readiness_backstop._retry_parsed = _fake_unknown_status
+    unknown_status_result = guide_probe._review_guide_reply("請提交完整證明。", 0)
+finally:
+    _readiness_backstop._retry_parsed = _old_retry_parsed
+check("未知 latest_student_step_status 不得繞過 incorrect 硬閘",
+      unknown_status_result is None)
 
 
 class _GuidePolicyStub(TutorDriver):
@@ -1627,6 +1671,33 @@ check("回問保底的重生成若洩漏參考解 → 不得直接落地",
       not leaks_reference(lk.messages[-1]["content"], probs["A6"]["reference_proof"],
                           exclude=probs["A6"].get("statement", "")))
 check("→ 洩漏被攔下後仍要留下問句", "？" in lk.messages[-1]["content"])
+
+lk2 = _SeqStub(tok=None, model=_StubModel(), problem=probs["A6"])
+lk2.first = _LEAK_Q
+lk2.regens = [_LEAK_Q]  # 第一輪防洩漏重生成仍複製參考解
+lk2.messages = [{"role": "user", "content": "題目…"},
+                {"role": "user", "content": "我仍然卡住。"}]
+lk2._tutor_turn()
+check("防洩漏重生成仍洩漏時 → 改用確定性安全問題",
+      not leaks_reference(lk2.messages[-1]["content"], probs["A6"]["reference_proof"],
+                          exclude=probs["A6"].get("statement", ""))
+      and ("？" in lk2.messages[-1]["content"] or "?" in lk2.messages[-1]["content"])
+      and "leak_unresolved" in lk2.state["turns"][-1].guards)
+
+_SHORT_SHARED = "ABCDEFGHIJKLMNOPQRSTUVWX?"  # 24 字元：糾錯時允許短引文，非整段解法
+lk3 = _SeqStub(
+    tok=None, model=_StubModel(),
+    problem={"id": "SHORT", "statement": "Prove P.",
+             "reference_proof": "ABCDEFGHIJKLMNOPQRSTUVWX then finish the proof."})
+lk3.first = _SHORT_SHARED
+lk3.regens = [_SHORT_SHARED]
+lk3.state["turn_action"] = "respond_attempt"
+lk3.messages = [{"role": "user", "content": "Prove P."},
+                {"role": "user", "content": "My step contains ABCDEFGHIJKLMNOPQRSTUVWX."}]
+lk3._tutor_turn()
+check("糾錯輪允許引用少於 25 字元的局部數學片段",
+      lk3.messages[-1]["content"] == _SHORT_SHARED
+      and "leak_unresolved" not in lk3.state["turns"][-1].guards)
 
 _LONG_REPLY = ("這個方向是對的。你已經注意到 a_n 是正的，而且 (1+a_n)^n 剛好等於 n，"
                "接下來的關鍵是要找到一個夠好的下界，把 a_n 的大小控制住，"
@@ -2625,6 +2696,28 @@ review_math_err = {
 check("P0-4: 候選包含具體數學錯誤（candidate_math_error）退件",
       not p03_driver._guide_reply_review_passes(review_math_err, 1))
 
+# readiness 不得覆蓋合併審查自己已判定的最新錯誤步驟。
+review_false_ready = dict(review_math_err)
+review_false_ready.update(
+    latest_student_step_status="incorrect",
+    candidate_math_error="",
+    mathematically_correct=True,
+    ready_for_writeup=True,
+    missing_core_step="",
+    readiness_confidence=1.0,
+)
+p03_driver.state["proof_progress_revision"] = 3
+p03_driver.state["pre_generation_verification"] = {
+    "status": "unavailable", "issues": [], "first_issue": "", "latency_seconds": 0.0,
+}
+check("P0-4: latest_student_step_status=incorrect 不得進入交稿",
+      not p03_driver._combined_readiness_ready(review_false_ready))
+p03_driver.state["active_gap"] = "修正目前錯誤步驟"
+p03_driver._update_guide_context_from_review(review_false_ready)
+check("P0-4: incorrect 即使夾帶 ready=true 也不得清空 active_gap",
+      p03_driver.state["active_gap"] == "修正目前錯誤步驟")
+p03_driver.state["active_gap"] = ""
+
 # Tutor 含有所有權假定錯誤（candidate_ownership_error）
 review_owner_err = {
     "latest_student_step_status": "correct",
@@ -2824,6 +2917,83 @@ check("pre-generation diagnostic survives session serialization",
 check("verifier context preserves one-question and no-reference invariants",
       not leaks_reference(vtg.messages[-1]["content"], probs["H4"]["reference_proof"])
       and vtg.messages[-1]["content"].count("?") == 1)
+
+print("[36] opener progress and final writeup-request guard")
+
+
+class _PostPolicyWriteupStub(_StubDriver):
+    """Simulate the semantic policy introducing a late writeup request."""
+
+    def _generate(self, level):
+        return "Which continuity hypothesis still needs to be used?"
+
+    def _enforce_guide_reply_policy(self, reply, level, log):
+        return "Please write out the complete proof, and I will review it."
+
+
+opener_progress = _StubDriver(
+    tok=None, model=_StubModel(), problem=probs["H4"], backstop=False)
+opener_progress.generated_levels = []
+opener_progress.start(
+    opener=("I define g(x)=f(x+1)-f(x). Since f is continuous, "
+            "g is continuous."))
+check("actionable mathematical progress in a supplied opener is counted",
+      opener_progress.state.get("proof_progress_revision") == 1)
+check("supplied opener still does not increase stuck_count",
+      opener_progress.state.get("stuck_count") == 0)
+
+late_writeup = _PostPolicyWriteupStub(
+    tok=None, model=_StubModel(), problem=probs["H4"], backstop=False)
+late_writeup.messages = [{"role": "user", "content": "I have another partial step."}]
+late_writeup.state.update(phase="guide", turn_action="normal_guide")
+late_reply = late_writeup._tutor_turn()
+check("late semantic-policy writeup request cannot escape while phase is guide",
+      late_writeup.state.get("phase") == "guide"
+      and not asks_for_full_writeup(late_reply)
+      and "post_policy_premature_writeup" in late_writeup.state["turns"][-1].guards)
+
+review_submission = (
+    "根據題目假設，極限為 L 且 L>0。依照極限定義，對每個正的 epsilon，"
+    "存在 delta>0，使 0<|x-a|<delta 時有 |f(x)-L|<epsilon。"
+    "取 epsilon=L/2，展開後得到 L/2<f(x)<3L/2。"
+    "因為 L/2>0，所以可直接推出 f(x)>0。綜合以上，我們證明了原命題。")
+review_route = _StubDriver(
+    tok=None, model=_StubModel(), problem=probs["H4"], backstop=False)
+review_route.generated_levels = []
+review_route.state.update(phase="review", review_status="awaiting_submission")
+review_decision = review_route._route_student_state(review_submission).to_dict()
+check("the phrase 'directly implies' in a submitted proof is not a tutor-write demand",
+      not requests_tutor_to_supply_solution(review_submission)
+      and review_decision.get("intent") == "full_proof_submission"
+      and review_decision.get("turn_action") == "review_local_revision")
+
+import regression_suite as _regression_suite
+try:
+    _bom_problem_sets_load = all(
+        bool(_regression_suite._load_problems(lang)) for lang in ("zh", "en"))
+except json.JSONDecodeError:
+    _bom_problem_sets_load = False
+check("regression problem loader accepts UTF-8 BOM evaluation assets",
+      _bom_problem_sets_load)
+
+_new_protocol_turns = [
+    {"phase": "guide", "guards": []} for _ in range(9)
+]
+_phase_ok, _close_ok = _regression_suite._assess_multiturn_phase_and_close(
+    _new_protocol_turns)
+check("multiturn gate accepts the current readiness protocol without backstop",
+      _phase_ok and _close_ok)
+_premature_transition = [dict(item) for item in _new_protocol_turns]
+_premature_transition[5] = {"phase": "review", "guards": []}
+_bad_phase, _ = _regression_suite._assess_multiturn_phase_and_close(
+    _premature_transition)
+check("multiturn gate rejects phase transition caused only by understood declaration",
+      not _bad_phase)
+_bad_closed = [dict(item) for item in _new_protocol_turns]
+_bad_closed[-1] = {"phase": "closed", "guards": ["fallback"]}
+_, _bad_close = _regression_suite._assess_multiturn_phase_and_close(_bad_closed)
+check("multiturn gate still rejects fallback after a real closed completion",
+      not _bad_close)
 
 print()
 if FAIL:

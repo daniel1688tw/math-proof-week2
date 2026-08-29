@@ -1,0 +1,583 @@
+[
+  {
+    "id": "A6",
+    "lang": "zh",
+    "probe": "escalation",
+    "passed": true,
+    "statement": "證明 $\\lim_{n\\to\\infty}\\dfrac{n}{2^n}=0$。",
+    "reference_proof": "對 $n\\ge 1$，由二項式定理 $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$（$n\\ge 2$）。\n故 $0\\le \\dfrac{n}{2^n}\\le \\dfrac{n}{n(n-1)/2}=\\dfrac{2}{n-1}$。\n當 $n\\to\\infty$ 時 $\\dfrac{2}{n-1}\\to 0$，由夾擠定理得 $\\dfrac{n}{2^n}\\to 0$。$\\blacksquare$",
+    "turns": [
+      {
+        "student": null,
+        "reply": "先問自己：$2^n$ 的增長速度比 $n$ 快還是慢？",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "我不知道，想不出來。",
+        "reply": "那換個角度：能不能把 $2^n$ 用二項式定理展開成多項式，再從中取出某項當它的下界？",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "還是想不到，再提示一下。",
+        "reply": "展開 $(1+1)^n$ 後，哪一項是含 $n^2$ 的？把它當下界，$2^n$ 就被壓住。",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      }
+    ]
+  },
+  {
+    "id": "C8",
+    "lang": "zh",
+    "probe": "escalation",
+    "passed": true,
+    "statement": "設 $f$ 在區間 $I$ 可微且 $|f'(x)|\\le M$，證明 $|f(x)-f(y)|\\le M|x-y|$（$f$ 為 Lipschitz）。",
+    "reference_proof": "任取 $x,y\\in I$，不妨 $x\\ne y$。由 Lagrange 均值定理，存在介於 $x,y$ 之間的 $c$ 使\n$$f(x)-f(y)=f'(c)(x-y).$$\n取絕對值並用 $|f'(c)|\\le M$：\n$$|f(x)-f(y)|=|f'(c)|\\,|x-y|\\le M|x-y|.$$\n$x=y$ 時兩端皆為 $0$，不等式亦成立。$\\blacksquare$",
+    "turns": [
+      {
+        "student": null,
+        "reply": "先問自己：要證 $|f(x)-f(y)|$ 與 $|x-y|$ 的關係，最自然會用哪個定理把函數差轉成導數乘以距離？",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "我不知道，想不出來。",
+        "reply": "那換個角度：這個不等式看起來像什麼樣的函數在起作用？",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "還是想不到，再提示一下。",
+        "reply": "這裡「把函數差轉成導數乘距離」正是均值定理的任務。有了它，接下來取絕對值會得到什麼？",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      }
+    ]
+  },
+  {
+    "id": "E4",
+    "lang": "zh",
+    "probe": "escalation",
+    "passed": true,
+    "statement": "證明 $\\sum_{n=1}^\\infty \\dfrac{1}{n^2}$ 收斂。",
+    "reference_proof": "部分和 $S_n=\\sum_{k=1}^n \\dfrac{1}{k^2}$ 為遞增數列（每項為正）。\n對 $k\\ge 2$，用裂項上界 $\\dfrac{1}{k^2}\\le \\dfrac{1}{k(k-1)}=\\dfrac{1}{k-1}-\\dfrac{1}{k}$。故\n$$S_n\\le 1+\\sum_{k=2}^n\\Big(\\frac{1}{k-1}-\\frac1k\\Big)=1+\\Big(1-\\frac1n\\Big)<2.$$\n$\\{S_n\\}$ 遞增且有上界 $2$，由單調有界定理收斂。$\\blacksquare$",
+    "turns": [
+      {
+        "student": null,
+        "reply": "先問自己：這個級數的「部分和」是遞增還是遞減？",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "我不知道，想不出來。",
+        "reply": "那換個角度：每一項 $\\frac1{n^2}$ 是正還是負？",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "還是想不到，再提示一下。",
+        "reply": "正負號決定部分和的趨勢。每一項都是正的，所以部分和如何？",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      }
+    ]
+  },
+  {
+    "id": "A6",
+    "lang": "zh",
+    "probe": "walkthrough",
+    "entered": true,
+    "finished": true,
+    "statement": "證明 $\\lim_{n\\to\\infty}\\dfrac{n}{2^n}=0$。",
+    "reference_proof": "對 $n\\ge 1$，由二項式定理 $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$（$n\\ge 2$）。\n故 $0\\le \\dfrac{n}{2^n}\\le \\dfrac{n}{n(n-1)/2}=\\dfrac{2}{n-1}$。\n當 $n\\to\\infty$ 時 $\\dfrac{2}{n-1}\\to 0$，由夾擠定理得 $\\dfrac{n}{2^n}\\to 0$。$\\blacksquare$",
+    "teach_steps": [
+      {
+        "step_id": "s1",
+        "explain": "對於 $n \\geq 2$，根據二項式定理 $(1+1)^n = 2^n$ 展開後，$\\binom{n}{2} = \\dfrac{n(n-1)}{2}$ 是其中一個非負項，因此 $2^n \\geq \\dfrac{n(n-1)}{2}$。",
+        "core_idea": "二項式係數提供2的n次方的下界",
+        "check": "為何 $2^n$ 有下界 $\\dfrac{n(n-1)}{2}$？",
+        "expected_answer": "因為 $(1+1)^n$ 展開後包含 $\\binom{n}{2}$ 項，且其他項非負，故 $2^n \\geq \\binom{n}{2} = \\dfrac{n(n-1)}{2}$",
+        "accepted_answers": [],
+        "common_errors": [
+          "誤寫 $2^n \\leq \\dfrac{n(n-1)}{2}$",
+          "忽略 $\\binom{n}{2}$ 是下界"
+        ]
+      },
+      {
+        "step_id": "s2",
+        "explain": "從 $2^n \\geq \\dfrac{n(n-1)}{2}$ 且 $n \\geq 2$，取倒數得 $\\dfrac{1}{2^n} \\leq \\dfrac{2}{n(n-1)}$，再乘以 $n$ 得 $\\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$。",
+        "core_idea": "由2的n次方下界推導n除以2的n次方上界",
+        "check": "如何從 $2^n \\geq \\dfrac{n(n-1)}{2}$ 推出 $\\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$？",
+        "expected_answer": "由 $2^n \\geq \\dfrac{n(n-1)}{2}$ 两边取倒數（因正數）得 $\\dfrac{1}{2^n} \\leq \\dfrac{2}{n(n-1)}$，再乘以 $n$ 得 $\\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$",
+        "accepted_answers": [],
+        "common_errors": [
+          "倒數時不等號方向錯誤",
+          "乘以 $n$ 時未考慮 $n \\geq 2$"
+        ]
+      },
+      {
+        "step_id": "s3",
+        "explain": "當 $n$ 趨向無窮大時，$\\dfrac{2}{n-1}$ 趨向 0，因為分母 $n-1$ 線性增長，分子 2 為常數。",
+        "core_idea": "分母線性增長的分式當n趨向無窮時趨向0",
+        "check": "為何 $\\dfrac{2}{n-1}$ 趨向 0 當 $n \\to \\infty$？",
+        "expected_answer": "因為 $n-1 \\to \\infty$，分子 2 為常數，故 $\\dfrac{2}{n-1} \\to 0$",
+        "accepted_answers": [],
+        "common_errors": [
+          "誤以為 $\\dfrac{2}{n-1} \\to 2$",
+          "忽略分母增長"
+        ]
+      },
+      {
+        "step_id": "s4",
+        "explain": "由於 $0 \\leq \\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$ 對所有 $n \\geq 2$ 成立，且 $\\lim_{n\\to\\infty} \\dfrac{2}{n-1} = 0$，由夾擠定理得 $\\lim_{n\\to\\infty} \\dfrac{n}{2^n} = 0$。",
+        "core_idea": "夾擠定理應用於序列極限",
+        "check": "為何 $\\lim_{n\\to\\infty} \\dfrac{n}{2^n} = 0$？",
+        "expected_answer": "因為 $0 \\leq \\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$ 且 $\\lim_{n\\to\\infty} \\dfrac{2}{n-1} = 0$，由夾擠定理得結論",
+        "accepted_answers": [],
+        "common_errors": [
+          "未確認下界 0",
+          "誤用夾擠定理條件"
+        ]
+      }
+    ],
+    "teach_steps_source": "segmenter",
+    "turns": [
+      {
+        "student": null,
+        "reply": "先問自己：$2^n$ 的增長速度比 $n$ 快還是慢？",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "我不知道。",
+        "reply": "那我們先試著把 $2^n$ 展開成一個二項式，看看它至少有多大。",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": [
+          "guide_policy"
+        ]
+      },
+      {
+        "student": "還是不會。",
+        "reply": "換個角度：要壓住 $\\frac{n}{2^n}$，我們需要 $2^n$ 至少是什麼樣的量級？",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "不會。",
+        "reply": "第 1/4 步：對於 $n \\geq 2$，根據二項式定理 $(1+1)^n = 2^n$ 展開後，$\\binom{n}{2} = \\dfrac{n(n-1)}{2}$ 是其中一個非負項，因此 $2^n \\geq \\dfrac{n(n-1)}{2}$。\n\n確認問題：為何 $2^n$ 有下界 $\\dfrac{n(n-1)}{2}$？",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 0,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "再提示，還是不會。",
+        "reply": "這個回答尚未正確，原因是：學生未提供任何數學解釋，僅表示不會。這一步的正確答案是：因為 $(1+1)^n$ 展開後包含 $\\binom{n}{2}$ 項，且其他項非負，故 $2^n \\geq \\binom{n}{2} = \\dfrac{n(n-1)}{2}$。我們接著看下一步。\n\n第 2/4 步：從 $2^n \\geq \\dfrac{n(n-1)}{2}$ 且 $n \\geq 2$，取倒數得 $\\dfrac{1}{2^n} \\leq \\dfrac{2}{n(n-1)}$，再乘以 $n$ 得 $\\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$。\n\n確認問題：如何從 $2^n \\geq \\dfrac{n(n-1)}{2}$ 推出 $\\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$？",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 1,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "我不會。",
+        "reply": "這個回答尚未正確，原因是：學生未提供任何推導步驟，僅表示不會。這一步的正確答案是：由 $2^n \\geq \\dfrac{n(n-1)}{2}$ 两边取倒數（因正數）得 $\\dfrac{1}{2^n} \\leq \\dfrac{2}{n(n-1)}$，再乘以 $n$ 得 $\\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$。我們接著看下一步。\n\n第 3/4 步：當 $n$ 趨向無窮大時，$\\dfrac{2}{n-1}$ 趨向 0，因為分母 $n-1$ 線性增長，分子 2 為常數。\n\n確認問題：為何 $\\dfrac{2}{n-1}$ 趨向 0 當 $n \\to \\infty$？",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 2,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "完全沒頭緒。",
+        "reply": "這個回答尚未正確，原因是：學生未提供任何數學解釋。這一步的正確答案是：因為 $n-1 \\to \\infty$，分子 2 為常數，故 $\\dfrac{2}{n-1} \\to 0$。我們接著看下一步。\n\n第 4/4 步：由於 $0 \\leq \\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$ 對所有 $n \\geq 2$ 成立，且 $\\lim_{n\\to\\infty} \\dfrac{2}{n-1} = 0$，由夾擠定理得 $\\lim_{n\\to\\infty} \\dfrac{n}{2^n} = 0$。\n\n確認問題：為何 $\\lim_{n\\to\\infty} \\dfrac{n}{2^n} = 0$？",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 3,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "因為 $0 \\leq \\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$ 且 $\\lim_{n\\to\\infty} \\dfrac{2}{n-1} = 0$，由夾擠定理得結論",
+        "reply": "這個回答尚未正確，原因是：漏掉 $n \\geq 2$ 的條件。這一步的正確答案是：因為 $0 \\leq \\dfrac{n}{2^n} \\leq \\dfrac{2}{n-1}$ 且 $\\lim_{n\\to\\infty} \\dfrac{2}{n-1} = 0$，由夾擠定理得結論。 思路已經完整了。現在請把完整證明一步步寫出來，我會幫你審閱。",
+        "phase": "review",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": "awaiting_submission",
+        "stuck_count": 0,
+        "walk_idx": 4,
+        "guards": [
+          "awaiting_submission"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A6",
+    "lang": "en",
+    "probe": "escalation",
+    "passed": true,
+    "statement": "Prove that $\\lim_{n\\to\\infty}\\dfrac{n}{2^n}=0$.",
+    "reference_proof": "For $n\\ge 1$, by the binomial theorem $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$ (for $n\\ge 2$).\nHence $0\\le \\dfrac{n}{2^n}\\le \\dfrac{n}{n(n-1)/2}=\\dfrac{2}{n-1}$.\nAs $n\\to\\infty$, $\\dfrac{2}{n-1}\\to 0$, so by the squeeze theorem $\\dfrac{n}{2^n}\\to 0$. $\\blacksquare$",
+    "turns": [
+      {
+        "student": null,
+        "reply": "The denominator grows faster than the numerator — can you find a lower bound for $2^n$ that beats the linear growth of $n$?",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "I don't know, I can't figure it out.",
+        "reply": "What single intermediate statement can you try to establish next?",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": [
+          "leak",
+          "leak_unresolved"
+        ]
+      },
+      {
+        "student": "I'm still stuck, please give another hint.",
+        "reply": "After establishing that lower bound, what is the relation between $\\frac{n}{2^n}$ and $\\frac{2}{n-1}$?",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      }
+    ]
+  },
+  {
+    "id": "C8",
+    "lang": "en",
+    "probe": "escalation",
+    "passed": true,
+    "statement": "Suppose $f$ is differentiable on an interval $I$ with $|f'(x)|\\le M$. Prove $|f(x)-f(y)|\\le M|x-y|$ ($f$ is Lipschitz).",
+    "reference_proof": "Take any $x,y\\in I$, say $x\\ne y$. By the Lagrange mean value theorem there is $c$ between $x$ and $y$ with\n$$f(x)-f(y)=f'(c)(x-y).$$\nTake absolute values and use $|f'(c)|\\le M$:\n$$|f(x)-f(y)|=|f'(c)|\\,|x-y|\\le M|x-y|.$$\nFor $x=y$ both sides are $0$, so the inequality also holds. $\\blacksquare$",
+    "turns": [
+      {
+        "student": null,
+        "reply": "The key is to connect the difference of function values at two points to the derivative. Which theorem gives an exact formula for $f(x)-f(y)$?",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "I don't know, I can't figure it out.",
+        "reply": "Try writing out the definition of the derivative of $f$ at some point $c$ between $x$ and $y$ — what does it equal?",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "I'm still stuck, please give another hint.",
+        "reply": "The definition of the derivative is precisely the limit of the difference quotient. If you write it out, what does it equal?",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      }
+    ]
+  },
+  {
+    "id": "E4",
+    "lang": "en",
+    "probe": "escalation",
+    "passed": true,
+    "statement": "Prove that $\\sum_{n=1}^\\infty \\dfrac{1}{n^2}$ converges.",
+    "reference_proof": "The partial sums $S_n=\\sum_{k=1}^n \\dfrac{1}{k^2}$ form an increasing sequence (all terms positive).\nFor $k\\ge 2$, use the telescoping bound $\\dfrac{1}{k^2}\\le \\dfrac{1}{k(k-1)}=\\dfrac{1}{k-1}-\\dfrac{1}{k}$. Hence\n$$S_n\\le 1+\\sum_{k=2}^n\\Big(\\frac{1}{k-1}-\\frac1k\\Big)=1+\\Big(1-\\frac1n\\Big)<2.$$\n$\\{S_n\\}$ is increasing and bounded above by $2$, so it converges by the monotone convergence theorem. $\\blacksquare$",
+    "turns": [
+      {
+        "student": null,
+        "reply": "First ask yourself: what kind of series is this — does it have positive terms?",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "I don't know, I can't figure it out.",
+        "reply": "What single intermediate statement can you try to establish next?",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": [
+          "leak",
+          "leak_unresolved"
+        ]
+      },
+      {
+        "student": "I'm still stuck, please give another hint.",
+        "reply": "A single intermediate step is enough. Can you first establish whether the partial sums increase or decrease?",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": []
+      }
+    ]
+  },
+  {
+    "id": "A6",
+    "lang": "en",
+    "probe": "walkthrough",
+    "entered": true,
+    "finished": true,
+    "statement": "Prove that $\\lim_{n\\to\\infty}\\dfrac{n}{2^n}=0$.",
+    "reference_proof": "For $n\\ge 1$, by the binomial theorem $2^n=(1+1)^n\\ge \\binom{n}{2}=\\dfrac{n(n-1)}{2}$ (for $n\\ge 2$).\nHence $0\\le \\dfrac{n}{2^n}\\le \\dfrac{n}{n(n-1)/2}=\\dfrac{2}{n-1}$.\nAs $n\\to\\infty$, $\\dfrac{2}{n-1}\\to 0$, so by the squeeze theorem $\\dfrac{n}{2^n}\\to 0$. $\\blacksquare$",
+    "teach_steps": [
+      {
+        "step_id": "s1",
+        "explain": "For $n \\ge 2$, the binomial theorem states that $(1+1)^n = 2^n = \\sum_{k=0}^n \\binom{n}{k}$. Since all terms are non-negative, $2^n \\ge \\binom{n}{2} = \\frac{n(n-1)}{2}$.",
+        "core_idea": "Binomial theorem's second term provides a lower bound",
+        "check": "Why is $2^n$ at least $\\frac{n(n-1)}{2}$ for $n \\ge 2$?",
+        "expected_answer": "Because the binomial expansion includes the term $\\binom{n}{2}$ and all other terms are non-negative.",
+        "accepted_answers": [],
+        "common_errors": []
+      },
+      {
+        "step_id": "s2",
+        "explain": "From $2^n \\ge \\frac{n(n-1)}{2}$, dividing both sides by $\\frac{n(n-1)}{2}$ (positive for $n \\ge 2$) gives $\\frac{2^n}{\\frac{n(n-1)}{2}} \\ge 1$, which rearranges to $\\frac{n}{2^n} \\le \\frac{2}{n-1}$.",
+        "core_idea": "Inequality rearrangement establishes sequence upper bound",
+        "check": "How do we get $\\frac{n}{2^n} \\le \\frac{2}{n-1}$ from $2^n \\ge \\frac{n(n-1)}{2}$?",
+        "expected_answer": "By dividing both sides of the inequality by $\\frac{n(n-1)}{2}$ (a positive quantity) and rearranging.",
+        "accepted_answers": [],
+        "common_errors": []
+      },
+      {
+        "step_id": "s3",
+        "explain": "As $n \\to \\infty$, the denominator $n-1$ grows without bound, so $\\frac{2}{n-1} \\to 0$.",
+        "core_idea": "Denominator growth causes fraction to approach zero",
+        "check": "Why does $\\frac{2}{n-1}$ approach 0 as $n$ becomes large?",
+        "expected_answer": "Because the denominator increases indefinitely, making the fraction arbitrarily small.",
+        "accepted_answers": [],
+        "common_errors": []
+      },
+      {
+        "step_id": "s4",
+        "explain": "Since $0 \\le \\frac{n}{2^n} \\le \\frac{2}{n-1}$ and both bounds approach 0 as $n \\to \\infty$, the squeeze theorem implies $\\frac{n}{2^n} \\to 0$.",
+        "core_idea": "Squeeze theorem for sequences",
+        "check": "How does the squeeze theorem apply to show $\\frac{n}{2^n} \\to 0$?",
+        "expected_answer": "Because the sequence is bounded below by 0 and above by a sequence converging to 0.",
+        "accepted_answers": [],
+        "common_errors": []
+      }
+    ],
+    "teach_steps_source": "segmenter",
+    "turns": [
+      {
+        "student": null,
+        "reply": "The denominator grows faster than the numerator — can you find a lower bound for $2^n$ that beats the linear growth of $n$?",
+        "phase": "guide",
+        "level": 0,
+        "turn_action": "answer_clarification",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": null,
+        "guards": []
+      },
+      {
+        "student": "I don't know.",
+        "reply": "What single intermediate statement can you try to establish next?",
+        "phase": "guide",
+        "level": 1,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 1,
+        "walk_idx": null,
+        "guards": [
+          "leak",
+          "leak_unresolved"
+        ]
+      },
+      {
+        "student": "Still can't do it.",
+        "reply": "Use this step directly: a lower bound for $2^n$ that beats linear growth Can you now write the first relation or conclusion that follows from this one step?",
+        "phase": "guide",
+        "level": 2,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 2,
+        "walk_idx": null,
+        "guards": [
+          "no_question",
+          "guide_policy",
+          "guide_policy_unresolved"
+        ]
+      },
+      {
+        "student": "No idea.",
+        "reply": "Step 1/4: For $n \\ge 2$, the binomial theorem states that $(1+1)^n = 2^n = \\sum_{k=0}^n \\binom{n}{k}$. Since all terms are non-negative, $2^n \\ge \\binom{n}{2} = \\frac{n(n-1)}{2}$.\n\nCheck: Why is $2^n$ at least $\\frac{n(n-1)}{2}$ for $n \\ge 2$?",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "normal_guide",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 0,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "Another hint, still stuck.",
+        "reply": "That answer is not yet correct because: Student did not provide a reason for why 2^n ≥ n(n-1)/2. The correct answer to this step is: Because the binomial expansion includes the term $\\binom{n}{2}$ and all other terms are non-negative. Let's move on to the next step.\n\nStep 2/4: From $2^n \\ge \\frac{n(n-1)}{2}$, dividing both sides by $\\frac{n(n-1)}{2}$ (positive for $n \\ge 2$) gives $\\frac{2^n}{\\frac{n(n-1)}{2}} \\ge 1$, which rearranges to $\\frac{n}{2^n} \\le \\frac{2}{n-1}$.\n\nCheck: How do we get $\\frac{n}{2^n} \\le \\frac{2}{n-1}$ from $2^n \\ge \\frac{n(n-1)}{2}$?",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 1,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "I can't.",
+        "reply": "That answer is not yet correct because: Student did not provide a valid answer or explanation. The correct answer to this step is: By dividing both sides of the inequality by $\\frac{n(n-1)}{2}$ (a positive quantity) and rearranging. Let's move on to the next step.\n\nStep 3/4: As $n \\to \\infty$, the denominator $n-1$ grows without bound, so $\\frac{2}{n-1} \\to 0$.\n\nCheck: Why does $\\frac{2}{n-1}$ approach 0 as $n$ becomes large?",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 2,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "Completely lost.",
+        "reply": "That answer is not yet correct because: Student did not provide any answer to the confirmation question. The correct answer to this step is: Because the denominator increases indefinitely, making the fraction arbitrarily small. Let's move on to the next step.\n\nStep 4/4: Since $0 \\le \\frac{n}{2^n} \\le \\frac{2}{n-1}$ and both bounds approach 0 as $n \\to \\infty$, the squeeze theorem implies $\\frac{n}{2^n} \\to 0$.\n\nCheck: How does the squeeze theorem apply to show $\\frac{n}{2^n} \\to 0$?",
+        "phase": "walkthrough",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": null,
+        "stuck_count": 0,
+        "walk_idx": 3,
+        "guards": [
+          "walkthrough_step"
+        ]
+      },
+      {
+        "student": "Because the sequence is bounded below by 0 and above by a sequence converging to 0.",
+        "reply": "The idea is now complete. Please write out the full proof step by step, and I will review it for you.",
+        "phase": "review",
+        "level": 0,
+        "turn_action": "walkthrough_answer",
+        "review_status": "awaiting_submission",
+        "stuck_count": 0,
+        "walk_idx": 4,
+        "guards": [
+          "awaiting_submission"
+        ]
+      }
+    ]
+  }
+]

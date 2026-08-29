@@ -252,7 +252,8 @@ def tier0() -> bool:
     # 真模型講過的話（證明那些散文比對的正則在真實措辭下不會誤判）。
     for script in ("test_driver_unit.py", "test_review_workflow.py", "test_phase_routing.py",
                    "test_segmenter_unit.py", "test_verify_then_generate_eval.py",
-                   "../server_train/test_vtg_docker.py", "validate.py", "test_dataset.py"):
+                   "test_limit_levels_dual_ai.py", "../server_train/test_vtg_docker.py",
+                   "../server_train/test_limit_levels_runner.py", "validate.py", "test_dataset.py"):
         r = subprocess.run([PY, str(HERE / script)], capture_output=True, text=True,
                            encoding="utf-8", errors="replace")
         print(f"  [{'✓' if r.returncode == 0 else '✗'}] {script}")
@@ -270,14 +271,14 @@ def _load_problems(lang: str = "zh") -> dict:
                   "hard_math_major_en.json", "xdomain_problems_en.json"):
             fp = HERE / f
             if fp.exists():
-                for it in json.loads(fp.read_text(encoding="utf-8")):
+                for it in json.loads(fp.read_text(encoding="utf-8-sig")):
                     problems[it["id"]] = dict(it)
         return problems
     from tutor_driver import load_problems
     problems = load_problems()
     xd = HERE / "xdomain_problems.json"
     if xd.exists():
-        for p in json.loads(xd.read_text(encoding="utf-8")):
+        for p in json.loads(xd.read_text(encoding="utf-8-sig")):
             problems[p["id"]] = p
     return problems
 
@@ -501,6 +502,22 @@ JUDGE_ITEM_PROMPT = """你是嚴格的數學教學評審。以下是一道證明
 （缺某情境就省略該鍵）不要輸出任何其他文字。"""
 
 
+def _assess_multiturn_phase_and_close(turns: list[dict]) -> tuple[bool, bool]:
+    """依現行 readiness 協定檢查無後盾的固定多輪探針。
+
+    固定腳本的第 5 則學生訊息只是宣告理解，第 6 則則是尚未受邀的主動全文；
+    兩者都不得自行越過 READINESS_PASSED。收尾 fallback 只在真的完成 closed 時
+    才有意義，未完成的人工腳本不冒充已結案對話。
+    """
+    phase_ok = (len(turns) > 6
+                and turns[5].get("phase") == "guide"
+                and turns[6].get("phase") == "guide")
+    completed = any(turn.get("phase") == "closed" for turn in turns)
+    close_ok = (not completed
+                or "fallback" not in (turns[-1].get("guards") or []))
+    return phase_ok, close_ok
+
+
 def tier1_multiturn(tok, model, metrics: dict, lang: str = "zh") -> list:
     """多輪確定性探針：固定學生台詞跑完整條路徑，檢查結構不變式（不經評審）。
 
@@ -538,27 +555,21 @@ def tier1_multiturn(tok, model, metrics: dict, lang: str = "zh") -> list:
         # ② 每輪至多一個問號
         single = all(len(_QMARK.findall(t["reply"])) <= 1 for t in turns)
         ok_single += single
-        # ③ 階段轉換：學生自述理解不直接切 phase；真正全文交稿後必須審閱。
-        # 本確定性探針關閉 backstop，因此不強求 Thinking readiness；若有
-        # awaiting_submission，它必須出現在審閱全文之前。主動交稿另由 Tier 0 stub 測試。
+        # ③ 階段轉換：本探針關閉 backstop，現行協定要求學生自述理解與未受邀
+        # 主動全文都不得越過 READINESS_PASSED；受邀後的全文審閱由 Tier 0 與
+        # 部署形態的真實對話模擬另行覆蓋。
         phases = [t["phase"] for t in turns]
-        statuses = [t.get("review_status") for t in turns]
-        awaiting_i = next((i for i, t in enumerate(turns)
-                           if t["phase"] == "review"
-                           and t.get("review_status") == "awaiting_submission"), None)
         checked_i = next((i for i, t in enumerate(turns)
                           if t["phase"] in {"review", "closed"}
                           and t.get("review_status") != "awaiting_submission"), None)
-        phase_ok = checked_i is not None \
-            and (awaiting_i is None or awaiting_i < checked_i)
+        phase_ok, close_ok = _assess_multiturn_phase_and_close(turns)
         ok_phase += phase_ok
         # ④ 升級順序：若進入逐步教學，之前必須已出現一般引導的 Level 2。
         first_walk = next((i for i, t in enumerate(turns) if t["phase"] == "walkthrough"), None)
         escalation_ok = first_walk is None or any(
             t["level"] == 2 and t["phase"] == "guide" for t in turns[:first_walk])
         ok_escalation += escalation_ok
-        # ⑤ 收尾：學生道謝那一輪不得再被補上通用追問句
-        close_ok = "fallback" not in turns[-1]["guards"]
+        # ⑤ 收尾：只有真的完成 closed 時，學生道謝輪才適用收尾不追問檢查。
         ok_close += close_ok
         # ⑥ 糾錯不得被收尾中斷：審閱輪若還在問問題（＝仍有缺漏），學生針對缺漏的
         #    追問就不該落進 closed（助教會被指示「已完成、不要再問」）——稽核 F3。

@@ -175,13 +175,34 @@ def _chat(system: str, user: str, temperature: float, timeout: int = 600,
     }
     if format_schema is not None:
         body["format"] = format_schema
-    payload = json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(OLLAMA_URL, data=payload,
-                                 headers={"Content-Type": "application/json"})
+    payload_text = json.dumps(body)
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.loads(r.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError):
+        remote_ssh = os.environ.get("REMOTE_REVIEW_SSH", "").strip()
+        if remote_ssh:
+            import subprocess
+            port = os.environ.get("REMOTE_REVIEW_PORT", "11435").strip()
+            if not port.isdigit():
+                raise ValueError("REMOTE_REVIEW_PORT must be numeric")
+            result = subprocess.run(
+                ["ssh", remote_ssh,
+                 f"curl -sS -m {int(timeout)} -X POST "
+                 f"http://localhost:{port}/api/chat "
+                 f"-H 'Content-Type: application/json' -d @-"],
+                input=payload_text, capture_output=True, text=True,
+                encoding="utf-8", timeout=timeout + 30)
+            if result.returncode != 0:
+                raise OSError((result.stderr or result.stdout or
+                               "remote segmenter command failed")[:300])
+            data = json.loads(result.stdout)
+        else:
+            payload = payload_text.encode("utf-8")
+            req = urllib.request.Request(
+                OLLAMA_URL, data=payload,
+                headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = json.loads(r.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError,
+            json.JSONDecodeError):
         return None
     return (data.get("message", {}).get("content") or "").strip() or None
 

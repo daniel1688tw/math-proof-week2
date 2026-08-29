@@ -254,7 +254,8 @@ _SOLUTION_OBJECT_RE = re.compile(
     re.I,
 )
 _TUTOR_DELIVERY_RE = re.compile(
-    r"直接|跳過.{0,10}(?:提示|引導|步驟|推導)|"
+    r"(?:^|請|麻煩)直接.{0,12}(?:給|告訴我|提供|寫出|寫給我|幫我寫|展示|讓我看|列出|呈現)|"
+    r"跳過.{0,10}(?:提示|引導|步驟|推導)|"
     r"(?:給我|告訴我|提供|寫給我|幫我寫|展示|讓我看|先看|想看|列出|呈現)|"
     r"(?:^|請|麻煩)(?:先)?(?:替我|幫我)?(?:撰寫|寫出?|列出|整理|提供|呈現)|"
     r"(?:give|tell|show|provide|write).{0,12}(?:me|for me)|"
@@ -1967,6 +1968,11 @@ class TutorDriver:
                 "level": int(level),
                 "turn_action": self.state.get("turn_action"),
                 "student_state": self.state.get("student_state_decision") or {},
+                "pre_generation_verification": (
+                    self.state.get("pre_generation_verification") or {
+                        "status": "not_applicable", "issues": [], "first_issue": ""
+                    }
+                ),
                 "language": self.lang,
                 "active_gap": str(self.state.get("active_gap") or ""),
                 "last_guide_question": str(
@@ -1981,6 +1987,11 @@ class TutorDriver:
                 "missing_core_step, candidate_math_error, candidate_ownership_error, and feedback.\n"
                 "你是幕後的蘇格拉底式引導與交稿準備度合併審查器，只做審查、不要解題。"
                 "請比較題目、參考證明、對話、student_messages 與候選回覆，依序完成："
+                "payload.pre_generation_verification 是只檢查最新一則學生回答的預檢診斷。"
+                "若其 status=issues，必須把每項問題與完整 student_messages 逐項重新核對："
+                "先前訊息已正確完成的內容不算累積證明缺漏，所以不能只因預檢列出缺漏就判未完成；"
+                "但最新回答若引入錯誤、矛盾，或把先前正確條件改壞，必須判 latest_student_step_status=incorrect，"
+                "且不得 ready_for_writeup。"
                 "(1)核對 student_messages 最後一則中的數學步驟狀態 (latest_student_step_status: correct/incorrect/no_step) 與第一個缺少連結 (first_missing_step)。"
                 "(2)核對 Tutor 候選回覆：\n"
                 "   - mathematically_correct 只評 Tutor 候選內的數學敘述，以及 Tutor 對最新學生步驟的處理。最新學生步驟若錯，而 Tutor 稱讚、接受、沿用或跳過它，必須判 false；若 Tutor 不斷言錯誤，只用聚焦問題要求學生重查該步，則可判 true。學生的證明尚未完整，本身絕不能成為 mathematically_correct=false 的理由；候選中若包含符號、常數、正負號、導數階數、不等號或等式推導錯誤，填入 candidate_math_error，否則填空字串。重述題目結論必須與題目數學等價。\n"
@@ -2083,6 +2094,9 @@ class TutorDriver:
                 value.setdefault("candidate_ownership_error", "")
                 value.setdefault("latest_student_step_status", "no_step")
                 value.setdefault("first_missing_step", "")
+                if value.get("latest_student_step_status") not in {
+                        "correct", "incorrect", "no_step"}:
+                    return None
                 if value.get("ready_for_writeup") is True:
                     value["first_missing_step"] = ""
                 if not all(isinstance(value.get(key), bool) for key in bool_keys):
@@ -2186,13 +2200,22 @@ class TutorDriver:
             return False
         missing = str(review.get("missing_core_step") or "").strip()
         confidence = float(review.get("readiness_confidence", 0.0))
+        latest_incorrect = review.get("latest_student_step_status") == "incorrect"
+        blocking_reason = ""
+        if latest_incorrect:
+            blocking_reason = (
+                str(review.get("first_missing_step") or "").strip()
+                or str(review.get("feedback") or "").strip()
+                or "最新學生步驟仍有錯誤"
+            )
         ready = bool(review.get("ready_for_writeup") is True
-                     and not missing and confidence >= 0.80)
+                     and not missing and confidence >= 0.80
+                     and not blocking_reason)
         self.state["writeup_readiness"] = {
             "ready_for_writeup": ready,
-            "missing_core_step": missing,
+            "missing_core_step": missing or blocking_reason,
             "confidence": max(0.0, min(1.0, confidence)),
-            "reason": str(review.get("feedback") or "").strip(),
+            "reason": blocking_reason or str(review.get("feedback") or "").strip(),
             "source": "combined_guide_review",
         }
         self.state["readiness_pending"] = False
@@ -2217,7 +2240,8 @@ class TutorDriver:
         """依學生步驟狀態推進唯一缺口；no_step 不可覆寫既有缺口。"""
         if not review:
             return
-        if review.get("ready_for_writeup") is True:
+        if (review.get("ready_for_writeup") is True
+                and review.get("latest_student_step_status") != "incorrect"):
             self.state["active_gap"] = ""
             return
         current = str(self.state.get("active_gap") or "").strip()
@@ -2524,17 +2548,35 @@ class TutorDriver:
             return reply
         en = self.lang == "en"
         phase = self.state.get("phase")
+        # 糾錯輪必須能引用學生錯誤附近的短式子；15 字元在英文數學式上會把
+        # 「指出錯在哪」誤判為抄解答。仍以 25 字元攔截長片段，其他引導維持 15。
+        leak_ngram = (25 if self.state.get("turn_action") == "respond_attempt" else 15)
 
         # 等級 <2 不允許出現參考解長片段；命中則加強約束重生成一次
         # （exclude=題目 statement：複述題幹不算洩漏，只抓解法專屬內容）
-        if level < 2 and leaks_reference(reply, self.problem["reference_proof"],
-                                         exclude=self.problem.get("statement", "")):
+        if level < 2 and leaks_reference(
+                reply, self.problem["reference_proof"], n=leak_ngram,
+                exclude=self.problem.get("statement", "")):
             log.leak_flag = True
+            log.guards.append("leak")
             reply = self._regen(level, (
                 "Your previous draft quoted the reference proof verbatim. Rewrite it and avoid "
                 "reproducing any formula word-for-word." if en else
                 "上一稿引用了參考解的原文片段，重寫並避免逐字重現任何式子。"))
             log.regenerated = True
+            # 生成模型可能在加強指示後仍換句話重複同一段參考解。零容忍守衛
+            # 不能只檢查第一稿；二稿仍命中時改用不含題目內容的確定性問題。
+            if leaks_reference(reply, self.problem["reference_proof"], n=leak_ngram,
+                               exclude=self.problem.get("statement", "")):
+                log.guards.append("leak_unresolved")
+                if en:
+                    reply = ("Which stated condition do you think is most relevant to your next step?"
+                             if level == 0 else
+                             "What single intermediate statement can you try to establish next?")
+                else:
+                    reply = ("你認為題目中哪一個已知條件與下一步最相關？"
+                             if level == 0 else
+                             "你接下來可以先嘗試建立哪一條中間敘述？")
 
         # on-track 防奉送：一般引導輪與拒絕輪（refuse_tutor_write 規則本就禁止給步驟），
         # 等級 <2 不得替學生指定具體代數操作
@@ -2777,6 +2819,11 @@ class TutorDriver:
         # 一般引導的最終候選只做一次「readiness＋數學／level policy」合併審查；
         # ready 時直接切 review 並回確定性交稿模板，否則才決定候選能否送出。
         reply = self._enforce_guide_reply_policy(reply, level, log)
+        # 語意政策位於前面的 premature_writeup 防護之後，可能重新產生要求完整
+        # 證明的文字。若狀態仍在 guide，最後封住這條狀態／文字不一致的路徑。
+        if self.state.get("phase") == "guide" and asks_for_full_writeup(reply):
+            log.guards.append("post_policy_premature_writeup")
+            reply = self._safe_guide_review_fallback(level)
         # 前面的重複守衛看不到合併審查最後換上的 Controller 保底；落地前再做一次相同的
         # 通用近三輪比對。只替換為無題型數學內容的輪換問句，不增加模型呼叫。
         reply = self._final_guide_repeat_guard(reply, log, level)
@@ -3052,7 +3099,14 @@ class TutorDriver:
         trace_before = self._begin_phase_trace()
         if user_opener:
             # 每則學生訊息先且只先經統一 router 分類，特殊工作流再消費決策。
-            self._route_student_state(opener)
+            opener_decision = self._route_student_state(opener).to_dict()
+            # opener 不增加 stuck_count，但其中的有效數學進展仍須計入 readiness；
+            # 否則首輪已寫出的證明骨架會被永久少算一輪。
+            if (opener_decision.get("has_actionable_math")
+                    and opener_decision.get("advances_solution") is True
+                    and self.state.get("phase") == "guide"):
+                self.state["proof_progress_revision"] = (
+                    int(self.state.get("proof_progress_revision", 0)) + 1)
             review_reply = self._review_workflow_transition(user_opener)
             if review_reply is not None:
                 self.messages = []

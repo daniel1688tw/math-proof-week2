@@ -217,6 +217,11 @@ class _ReadyDriver(TutorDriver):
             "feedback": "",
         }
 
+    def _run_pre_generation_verifier(self, student_text):
+        # 此案例只驗證累積 guide review 的 readiness；固定最新步驟預檢為 clear，
+        # 避免 REMOTE_REVIEW_SSH 等外部環境讓 Tier 0 純邏輯測試連外。
+        return []
+
     def _judge_walkthrough_answer(self, student_text, step):
         return {"verdict": "correct", "feedback": ""}
 

@@ -151,6 +151,9 @@ FULL_REVIEW_SYSTEM = """你是數學證明課程的嚴格審閱員。請對照�
 - root_cause 與 description 只說明學生哪個斷言錯、錯因及後果，不得包含正確版本；
   正確內容只能放在 correction，供內部判定使用。
 - 題目只寫 increasing／遞增而沒有 strictly／嚴格時，本專案按單調不減理解。
+- 必須逐字核對末句結論的定義域、量詞與條件是否和題目一致；若末句省略限制而變成
+  更強命題，不能假設前文的限制會自動補回。例如「去心鄰域」不可寫成包含中心點的
+  「鄰域內所有點」，除非另有理由處理中心點。
 - 若草稿末尾有「已核准的局部訂正」，那些訂正取代原稿中相衝突的舊敘述。
 
 只輸出 JSON 物件陣列，不要輸出其他文字：
@@ -391,9 +394,7 @@ def _chat_content(system: str, user: str, timeout: int, *, num_predict: int = 81
         # Ollama 的 format 可直接接受 JSON Schema；只對有指定的呼叫生效，
         # 不改變既有全文審閱與 walkthrough 的輸出格式。
         request_data["format"] = response_format
-    payload = json.dumps(request_data).encode("utf-8")
-    req = urllib.request.Request(OLLAMA_URL, data=payload,
-                                 headers={"Content-Type": "application/json"})
+    payload_text = json.dumps(request_data)
     started = time.monotonic()
 
     def finish(**fields) -> None:
@@ -401,10 +402,32 @@ def _chat_content(system: str, user: str, timeout: int, *, num_predict: int = 81
             diagnostics.update(fields)
             diagnostics["elapsed_ms"] = int((time.monotonic() - started) * 1000)
 
+    remote_ssh = os.environ.get("REMOTE_REVIEW_SSH", "").strip()
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            raw_response = r.read().decode("utf-8")
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        if remote_ssh:
+            import subprocess
+            port = os.environ.get("REMOTE_REVIEW_PORT", "11435").strip()
+            if not port.isdigit():
+                raise ValueError("REMOTE_REVIEW_PORT must be numeric")
+            result = subprocess.run(
+                ["ssh", remote_ssh,
+                 f"curl -sS -m {int(timeout)} -X POST "
+                 f"http://localhost:{port}/api/chat "
+                 f"-H 'Content-Type: application/json' -d @-"],
+                input=payload_text, capture_output=True, text=True,
+                encoding="utf-8", timeout=timeout + 30)
+            if result.returncode != 0:
+                raise OSError((result.stderr or result.stdout or
+                               "remote review command failed")[:300])
+            raw_response = result.stdout
+        else:
+            payload = payload_text.encode("utf-8")
+            req = urllib.request.Request(
+                OLLAMA_URL, data=payload,
+                headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                raw_response = r.read().decode("utf-8")
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
         text = str(exc).lower()
         reason = ("timeout" if isinstance(exc, TimeoutError) or "timed out" in text
                   else "service_error")
@@ -594,6 +617,7 @@ def review_full_proof(statement: str, reference_proof: str, draft: str,
         FULL_REVIEW_SYSTEM,
         base + ("\n\n【第一輪已找到的問題】\n" + first_json +
                 "\n\n【第二輪任務】重新從頭獨立複核，特別檢查第一輪可能漏掉的問題。"
+                "必須另外逐字審計末句結論的定義域或量詞範圍；末句省略的限制不能由前文自動補回。"
                 "不要重複第一輪同一根本原因；若只有其後果也不要另列。只輸出新問題。"),
         _parse_issue_list, timeout=timeout, num_predict=8192, temperature=0.1)
     if second is None:

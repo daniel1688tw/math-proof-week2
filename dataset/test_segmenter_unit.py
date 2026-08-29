@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -35,6 +37,45 @@ def check(name: str, condition: bool):
     if not condition:
         raise AssertionError(name)
     print(f"  OK {name}")
+
+
+print("[0] remote reviewer transport")
+_old_run = subprocess.run
+_old_remote = os.environ.get("REMOTE_REVIEW_SSH")
+_old_port = os.environ.get("REMOTE_REVIEW_PORT")
+_remote_calls = []
+
+
+class _RemoteResult:
+    returncode = 0
+    stdout = '{"message":{"content":"REMOTE_OK"}}'
+    stderr = ""
+
+
+def _fake_remote_run(command, **kwargs):
+    _remote_calls.append((command, kwargs))
+    return _RemoteResult()
+
+
+subprocess.run = _fake_remote_run
+os.environ["REMOTE_REVIEW_SSH"] = "daniel@example.invalid"
+os.environ["REMOTE_REVIEW_PORT"] = "11435"
+try:
+    _remote_reply = ar._chat("system", "user", 0.1, timeout=60)
+finally:
+    subprocess.run = _old_run
+    if _old_remote is None:
+        os.environ.pop("REMOTE_REVIEW_SSH", None)
+    else:
+        os.environ["REMOTE_REVIEW_SSH"] = _old_remote
+    if _old_port is None:
+        os.environ.pop("REMOTE_REVIEW_PORT", None)
+    else:
+        os.environ["REMOTE_REVIEW_PORT"] = _old_port
+check("segmenter can call the isolated reviewer through SSH",
+      _remote_reply == "REMOTE_OK"
+      and _remote_calls[0][0][:2] == ["ssh", "daniel@example.invalid"]
+      and "localhost:11435/api/chat" in _remote_calls[0][0][2])
 
 
 print("[1] schema 解析不截斷")

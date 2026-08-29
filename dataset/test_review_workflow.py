@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 import json
+import os
+import subprocess
 import re
 import sys
 from pathlib import Path
@@ -34,6 +36,7 @@ def test_native_schema_and_review_failure_diagnostics() -> None:
         "additionalProperties": False,
     }
     original_urlopen = review_backstop.urllib.request.urlopen
+    original_remote = os.environ.pop("REMOTE_REVIEW_SSH", None)
     captured = {}
 
     class FakeResponse:
@@ -77,6 +80,8 @@ def test_native_schema_and_review_failure_diagnostics() -> None:
     finally:
         review_backstop.urllib.request.urlopen = original_urlopen
     assert timeout_diag["failure_reason"] == "timeout"
+    if original_remote is not None:
+        os.environ["REMOTE_REVIEW_SSH"] = original_remote
 
     original_chat = review_backstop._chat_content
     outputs = iter(["not json", '{"ok":true}'])
@@ -163,6 +168,61 @@ def test_full_review_retries_and_keeps_first_pass() -> None:
     assert len(calls) == 5
     assert issues and len(issues) == 1
     assert issues[0]["root_cause"] == "定理用錯"
+
+
+def test_full_review_second_pass_explicitly_audits_conclusion_scope() -> None:
+    original = review_backstop._retry_parsed
+    calls = []
+
+    def fake_retry(system, user, parser, **kwargs):
+        calls.append(user)
+        return []
+
+    review_backstop._retry_parsed = fake_retry
+    try:
+        assert review_full_proof("題目", "參考解", "學生證明") == []
+    finally:
+        review_backstop._retry_parsed = original
+    assert len(calls) == 2
+    assert "末句結論" in calls[1]
+    assert "定義域或量詞範圍" in calls[1]
+    assert "不能由前文自動補回" in calls[1]
+
+
+def test_review_backend_can_use_remote_ssh_transport() -> None:
+    original_run = subprocess.run
+    original_remote = os.environ.get("REMOTE_REVIEW_SSH")
+    original_port = os.environ.get("REMOTE_REVIEW_PORT")
+    calls = []
+
+    class Result:
+        returncode = 0
+        stdout = '{"message":{"content":"CLEAR"},"done_reason":"stop"}'
+        stderr = ""
+
+    def fake_run(command, **kwargs):
+        calls.append((command, kwargs))
+        return Result()
+
+    subprocess.run = fake_run
+    os.environ["REMOTE_REVIEW_SSH"] = "daniel@example.invalid"
+    os.environ["REMOTE_REVIEW_PORT"] = "11435"
+    try:
+        result = review_backstop._chat_content("system", "user", 60, num_predict=128)
+    finally:
+        subprocess.run = original_run
+        if original_remote is None:
+            os.environ.pop("REMOTE_REVIEW_SSH", None)
+        else:
+            os.environ["REMOTE_REVIEW_SSH"] = original_remote
+        if original_port is None:
+            os.environ.pop("REMOTE_REVIEW_PORT", None)
+        else:
+            os.environ["REMOTE_REVIEW_PORT"] = original_port
+    assert result == "CLEAR"
+    assert calls and calls[0][0][:2] == ["ssh", "daniel@example.invalid"]
+    assert "localhost:11435/api/chat" in calls[0][0][2]
+    assert calls[0][1]["input"].startswith("{")
 
 
 def test_text_fallback_recovers_actionable_issue_fields() -> None:
@@ -773,6 +833,8 @@ if __name__ == "__main__":
     test_native_schema_and_review_failure_diagnostics()
     test_issue_parser_and_two_pass_root_dedup()
     test_full_review_retries_and_keeps_first_pass()
+    test_full_review_second_pass_explicitly_audits_conclusion_scope()
+    test_review_backend_can_use_remote_ssh_transport()
     test_text_fallback_recovers_actionable_issue_fields()
     test_contextual_local_revision_accepts_minimal_valid_replacement()
     test_local_revision_scope_recheck_ignores_unqueued_draft_error()
