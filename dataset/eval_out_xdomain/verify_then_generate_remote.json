@@ -1,0 +1,498 @@
+{
+  "metadata": {
+    "generator": "Qwen3-4B + /workspace/dataset/qlora_adapter_v9",
+    "adapter_dir": "/workspace/dataset/qlora_adapter_v9",
+    "verifier": "qwen3-4b-thinking-2507:latest",
+    "excluded_cases": {
+      "H6": "deployment routes this draft to review, not guide/respond_attempt"
+    },
+    "judge": {
+      "backend": "antigravity",
+      "model": "Gemini 3.6 Flash (Medium)"
+    }
+  },
+  "valid": true,
+  "verdict": "EVALUATED",
+  "invalid_reason": null,
+  "summary": {
+    "baseline": {
+      "n": 7,
+      "evidence_n": 7,
+      "judged_n": 7,
+      "verification_status_counts": {
+        "disabled": 7
+      },
+      "valid_treatment_n": 0,
+      "first_error_hit_rate": 1.0,
+      "targetedness_mean": 0.9714,
+      "math_correct_rate": 1.0,
+      "guidance_mean": 0.9143,
+      "reveal_safe_rate": 1.0,
+      "single_question_rate": 1.0,
+      "no_reference_leak_rate": 1.0,
+      "mean_latency_seconds": 50.576,
+      "mean_verifier_latency_seconds": 0.0
+    },
+    "verify_then_generate": {
+      "n": 7,
+      "evidence_n": 7,
+      "judged_n": 7,
+      "verification_status_counts": {
+        "issues": 7
+      },
+      "valid_treatment_n": 7,
+      "first_error_hit_rate": 1.0,
+      "targetedness_mean": 1.0,
+      "math_correct_rate": 1.0,
+      "guidance_mean": 0.9429,
+      "reveal_safe_rate": 1.0,
+      "single_question_rate": 1.0,
+      "no_reference_leak_rate": 1.0,
+      "mean_latency_seconds": 87.531,
+      "mean_verifier_latency_seconds": 53.0401
+    }
+  },
+  "records": [
+    {
+      "id": "H1",
+      "condition": "baseline",
+      "statement": "用 $\\varepsilon$-$N$ 定義證明 $\\lim_{n\\to\\infty}\\dfrac{3n-1}{n+2}=3$。",
+      "reference_proof": "計算差：$\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\left|\\dfrac{3n-1-3(n+2)}{n+2}\\right|=\\dfrac{7}{n+2}<\\dfrac{7}{n}$。給定 $\\varepsilon>0$，由阿基米德性質取正整數 $N>\\dfrac{7}{\\varepsilon}$。則 $n\\ge N$ 時 $\\dfrac{7}{n}\\le\\dfrac{7}{N}<\\varepsilon$，故 $\\left|\\dfrac{3n-1}{n+2}-3\\right|<\\varepsilon$。$\\blacksquare$",
+      "attempt": "我先算差：$\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\dfrac{|3n-1-3(n+2)|}{n+2}=\\dfrac{5}{n+2}<\\dfrac{5}{n}$。給定 $\\varepsilon$，取 $N>\\dfrac{5}{\\varepsilon}$，則 $n\\ge N$ 時差 $<\\varepsilon$。這樣對嗎？",
+      "planted_error": "分子算錯：3n−1−3(n+2)=−7，應為 7/(n+2) 而非 5/(n+2)。結構全對、只有算術錯，測試助教是否驗算並讓學生自己發現。",
+      "reply": "分子算錯了：$3n-1-3(n+2)=3n-1-3n-6=-7$，絕對值是 $7$ 而非 $5$。修正後，$N$ 與 $\\varepsilon$ 的關係要怎麼寫？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 56.8698,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出分子計算錯誤（應為 7 而非 5），數學算式完全正確；且未直接給出修正後的 N 選擇與完整證明，而是透過提問引導學生重新思考修正後的 N 與 \\varepsilon 關係。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H1",
+      "condition": "verify_then_generate",
+      "statement": "用 $\\varepsilon$-$N$ 定義證明 $\\lim_{n\\to\\infty}\\dfrac{3n-1}{n+2}=3$。",
+      "reference_proof": "計算差：$\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\left|\\dfrac{3n-1-3(n+2)}{n+2}\\right|=\\dfrac{7}{n+2}<\\dfrac{7}{n}$。給定 $\\varepsilon>0$，由阿基米德性質取正整數 $N>\\dfrac{7}{\\varepsilon}$。則 $n\\ge N$ 時 $\\dfrac{7}{n}\\le\\dfrac{7}{N}<\\varepsilon$，故 $\\left|\\dfrac{3n-1}{n+2}-3\\right|<\\varepsilon$。$\\blacksquare$",
+      "attempt": "我先算差：$\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\dfrac{|3n-1-3(n+2)|}{n+2}=\\dfrac{5}{n+2}<\\dfrac{5}{n}$。給定 $\\varepsilon$，取 $N>\\dfrac{5}{\\varepsilon}$，則 $n\\ge N$ 時差 $<\\varepsilon$。這樣對嗎？",
+      "planted_error": "分子算錯：3n−1−3(n+2)=−7，應為 7/(n+2) 而非 5/(n+2)。結構全對、只有算術錯，測試助教是否驗算並讓學生自己發現。",
+      "reply": "分子算錯了。$3n-1-3(n+2)$ 展開後是什麼常數？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "學生在計算分子 |3n-1 - 3(n+2)| 時錯誤地得到 5，但實際應為 7。",
+          "學生聲稱 5/(n+2) < 5/n 但未明確說明 n+2 > n。",
+          "學生取 N > 5/ε 但未指定 N 為正整數。",
+          "學生說 '給定 ε' 但未指定 ε > 0。"
+        ],
+        "first_issue": "學生在計算分子 |3n-1 - 3(n+2)| 時錯誤地得到 5，但實際應為 7。",
+        "latency_seconds": 32.9257
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 59.9518,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生在分子 $3n-1-3(n+2)$ 化簡上的算術錯誤，並以提問方式引導學生自行計算展開後的常數，數學敘述無誤且未直接洩漏正確答案。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H2",
+      "condition": "baseline",
+      "statement": "證明 $f(x)=\\dfrac{1}{x}$ 在 $(0,1)$ 上不一致連續。",
+      "reference_proof": "取 $\\varepsilon_0=1$。令 $x_n=\\dfrac1n$、$y_n=\\dfrac1{n+1}$（皆在 $(0,1)$）。則 $|x_n-y_n|=\\dfrac{1}{n(n+1)}\\to0$，可小於任意 $\\delta$；但 $|f(x_n)-f(y_n)|=|n-(n+1)|=1\\ge\\varepsilon_0$。故存在 $\\varepsilon_0$ 使任意 $\\delta$ 都找得到反例，不一致連續。（根源：$f'$ 在近 $0$ 處無界。）$\\blacksquare$",
+      "attempt": "我認為 f(x)=1/x 其實是一致連續的：給定 $\\varepsilon$，對每個 $x$ 取 $\\delta=\\varepsilon x^2$，則 $|x-y|<\\delta$ 時 $|1/x-1/y|=\\dfrac{|x-y|}{xy}\\approx\\dfrac{\\delta}{x^2}=\\varepsilon$。所以題目要證的方向是錯的吧？這樣對嗎？",
+      "planted_error": "δ 依賴 x（δ=εx²），違反一致連續要求 δ 通用；學生還反過來質疑題目。測試抗附和＋抓 δ 依賴 x 的經典錯誤。",
+      "reply": "這裡你用的是「一致連續」的定義，但 $\\delta$ 依賴 $x$（$\\delta=\\varepsilon x^2$），這其實是哪種連續性？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 29.8721,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 4,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生在證明中所採用的 δ 依賴於 x（δ=εx²），成功抓出埋入的根本錯誤。透過反問「這其實是哪種連續性？」，有效引導學生反思逐點連續與一致連續的差異，且未直接洩漏完整解答。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H2",
+      "condition": "verify_then_generate",
+      "statement": "證明 $f(x)=\\dfrac{1}{x}$ 在 $(0,1)$ 上不一致連續。",
+      "reference_proof": "取 $\\varepsilon_0=1$。令 $x_n=\\dfrac1n$、$y_n=\\dfrac1{n+1}$（皆在 $(0,1)$）。則 $|x_n-y_n|=\\dfrac{1}{n(n+1)}\\to0$，可小於任意 $\\delta$；但 $|f(x_n)-f(y_n)|=|n-(n+1)|=1\\ge\\varepsilon_0$。故存在 $\\varepsilon_0$ 使任意 $\\delta$ 都找得到反例，不一致連續。（根源：$f'$ 在近 $0$ 處無界。）$\\blacksquare$",
+      "attempt": "我認為 f(x)=1/x 其實是一致連續的：給定 $\\varepsilon$，對每個 $x$ 取 $\\delta=\\varepsilon x^2$，則 $|x-y|<\\delta$ 時 $|1/x-1/y|=\\dfrac{|x-y|}{xy}\\approx\\dfrac{\\delta}{x^2}=\\varepsilon$。所以題目要證的方向是錯的吧？這樣對嗎？",
+      "planted_error": "δ 依賴 x（δ=εx²），違反一致連續要求 δ 通用；學生還反過來質疑題目。測試抗附和＋抓 δ 依賴 x 的經典錯誤。",
+      "reply": "這裡出現了「逐點連續」與「一致連續」的混淆。$\\delta=\\varepsilon x^2$ 這個 $\\delta$ 依賴於 $x$，而一致連續要求 $\\delta$ 對所有 $x$ 都相同。若 $x$ 很小，$\\delta$ 會變得很小，這行得通嗎？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "In the step where δ is defined as ε x², δ depends on x but uniform continuity requires δ to be independent of x for all x in (0,1).",
+          "The use of '≈' in |1/x - 1/y| ≈ δ / x² is not rigorous; strict inequalities must be used instead of approximation.",
+          "The argument fails to consider that y can approach 0 in (0,1), which may cause xy to be arbitrarily small, leading to |1/x - 1/y| exceeding ε even when |x - y| < δ."
+        ],
+        "first_issue": "In the step where δ is defined as ε x², δ depends on x but uniform continuity requires δ to be independent of x for all x in (0,1).",
+        "latency_seconds": 73.8553
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 101.6153,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生選取的 δ 依賴於 x 係屬於逐點連續而非一致連續的根本錯誤，數學觀念敘述完全正確；並透過「當 x 很小時 δ 會變得很小」的反問進行啟發式引導，同時完全避免了直接洩漏否定一致連續的完整證明過程。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H3",
+      "condition": "baseline",
+      "statement": "設 $f$ 在 $\\mathbb{R}$ 連續且對所有有理數 $q$ 有 $f(q)=0$，證明 $f\\equiv0$。",
+      "reference_proof": "任取實數 $a$。由有理數在 $\\mathbb{R}$ 中稠密，存在有理數列 $q_n\\to a$。由 $f$ 在 $a$ 連續（序列準則），$f(a)=\\lim_{n\\to\\infty}f(q_n)$。而每個 $f(q_n)=0$，故 $f(a)=0$。因 $a$ 任取，$f\\equiv0$。$\\blacksquare$",
+      "attempt": "任何無理數 $a$ 都可以寫成兩個有理數 $p,q$ 的平均 $a=\\dfrac{p+q}{2}$，所以 $f(a)=f\\left(\\dfrac{p+q}{2}\\right)=\\dfrac{f(p)+f(q)}{2}=0$。因此 $f$ 處處為 0。這樣對嗎？",
+      "planted_error": "兩個錯：無理數不能寫成兩個有理數的平均（平均仍是有理數）；且 f((p+q)/2)=(f(p)+f(q))/2 假設了 f 線性。正解需稠密性+序列連續性。",
+      "reply": "這裡用到「有理數在 $\\mathbb{R}$ 稠密」，但你只靠平均兩個有理數得到 $a$，這給出的是什麼樣的點？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 72.7673,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 4,
+        "math_correct": true,
+        "guidance": 4,
+        "reveal_safe": true,
+        "rationale": "助教直指學生第一個根本錯誤，透過詢問「平均兩個有理數給出的是什麼樣的點」引導學生發現兩有理數之平均仍為有理數而非無理數；雖然開頭提到稠密性稍有雜訊，但引導與質疑方向相當精準且未洩漏正解。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H3",
+      "condition": "verify_then_generate",
+      "statement": "設 $f$ 在 $\\mathbb{R}$ 連續且對所有有理數 $q$ 有 $f(q)=0$，證明 $f\\equiv0$。",
+      "reference_proof": "任取實數 $a$。由有理數在 $\\mathbb{R}$ 中稠密，存在有理數列 $q_n\\to a$。由 $f$ 在 $a$ 連續（序列準則），$f(a)=\\lim_{n\\to\\infty}f(q_n)$。而每個 $f(q_n)=0$，故 $f(a)=0$。因 $a$ 任取，$f\\equiv0$。$\\blacksquare$",
+      "attempt": "任何無理數 $a$ 都可以寫成兩個有理數 $p,q$ 的平均 $a=\\dfrac{p+q}{2}$，所以 $f(a)=f\\left(\\dfrac{p+q}{2}\\right)=\\dfrac{f(p)+f(q)}{2}=0$。因此 $f$ 處處為 0。這樣對嗎？",
+      "planted_error": "兩個錯：無理數不能寫成兩個有理數的平均（平均仍是有理數）；且 f((p+q)/2)=(f(p)+f(q))/2 假設了 f 線性。正解需稠密性+序列連續性。",
+      "reply": "這裡用了兩個未被假設的命題。首先，$a=\\frac{p+q}{2}$ 是有理數的平均，那 $a$ 本身是什麼樣的數？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "學生聲稱無理數可以寫成兩個有理數的平均，但這斷言不成立，因為兩個有理數的平均必然是有理數。",
+          "學生在推導中使用了 $f\\left(\\frac{p+q}{2}\\right) = \\frac{f(p) + f(q)}{2}$，但題目中沒有給出 $f$ 滿足此性質。"
+        ],
+        "first_issue": "學生聲稱無理數可以寫成兩個有理數的平均，但這斷言不成立，因為兩個有理數的平均必然是有理數。",
+        "latency_seconds": 38.9924
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 70.6166,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 4,
+        "reveal_safe": true,
+        "rationale": "助教精準指出「兩個有理數的平均 $a=\\frac{p+q}{2}$ 本身必然是有理數」這一關鍵矛盾，成功命中學生嘗試中的第一個根本錯誤；透過蘇格拉底式提問引導學生思考 $a$ 的數性，且完全沒有洩漏利用稠密性與序列連續性的正確解法。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H4",
+      "condition": "baseline",
+      "statement": "設 $f$ 在 $\\mathbb{R}$ 可微且 $|f'(x)|\\le M$，證明 $f$ 一致連續。",
+      "reference_proof": "若 $M=0$ 則 $f$ 為常數，顯然一致連續。設 $M>0$。任取 $x,y$，由 Lagrange 均值定理存在 $c$ 使 $f(x)-f(y)=f'(c)(x-y)$，故 $|f(x)-f(y)|\\le M|x-y|$（Lipschitz）。給定 $\\varepsilon>0$，取 $\\delta=\\dfrac{\\varepsilon}{M}$（與點無關）。則 $|x-y|<\\delta\\Rightarrow|f(x)-f(y)|<\\varepsilon$，一致連續。$\\blacksquare$",
+      "attempt": "因為 $f$ 可微所以連續，而連續函數由 Heine-Cantor 定理都是一致連續的，所以 $f$ 一致連續，好像不需要用到 $|f'|\\le M$ 這個條件？這樣對嗎？",
+      "planted_error": "Heine-Cantor 只在緊緻（有界閉）區間成立，ℝ 上不適用（反例 x²）。|f'|≤M 正是不可省的條件。測試助教是否指出定理適用範圍。",
+      "reply": "Heine-Cantor 需要 $f$ 定義在緊緻空間（如閉區間），$\\mathbb{R}$ 不緊緻，不適用。這裡 $|f'|\\le M$ 是什麼用處？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 80.4484,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出 Heine-Cantor 定理需在緊緻空間才成立且 ℝ 不緊緻，直接擊中學生的根本錯誤；同時透過反問引導學生思考 $|f'|\\le M$ 的用途，數學敘述完全正確且未洩漏解答。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H4",
+      "condition": "verify_then_generate",
+      "statement": "設 $f$ 在 $\\mathbb{R}$ 可微且 $|f'(x)|\\le M$，證明 $f$ 一致連續。",
+      "reference_proof": "若 $M=0$ 則 $f$ 為常數，顯然一致連續。設 $M>0$。任取 $x,y$，由 Lagrange 均值定理存在 $c$ 使 $f(x)-f(y)=f'(c)(x-y)$，故 $|f(x)-f(y)|\\le M|x-y|$（Lipschitz）。給定 $\\varepsilon>0$，取 $\\delta=\\dfrac{\\varepsilon}{M}$（與點無關）。則 $|x-y|<\\delta\\Rightarrow|f(x)-f(y)|<\\varepsilon$，一致連續。$\\blacksquare$",
+      "attempt": "因為 $f$ 可微所以連續，而連續函數由 Heine-Cantor 定理都是一致連續的，所以 $f$ 一致連續，好像不需要用到 $|f'|\\le M$ 這個條件？這樣對嗎？",
+      "planted_error": "Heine-Cantor 只在緊緻（有界閉）區間成立，ℝ 上不適用（反例 x²）。|f'|≤M 正是不可省的條件。測試助教是否指出定理適用範圍。",
+      "reply": "Heine-Cantor 要求定義域是緊緻的，$\\mathbb{R}$ 是緊緻的嗎？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "學生在應用 Heine-Cantor 定理時，未明確指出定義域 $\\mathbb{R}$ 不是緊緻集，因此該定理不適用於 $\\mathbb{R}$",
+          "學生的論述暗示 $|f'(x)| \\le M$ 的條件不必要，但實際上在 $\\mathbb{R}$ 上，可微函數若無此條件可能不一致連續（例如 $f(x)=x^2$）"
+        ],
+        "first_issue": "學生在應用 Heine-Cantor 定理時，未明確指出定義域 $\\mathbb{R}$ 不是緊緻集，因此該定理不適用於 $\\mathbb{R}$",
+        "latency_seconds": 32.4671
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 63.2849,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精確點出 Heine-Cantor 定理需緊緻定義域的前提錯誤，透過反問引導學生反思實數集的緊緻性，且完全未洩漏均值定理等參考解法。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H5",
+      "condition": "baseline",
+      "statement": "用均值定理證明對所有 $x>0$，$e^x>1+x$。",
+      "reference_proof": "令 $f(t)=e^t$，在 $[0,x]$ 連續、$(0,x)$ 可微，$f'(t)=e^t$。由 Lagrange 均值定理存在 $c\\in(0,x)$ 使 $e^x-e^0=e^c(x-0)$，即 $e^x-1=e^c x$。因 $c>0$ 有 $e^c>1$，且 $x>0$，故 $e^x-1=e^c x>x$，即 $e^x>1+x$。$\\blacksquare$",
+      "attempt": "對 $f(t)=e^t$ 在 $[0,x]$ 用均值定理：存在 $c\\in(0,x)$ 使 $e^x-1=e^c\\cdot x$。因為 $c\\ge0$ 所以 $e^c\\ge1$，於是 $e^x-1\\ge x$，即 $e^x\\ge1+x$。這樣對嗎？",
+      "planted_error": "嚴格性遺失：c∈(0,x) 是嚴格 c>0，故 e^c>1 嚴格，結論應是嚴格不等式 e^x>1+x；學生寫成 ≥ 沒達到題目要求的 >。細微但關鍵。",
+      "reply": "方向正確，但「$c\\ge0$」給出的是 $\\ge$ 而非嚴格 $>1$。要嚴格不等號，$c$ 的範圍該怎麼更精準？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 38.3072,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生將 c 的範圍寫成「c>=0」導致無法得到嚴格不等號的關鍵錯誤，數學敘述完全正確，且透過反問引導學生重新思考均值定理給出的精準範圍（c>0），並未直接給出完整解答。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H5",
+      "condition": "verify_then_generate",
+      "statement": "用均值定理證明對所有 $x>0$，$e^x>1+x$。",
+      "reference_proof": "令 $f(t)=e^t$，在 $[0,x]$ 連續、$(0,x)$ 可微，$f'(t)=e^t$。由 Lagrange 均值定理存在 $c\\in(0,x)$ 使 $e^x-e^0=e^c(x-0)$，即 $e^x-1=e^c x$。因 $c>0$ 有 $e^c>1$，且 $x>0$，故 $e^x-1=e^c x>x$，即 $e^x>1+x$。$\\blacksquare$",
+      "attempt": "對 $f(t)=e^t$ 在 $[0,x]$ 用均值定理：存在 $c\\in(0,x)$ 使 $e^x-1=e^c\\cdot x$。因為 $c\\ge0$ 所以 $e^c\\ge1$，於是 $e^x-1\\ge x$，即 $e^x\\ge1+x$。這樣對嗎？",
+      "planted_error": "嚴格性遺失：c∈(0,x) 是嚴格 c>0，故 e^c>1 嚴格，結論應是嚴格不等式 e^x>1+x；學生寫成 ≥ 沒達到題目要求的 >。細微但關鍵。",
+      "reply": "邏輯骨架對，但「$c\\ge0$」這個估計太鬆。均值定理給的是開區間 $(0,x)$，所以 $c$ 的符號是什麼，$e^c$ 因此大於還是等於 $1$？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "學生聲稱 $c \\ge 0$，但均值定理中 $c \\in (0,x)$ 意味著 $c > 0$，故 $e^c > 1$ 而非 $e^c \\ge 1$"
+        ],
+        "first_issue": "學生聲稱 $c \\ge 0$，但均值定理中 $c \\in (0,x)$ 意味著 $c > 0$，故 $e^c > 1$ 而非 $e^c \\ge 1$",
+        "latency_seconds": 116.9039
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 167.067,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準點出學生將開區間 (0,x) 放鬆為 c>=0 的核心錯誤，數學敘述正確，並以提示性提問引導學生思考 c>0 對 e^c 大小關係的影響，未洩漏完整解答。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H7",
+      "condition": "baseline",
+      "statement": "用比較判別法證明 $\\sum_{n=1}^\\infty\\dfrac{1}{n^2+1}$ 收斂。",
+      "reference_proof": "對每個 $n\\ge1$，$n^2+1>n^2>0$，故 $0<\\dfrac{1}{n^2+1}<\\dfrac{1}{n^2}$。已知 $\\sum\\dfrac{1}{n^2}$ 收斂（$p=2>1$）。由比較判別法（$0\\le a_n\\le b_n$ 且 $\\sum b_n$ 收斂則 $\\sum a_n$ 收斂），$\\sum\\dfrac{1}{n^2+1}$ 收斂。$\\blacksquare$",
+      "attempt": "因為 $\\dfrac{1}{n^2+1}<\\dfrac{1}{n}$ 對所有 $n\\ge1$ 成立，而且 $\\dfrac1n\\to0$，由比較判別法 $\\sum\\dfrac{1}{n^2+1}$ 收斂。這樣對嗎？",
+      "planted_error": "比較對象 ∑1/n 是發散級數，「小於發散級數的項」推不出收斂；且混入「通項趨零⇒收斂」的錯誤。應改比 1/n²。企劃中的經典錯誤類型。",
+      "reply": "比較對象選錯了。$\\sum\\dfrac1n$ 是發散的調和級數，不能當收斂的比較項。要找什麼樣的收斂項？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 46.645,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生誤用發散調和級數作為比較項的核心錯誤，數學敘述完全正確；並透過提問引導學生思考適當的收斂比較項，同時未洩漏具體參考解答（如 1/n²）。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H7",
+      "condition": "verify_then_generate",
+      "statement": "用比較判別法證明 $\\sum_{n=1}^\\infty\\dfrac{1}{n^2+1}$ 收斂。",
+      "reference_proof": "對每個 $n\\ge1$，$n^2+1>n^2>0$，故 $0<\\dfrac{1}{n^2+1}<\\dfrac{1}{n^2}$。已知 $\\sum\\dfrac{1}{n^2}$ 收斂（$p=2>1$）。由比較判別法（$0\\le a_n\\le b_n$ 且 $\\sum b_n$ 收斂則 $\\sum a_n$ 收斂），$\\sum\\dfrac{1}{n^2+1}$ 收斂。$\\blacksquare$",
+      "attempt": "因為 $\\dfrac{1}{n^2+1}<\\dfrac{1}{n}$ 對所有 $n\\ge1$ 成立，而且 $\\dfrac1n\\to0$，由比較判別法 $\\sum\\dfrac{1}{n^2+1}$ 收斂。這樣對嗎？",
+      "planted_error": "比較對象 ∑1/n 是發散級數，「小於發散級數的項」推不出收斂；且混入「通項趨零⇒收斂」的錯誤。應改比 1/n²。企劃中的經典錯誤類型。",
+      "reply": "比較對象 $\\sum\\frac1n$ 是發散的調和級數，不能當收斂的 $b_n$ 用。該用哪個已知收斂的級數來比較？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "應用比較判別法時，未明確陳述比較對象 $\\sum_{n=1}^{\\infty} \\dfrac{1}{n}$ 收斂"
+        ],
+        "first_issue": "應用比較判別法時，未明確陳述比較對象 $\\sum_{n=1}^{\\infty} \\dfrac{1}{n}$ 收斂",
+        "latency_seconds": 37.7627
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 70.0697,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 5,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生誤用發散的調和級數 ∑(1/n) 作為比較判別法的上界，數學敘述完全正確且切中根本錯誤；同時以反問引導學生思考尋找已知收斂的級數，未直接洩漏 1/n² 的解答。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H8",
+      "condition": "baseline",
+      "statement": "用比值判別法證明 $\\sum_{n=1}^\\infty\\dfrac{n}{2^n}$ 收斂。",
+      "reference_proof": "令 $a_n=\\dfrac{n}{2^n}>0$。比值 $\\dfrac{a_{n+1}}{a_n}=\\dfrac{(n+1)/2^{n+1}}{n/2^n}=\\dfrac{n+1}{2n}=\\dfrac12\\Big(1+\\dfrac1n\\Big)\\to\\dfrac12$。因極限 $\\dfrac12<1$，由比值判別法 $\\sum\\dfrac{n}{2^n}$ 絕對收斂。$\\blacksquare$",
+      "attempt": "計算比值 $\\dfrac{a_{n+1}}{a_n}=\\dfrac{n+1}{2n}$。對每個 $n\\ge2$ 這個比值都小於 $1$，既然每一項都比前一項小，由比值判別法級數收斂。這樣對嗎？",
+      "planted_error": "「每項比值<1」不足（∑1/n 亦然卻發散），比值判別法要求極限 L<1（或比值一致有上界 r<1）。學生沒取極限 1/2。測試判別法的正確引用。",
+      "reply": "比值判別法要求「比值的極限」而非「每一項都小於 $1$」。這裡 $\\dfrac{n+1}{2n}\\to\\dfrac12$，極限是多少？",
+      "verification": {
+        "status": "disabled",
+        "issues": [],
+        "first_issue": "",
+        "latency_seconds": 0.0
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 29.1223,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 4,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生誤用「每一項比值小於 1」而非「比值極限小於 1」的根本錯誤。數學敘述正確，未直接洩漏完整證明，並透過提問引導學生確認極限與比值判別法條件的連結。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    },
+    {
+      "id": "H8",
+      "condition": "verify_then_generate",
+      "statement": "用比值判別法證明 $\\sum_{n=1}^\\infty\\dfrac{n}{2^n}$ 收斂。",
+      "reference_proof": "令 $a_n=\\dfrac{n}{2^n}>0$。比值 $\\dfrac{a_{n+1}}{a_n}=\\dfrac{(n+1)/2^{n+1}}{n/2^n}=\\dfrac{n+1}{2n}=\\dfrac12\\Big(1+\\dfrac1n\\Big)\\to\\dfrac12$。因極限 $\\dfrac12<1$，由比值判別法 $\\sum\\dfrac{n}{2^n}$ 絕對收斂。$\\blacksquare$",
+      "attempt": "計算比值 $\\dfrac{a_{n+1}}{a_n}=\\dfrac{n+1}{2n}$。對每個 $n\\ge2$ 這個比值都小於 $1$，既然每一項都比前一項小，由比值判別法級數收斂。這樣對嗎？",
+      "planted_error": "「每項比值<1」不足（∑1/n 亦然卻發散），比值判別法要求極限 L<1（或比值一致有上界 r<1）。學生沒取極限 1/2。測試判別法的正確引用。",
+      "reply": "比值判別法要求「比值的極限」小於 1，而不是「每一項都小於前一項」。這裡 $\\dfrac{n+1}{2n}\\to\\dfrac12$，極限是多少？",
+      "verification": {
+        "status": "issues",
+        "issues": [
+          "學生未計算比值 $\\dfrac{a_{n+1}}{a_n}$ 的極限，而比值判別法要求極限小於 1。"
+        ],
+        "first_issue": "學生未計算比值 $\\dfrac{a_{n+1}}{a_n}$ 的極限，而比值判別法要求極限小於 1。",
+        "latency_seconds": 38.3738
+      },
+      "single_question": true,
+      "leaks_reference": false,
+      "latency_seconds": 80.1117,
+      "judge": {
+        "first_error_hit": true,
+        "targetedness": 5,
+        "math_correct": true,
+        "guidance": 4,
+        "reveal_safe": true,
+        "rationale": "助教精準指出學生將「單調遞減/比值小於1」誤認為比值判別法條件的根本錯誤；數學述詞完全正確，且未替學生寫出完整的證明結論。唯引導時在敘述中已寫出趨近於 1/2 才詢問極限，提示略多，但整體引導品質仍相當良好。",
+        "provenance": {
+          "backend": "antigravity",
+          "model": "Gemini 3.6 Flash (Medium)"
+        }
+      }
+    }
+  ]
+}
