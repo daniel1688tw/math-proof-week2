@@ -12,6 +12,7 @@ from eval_verify_then_generate import (
     evaluation_exit_code,
     judge_record,
     prepare_rejudge_metadata,
+    render_markdown,
     successful_treatment_n,
     summarize,
 )
@@ -66,6 +67,27 @@ def test_find_gaps_fallback_accepts_only_explicit_clear():
     finally:
         review_backstop._chat_content = original
     assert review_backstop._parse_gap_lines("No issues found") is None
+
+
+def test_render_markdown_omits_empty_verifier_detail_without_trailing_space():
+    """Disabled baseline verification should still produce diff-clean Markdown."""
+    metric = {
+        "first_error_hit_rate": None, "targetedness_mean": None,
+        "math_correct_rate": None, "guidance_mean": None,
+        "reveal_safe_rate": None, "single_question_rate": 1.0,
+        "no_reference_leak_rate": 1.0, "mean_latency_seconds": 1.0,
+    }
+    records = [{
+        "id": "H1", "condition": "baseline", "latency_seconds": 1.0,
+        "reply": "question?", "judge": None,
+        "verification": {"status": "disabled", "first_issue": ""},
+    }]
+    rendered = render_markdown(
+        records, {"baseline": metric, "verify_then_generate": metric},
+        {"generator": "v9", "verifier": "thinking"})
+
+    assert "- verifier: disabled\n" in rendered
+    assert all(line == line.rstrip() for line in rendered.splitlines())
 
 
 def test_summarize_compares_the_paired_conditions():
@@ -234,6 +256,7 @@ if __name__ == "__main__":
     test_find_gaps_retries_once_when_structured_output_is_invalid()
     test_find_gaps_falls_back_to_strict_issue_lines_after_json_failures()
     test_find_gaps_fallback_accepts_only_explicit_clear()
+    test_render_markdown_omits_empty_verifier_detail_without_trailing_space()
     test_summarize_compares_the_paired_conditions()
     test_summary_counts_successful_treatment_verifier_calls()
     test_incomplete_treatment_verification_cannot_be_reported_as_a_valid_evaluation()

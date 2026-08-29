@@ -241,9 +241,12 @@ def render_markdown(records: list[dict], summary: dict, metadata: dict) -> str:
         for row in case_rows:
             verification = row["verification"]
             rationale = (row.get("judge") or {}).get("rationale", "未完成評審")
+            verifier_line = f"- verifier: {verification['status']}"
+            if verification["first_issue"]:
+                verifier_line += f" / {verification['first_issue']}"
             lines.extend([
                 f"### {row['condition']}",
-                f"- verifier: {verification['status']} / {verification['first_issue']}",
+                verifier_line,
                 f"- latency: {row['latency_seconds']} s",
                 f"- reply: {row['reply']}",
                 f"- judge: {rationale}",
