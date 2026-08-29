@@ -57,6 +57,18 @@ CRITIC_SYSTEM = """你是數學系課程的證明審閱助教。使用者會給�
 - 必須列出所有彼此獨立的根本問題，不設數量上限；完全沒有問題就輸出空陣列。
 - 只輸出 JSON 字串陣列（如 ["…","…"]），不要輸出任何其他文字。"""
 
+CRITIC_TEXT_FALLBACK_SYSTEM = """你是數學系課程的證明審閱助教。使用者會給你：題目、
+正確的參考解、學生寫的草稿或嘗試。前面的 JSON 輸出已重複失敗，現在請從頭獨立審閱。
+
+仍須採嚴格教學標準：找出數學錯誤、未明說的必要依據、未驗證的定理前提、量詞或
+不等號問題；列出所有彼此獨立的根本問題。題目只寫遞增／increasing 時按單調不減理解。
+
+輸出只能是以下兩種形式之一：
+CLEAR
+或每個問題各佔一行：
+ISSUE: 在哪一步、缺了什麼或錯在哪
+不可輸出標題、編號、JSON、Markdown 或其他文字。"""
+
 ANSWER_JUDGE_SYSTEM = """你是數學證明課程的逐步回答審閱員。使用者會給你題目、
 已驗證的參考解、目前教學步驟、確認問題、參考答案，以及學生這一次的回答。
 
@@ -237,6 +249,18 @@ def _parse_gaps(content: str) -> list | None:
                 return [g.strip()[:200] for g in arr if g.strip()]
             break
     return None
+
+
+def _parse_gap_lines(content: str) -> list | None:
+    """解析 JSON 重試失敗後的保守純文字協定；其他內容一律視為失敗。"""
+    stripped = (content or "").strip()
+    if stripped == "CLEAR":
+        return []
+    lines = stripped.splitlines()
+    if not lines or any(not line.strip().startswith("ISSUE:") for line in lines):
+        return None
+    issues = [line.strip()[len("ISSUE:"):].strip()[:200] for line in lines]
+    return issues if all(issues) else None
 
 
 def _balanced_objects(content: str) -> list[str]:
@@ -522,9 +546,16 @@ def find_gaps(statement: str, reference_proof: str, draft: str,
             f"【學生草稿】\n{draft}")
     # num_predict 必須留給思考鏈足夠空間：3072 在真實證明案例會被思考吃光。
     # 數學判斷正確但 JSON 格式偶發失敗時重取一次，仍不把不可解析輸出當成「無缺漏」。
-    return _retry_parsed(
+    parsed = _retry_parsed(
         CRITIC_SYSTEM, user, _parse_gaps,
         timeout=timeout, num_predict=8192, temperature=0.2, attempts=2)
+    if parsed is not None:
+        return parsed
+    # Ollama Thinking 搭配 JSON Schema 可能回空 content；改以嚴格逐行協定低溫重審。
+    # 只有明確 CLEAR 才回空清單，任何非協定輸出仍回 None，避免把服務失敗當成無缺漏。
+    return _retry_parsed(
+        CRITIC_TEXT_FALLBACK_SYSTEM, user, _parse_gap_lines,
+        timeout=timeout, num_predict=8192, temperature=0.05, attempts=2)
 
 
 def review_full_proof(statement: str, reference_proof: str, draft: str,

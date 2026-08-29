@@ -35,6 +35,39 @@ def test_find_gaps_retries_once_when_structured_output_is_invalid():
         review_backstop._chat_content = original
 
 
+def test_find_gaps_falls_back_to_strict_issue_lines_after_json_failures():
+    """Repeated malformed JSON should trigger a separately parsed low-temperature review."""
+    replies = iter(["not JSON", "still not JSON", "ISSUE: missing theorem premise"])
+    calls = []
+    original = review_backstop._chat_content
+
+    def fake_chat(*args, **kwargs):
+        calls.append((args, kwargs))
+        return next(replies)
+
+    review_backstop._chat_content = fake_chat
+    try:
+        assert review_backstop.find_gaps("statement", "reference", "draft", timeout=10) == [
+            "missing theorem premise",
+        ]
+    finally:
+        review_backstop._chat_content = original
+    assert calls[-1][0][0] == review_backstop.CRITIC_TEXT_FALLBACK_SYSTEM
+    assert calls[-1][1]["temperature"] == 0.05
+
+
+def test_find_gaps_fallback_accepts_only_explicit_clear():
+    """An explicit CLEAR may produce [], while arbitrary prose must never do so."""
+    replies = iter(["bad", "bad again", "CLEAR"])
+    original = review_backstop._chat_content
+    review_backstop._chat_content = lambda *args, **kwargs: next(replies)
+    try:
+        assert review_backstop.find_gaps("statement", "reference", "draft", timeout=10) == []
+    finally:
+        review_backstop._chat_content = original
+    assert review_backstop._parse_gap_lines("No issues found") is None
+
+
 def test_summarize_compares_the_paired_conditions():
     """A false first-error hit must not be counted as a successful hit."""
     sample = [{
@@ -199,6 +232,8 @@ def test_judge_prompt_requires_the_first_error_and_safe_socratic_rubric():
 if __name__ == "__main__":
     test_case_manifest_contains_only_feature_eligible_routes()
     test_find_gaps_retries_once_when_structured_output_is_invalid()
+    test_find_gaps_falls_back_to_strict_issue_lines_after_json_failures()
+    test_find_gaps_fallback_accepts_only_explicit_clear()
     test_summarize_compares_the_paired_conditions()
     test_summary_counts_successful_treatment_verifier_calls()
     test_incomplete_treatment_verification_cannot_be_reported_as_a_valid_evaluation()
