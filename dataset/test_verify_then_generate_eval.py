@@ -38,7 +38,10 @@ def test_find_gaps_retries_once_when_structured_output_is_invalid():
 
 def test_find_gaps_falls_back_to_strict_issue_lines_after_json_failures():
     """Repeated malformed JSON should trigger a separately parsed low-temperature review."""
-    replies = iter(["not JSON", "still not JSON", "ISSUE: missing theorem premise"])
+    replies = iter([
+        "not JSON", "still not JSON", "bad fallback format",
+        "ISSUE: missing theorem premise",
+    ])
     calls = []
     original = review_backstop._chat_content
 
@@ -54,6 +57,8 @@ def test_find_gaps_falls_back_to_strict_issue_lines_after_json_failures():
     finally:
         review_backstop._chat_content = original
     assert calls[-1][0][0] == review_backstop.CRITIC_TEXT_FALLBACK_SYSTEM
+    assert "JSON" not in calls[-1][0][1]
+    assert "ISSUE:" in calls[-1][0][1]
     assert calls[-1][1]["temperature"] == 0.05
 
 

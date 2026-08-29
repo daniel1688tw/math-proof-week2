@@ -432,7 +432,8 @@ def _chat_content(system: str, user: str, timeout: int, *, num_predict: int = 81
 def _retry_parsed(system: str, user: str, parser, *, timeout: int,
                   num_predict: int = 8192, temperature: float = 0.15,
                   attempts: int = 3, per_attempt_timeout: int | None = None,
-                  response_format=None, diagnostics: dict | None = None):
+                  response_format=None, diagnostics: dict | None = None,
+                  retry_instruction: str | None = None):
     """只針對完整證明審閱的服務／JSON 格式失敗重試，不改變數學判準。"""
     attempts = max(1, attempts)
     call_timeout = per_attempt_timeout or max(30, timeout // attempts)
@@ -462,8 +463,10 @@ def _retry_parsed(system: str, user: str, parser, *, timeout: int,
             attempt_diagnostic["failure_reason"] = "empty_content"
         attempt_records.append(attempt_diagnostic)
         if attempt + 1 < attempts:
-            prompt = (user + "\n\n上一次回覆未能解析。請重新獨立檢查，並嚴格只輸出"
-                      "system 指定的 JSON 結構；LaTeX 反斜線須符合 JSON 字串格式。")
+            instruction = retry_instruction or (
+                "上一次回覆未能解析。請重新獨立檢查，並嚴格只輸出 system 指定的 "
+                "JSON 結構；LaTeX 反斜線須符合 JSON 字串格式。")
+            prompt = user + "\n\n" + instruction
     if diagnostics is not None:
         diagnostics.update(
             status="failed",
@@ -555,7 +558,10 @@ def find_gaps(statement: str, reference_proof: str, draft: str,
     # 只有明確 CLEAR 才回空清單，任何非協定輸出仍回 None，避免把服務失敗當成無缺漏。
     return _retry_parsed(
         CRITIC_TEXT_FALLBACK_SYSTEM, user, _parse_gap_lines,
-        timeout=timeout, num_predict=8192, temperature=0.05, attempts=2)
+        timeout=timeout, num_predict=8192, temperature=0.05, attempts=2,
+        retry_instruction=(
+            "上一次回覆未能解析。請重新獨立檢查，只輸出一行 CLEAR，或每個問題各輸出"
+            "一行 ISSUE: 在哪一步、缺了什麼或錯在哪；不可輸出其他文字。"))
 
 
 def review_full_proof(statement: str, reference_proof: str, draft: str,
