@@ -78,6 +78,29 @@ check("segmenter can call the isolated reviewer through SSH",
       and "localhost:11435/api/chat" in _remote_calls[0][0][2])
 
 
+def _fake_remote_timeout(command, **kwargs):
+    raise subprocess.TimeoutExpired(command, kwargs.get("timeout", 0))
+
+
+subprocess.run = _fake_remote_timeout
+os.environ["REMOTE_REVIEW_SSH"] = "daniel@example.invalid"
+os.environ["REMOTE_REVIEW_PORT"] = "11435"
+try:
+    _timeout_reply = ar._chat("system", "user", 0.1, timeout=1)
+finally:
+    subprocess.run = _old_run
+    if _old_remote is None:
+        os.environ.pop("REMOTE_REVIEW_SSH", None)
+    else:
+        os.environ["REMOTE_REVIEW_SSH"] = _old_remote
+    if _old_port is None:
+        os.environ.pop("REMOTE_REVIEW_PORT", None)
+    else:
+        os.environ["REMOTE_REVIEW_PORT"] = _old_port
+check("remote reviewer timeout degrades to unavailable instead of crashing",
+      _timeout_reply is None)
+
+
 print("[1] schema 解析不截斷")
 seven = ar.parse_steps(payload(7))
 check("保留七步供修補，而不是靜默截成六步", len(seven or []) == 7)

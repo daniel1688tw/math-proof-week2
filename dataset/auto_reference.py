@@ -19,6 +19,7 @@ import difflib
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -179,7 +180,6 @@ def _chat(system: str, user: str, temperature: float, timeout: int = 600,
     try:
         remote_ssh = os.environ.get("REMOTE_REVIEW_SSH", "").strip()
         if remote_ssh:
-            import subprocess
             port = os.environ.get("REMOTE_REVIEW_PORT", "11435").strip()
             if not port.isdigit():
                 raise ValueError("REMOTE_REVIEW_PORT must be numeric")
@@ -201,7 +201,8 @@ def _chat(system: str, user: str, temperature: float, timeout: int = 600,
                 headers={"Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 data = json.loads(r.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError, ValueError,
+    except (urllib.error.URLError, TimeoutError, subprocess.TimeoutExpired,
+            OSError, ValueError,
             json.JSONDecodeError):
         return None
     return (data.get("message", {}).get("content") or "").strip() or None

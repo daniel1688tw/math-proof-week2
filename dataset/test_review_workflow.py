@@ -18,6 +18,7 @@ import phase_router
 from review_backstop import (_issue_from_fallback_text, _parse_gaps,
                              _parse_issue_list, review_full_proof)
 from tutor_driver import (LOCAL_JUDGE_UNAVAILABLE, REVIEW_CLEAN_REQUEST,
+                          REVIEW_CLEAN_REQUEST_EN,
                           REVIEW_ISSUE_UNACTIONABLE, REVIEW_PASS,
                           REVIEW_REFUSE_WRITE, TutorDriver)
 
@@ -231,6 +232,32 @@ def test_text_fallback_recovers_actionable_issue_fields() -> None:
     assert parsed["location"] == "第一行"
     assert parsed["root_cause"] == "epsilon 被錯誤地描述為存在性陳述"
     assert parsed["description"] == parsed["root_cause"]
+
+
+def test_issue_parser_restores_latex_control_escapes() -> None:
+    """模型把 LaTeX 單反斜線放進 JSON 時，\f／\b 不得變成控制字元。"""
+    parsed = _parse_issue_list(
+        r'[{"root_cause":"代數計算錯誤",'
+        r'"location":"$\frac{L}{2}<f(x)$ 與 $\big(-L/2\big)$",'
+        r'"description":"分式與括號位置錯誤",'
+        r'"correction":"$\frac{L}{2}<f(x)$"}]')
+
+    assert parsed is not None and len(parsed) == 1
+    assert parsed[0]["location"] == r"$\frac{L}{2}<f(x)$ 與 $\big(-L/2\big)$"
+    assert "\x0c" not in parsed[0]["location"]
+    assert "\x08" not in parsed[0]["location"]
+
+
+def test_review_queue_rejects_identical_math_as_an_algebra_correction() -> None:
+    """聲稱代數錯誤卻給出相同關係式，不能要求學生重寫同一句。"""
+    contradictory = {
+        "root_cause": "不等式同加常數的代數計算錯誤",
+        "location": r"各項加 $L$ 後得到 $\frac{L}{2}<f(x)<\frac{3L}{2}$。",
+        "description": "下界與上界計算錯誤",
+        "correction": r"各項加 $L$ 後應得到 $\frac{L}{2}<f(x)<\frac{3L}{2}$。",
+    }
+
+    assert TutorDriver._review_issue_is_actionable(contradictory) is False
 
 
 def test_contextual_local_revision_accepts_minimal_valid_replacement() -> None:
@@ -566,6 +593,20 @@ def test_review_queue_local_merge_clean_final_and_missed_recheck() -> None:
         review_backstop.merge_proof_revision = original_merge
 
 
+def test_merged_recheck_lead_uses_actual_issue_count() -> None:
+    problem = {"statement": "證明一般命題。", "reference_proof": "已驗證參考證明。"}
+    driver = TutorDriver(tok=None, model=None, problem=problem, backstop=True)
+    first, second = issue("重新複核第一項"), issue("重新複核第二項")
+    original_review = driver._run_two_pass_review
+    driver._run_two_pass_review = lambda draft: [first, second]
+    try:
+        reply = driver._review_merged_draft()
+    finally:
+        driver._run_two_pass_review = original_review
+    assert "還有 2 項需要處理" in reply
+    assert "還有一項需要處理" not in reply
+
+
 def test_full_resubmission_is_not_local_revision() -> None:
     problem = {"statement": "證明一般命題。", "reference_proof": "參考證明。"}
     driver = TutorDriver(tok=None, model=None, problem=problem, backstop=True)
@@ -585,8 +626,8 @@ def test_full_resubmission_is_not_local_revision() -> None:
     review_backstop.judge_local_revision = fail_local
     try:
         driver.step("這是我的完整證明：因為前提成立，所以套用定理，因此結論成立，故得證。" * 2)
-        # 不加「完整證明」標籤，仍應由全文結構辨認為重交，不可誤當局部訂正。
-        rewritten = ("任取一個符合題設的元素。因為前提已修正，所以可正確套用定理，"
+        # correcting 階段必須明確標示重交全文，才可離開局部訂正契約。
+        rewritten = ("這是我的完整證明：任取一個符合題設的元素。因為前提已修正，所以可正確套用定理，"
                      "因此得到所需的中間結論；又因其餘條件成立，故原命題成立。" * 3)
         reply = driver.step(rewritten)
         assert reply == REVIEW_PASS
@@ -595,6 +636,83 @@ def test_full_resubmission_is_not_local_revision() -> None:
     finally:
         review_backstop.review_full_proof = original_review
         review_backstop.judge_local_revision = original_local
+
+
+def test_long_local_revision_stays_in_current_issue_contract() -> None:
+    """長而完整的局部段落不可在 correcting 階段被誤當成全文重交。"""
+    problem = {
+        "statement": "Let f be continuous on [0,2] and f(0)=f(2).",
+        "reference_proof": "Define g(x)=f(x)-f(x+1) on [0,1].",
+    }
+    driver = TutorDriver(tok=None, model=None, problem=problem, backstop=True)
+    current_issue = issue("The auxiliary function has the wrong domain")
+    original_draft = (
+        "Let g(x)=f(x+1)-f(x) for x in [0,2]. "
+        "Compute its endpoint values and apply the IVT to obtain the conclusion."
+    )
+    driver.state.update(
+        phase="review", review_status="correcting", review_active=True,
+        review_had_issues=True, review_issues=[current_issue], review_issue_idx=0,
+        current_proof_draft=original_draft, review_base_proof=original_draft)
+    local_calls = []
+    full_review_calls = []
+    original_local = review_backstop.judge_local_revision
+    original_merge = review_backstop.merge_proof_revision
+    original_review = review_backstop.review_full_proof
+
+    def fake_local(statement, reference, draft, pending_issue, answer, timeout=300):
+        local_calls.append(answer)
+        return {"verdict": "correct", "feedback": "The domain is corrected."}
+
+    def fake_review(statement, reference, draft, timeout=600):
+        full_review_calls.append(draft)
+        return []
+
+    review_backstop.judge_local_revision = fake_local
+    review_backstop.merge_proof_revision = lambda *args, **kwargs: (
+        original_draft.replace("[0,2]", "[0,1]", 1))
+    review_backstop.review_full_proof = fake_review
+    try:
+        correction = (
+            "Let g(x)=f(x)-f(x+1) for x in [0,1]. Since f is continuous "
+            "on [0,2], both x maps to f(x) and x maps to f(x+1) are "
+            "continuous on [0,1]; therefore g is continuous on [0,1]."
+        )
+        reply = driver.step(correction)
+        assert local_calls == [correction]
+        assert full_review_calls == [driver.state["current_proof_draft"]]
+        assert reply == REVIEW_CLEAN_REQUEST_EN
+        assert driver.state["review_status"] == "awaiting_clean"
+        assert driver.state["review_corrections"][0]["revision"] == correction
+    finally:
+        review_backstop.judge_local_revision = original_local
+        review_backstop.merge_proof_revision = original_merge
+        review_backstop.review_full_proof = original_review
+
+
+def test_merge_rejects_truncated_full_draft_and_uses_exact_patch() -> None:
+    """合併模型只回局部訂正時，不得用它覆蓋完整草稿。"""
+    current = (
+        "First establish continuity. The wrong domain is [0,2]. "
+        "Then compute both endpoints. Finally apply the IVT and conclude."
+    )
+    revision = "The correct domain is [0,1]."
+    responses = iter([
+        {"merged_draft": revision},
+        {"old_text": "The wrong domain is [0,2].",
+         "new_text": "The correct domain is [0,1]."},
+    ])
+    original_retry = review_backstop._retry_parsed
+    review_backstop._retry_parsed = lambda *args, **kwargs: next(responses)
+    try:
+        merged = review_backstop.merge_proof_revision(
+            "Problem", "Reference", current,
+            issue("The auxiliary function has the wrong domain"), revision)
+    finally:
+        review_backstop._retry_parsed = original_retry
+    assert merged == current.replace(
+        "The wrong domain is [0,2].", "The correct domain is [0,1].")
+    assert merged != revision
 
 
 def test_local_judge_unavailable_preserves_issue_and_allows_retry() -> None:
@@ -791,7 +909,13 @@ def test_closed_proof_correctness_messages_always_recheck() -> None:
 def test_guide_reply_reviewer_schema_and_separation() -> None:
     """測試引導回覆審查器之最新 Schema 解析與錯誤欄位分離 (P0-3, P0-4, P1-1)。"""
     driver = TutorDriver(tok=None, model=None, problem={"id": "T1", "statement": "Test", "reference_proof": "Proof"}, backstop=True)
-    driver.state.update(phase="guide", turn_action="respond_attempt")
+    driver.state.update(
+        phase="guide", turn_action="respond_attempt",
+        student_state_decision={"challenge": True, "intent": "show_attempt"})
+    driver.messages = [
+        {"role": "assistant", "content": "凸性只保證局部最小值。"},
+        {"role": "user", "content": "這不對吧？凸函數的局部最小值不是全域最小值嗎？"},
+    ]
 
     raw_json = json.dumps({
         "latest_student_step_status": "correct",
@@ -811,8 +935,11 @@ def test_guide_reply_reviewer_schema_and_separation() -> None:
     })
 
     original_retry_parsed = review_backstop._retry_parsed
+    captured = {}
 
     def fake_retry_parsed(system, user, parser, **kwargs):
+        captured["system"] = system
+        captured["payload"] = json.loads(user)
         return parser(raw_json)
 
     review_backstop._retry_parsed = fake_retry_parsed
@@ -825,6 +952,8 @@ def test_guide_reply_reviewer_schema_and_separation() -> None:
         assert parsed["candidate_ownership_error"] == ""
         assert parsed["addresses_latest_student_step"] is True
         assert driver._guide_reply_review_passes(parsed, 1) is True
+        assert captured["payload"]["student_state"]["challenge"] is True
+        assert "student_state.challenge=true" in captured["system"]
     finally:
         review_backstop._retry_parsed = original_retry_parsed
 
@@ -836,6 +965,8 @@ if __name__ == "__main__":
     test_full_review_second_pass_explicitly_audits_conclusion_scope()
     test_review_backend_can_use_remote_ssh_transport()
     test_text_fallback_recovers_actionable_issue_fields()
+    test_issue_parser_restores_latex_control_escapes()
+    test_review_queue_rejects_identical_math_as_an_algebra_correction()
     test_contextual_local_revision_accepts_minimal_valid_replacement()
     test_local_revision_scope_recheck_ignores_unqueued_draft_error()
     test_walkthrough_judge_accepts_concise_reason_after_retry()
@@ -844,7 +975,10 @@ if __name__ == "__main__":
     test_walkthrough_judge_retries_non_chinese_feedback_in_chinese_session()
     test_merge_uses_full_timeout_and_exact_patch_fallback()
     test_review_queue_local_merge_clean_final_and_missed_recheck()
+    test_merged_recheck_lead_uses_actual_issue_count()
     test_full_resubmission_is_not_local_revision()
+    test_long_local_revision_stays_in_current_issue_contract()
+    test_merge_rejects_truncated_full_draft_and_uses_exact_patch()
     test_local_judge_unavailable_preserves_issue_and_allows_retry()
     test_unavailable_accepts_unlabelled_full_proof_recovery()
     test_unactionable_issue_never_enters_local_revision_queue()

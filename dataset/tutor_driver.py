@@ -501,7 +501,8 @@ def _is_nonassertive_review_confirmation(text: str) -> bool:
 WALKTHROUGH_TEMPLATE = "第 {i}/{n} 步：{explain}\n\n確認問題：{check}"
 WALKTHROUGH_TEMPLATE_EN = "Step {i}/{n}: {explain}\n\nCheck: {check}"
 # 每個確認問題只有一次有效作答機會。審閱後盾判為答不出、部分正確或
-# 數學錯誤時，Driver 揭示參考答案並前進；後盾離線、逾時或不確定不算學生作答，留在原步驟。
+# 數學錯誤時，Driver 揭示參考答案並前進；後盾已用盡內部重試仍不可用時，
+# 不把學生判錯，但以中性措辭示範目前微步驟並前進，避免服務故障造成死循環。
 WALK_REVEAL = ("這個回答尚未正確，原因是：{reason}。"
                "這一步的正確答案是：{answer}。我們接著看下一步。")
 WALK_REVEAL_EN = ("That answer is not yet correct because: {reason}. "
@@ -510,13 +511,26 @@ WALK_REVEAL_LAST = ("這個回答尚未正確，原因是：{reason}。"
                     "這一步的正確答案是：{answer}。")
 WALK_REVEAL_LAST_EN = ("That answer is not yet correct because: {reason}. "
                        "The correct answer to this step is: {answer}.")
+WALK_NOT_ANSWER = ("這段回應還沒有回答目前的確認問題；這不表示你提到的其他數學說法是錯的。"
+                   "這一步的答案是：{answer}。我們接著看下一步。")
+WALK_NOT_ANSWER_EN = ("That response does not answer the current check; this does not mean any "
+                      "other mathematical point you raised is wrong. The answer to this step is: "
+                      "{answer}. Let's move on to the next step.")
+WALK_NOT_ANSWER_LAST = ("這段回應還沒有回答目前的確認問題；這不表示你提到的其他數學說法是錯的。"
+                        "這一步的答案是：{answer}。")
+WALK_NOT_ANSWER_LAST_EN = ("That response does not answer the current check; this does not mean any "
+                           "other mathematical point you raised is wrong. The answer to this step is: "
+                           "{answer}.")
 WALK_JUDGE_UNAVAILABLE = ("本輪未取得可靠的語意審閱結果，因此不把你的回答判為錯誤。"
-                          "我們保留在目前步驟，請再回答一次同一個確認問題。")
+                          "為避免卡在這裡，先示範這一步：{answer}。我們接著看下一步。")
 WALK_JUDGE_UNAVAILABLE_EN = ("A reliable semantic review was not available for this turn, "
-                             "so I am not marking your answer incorrect. We will remain on the "
-                             "current step; please answer the same check once more.")
-WALK_JUDGE_UNAVAILABLE_LAST = WALK_JUDGE_UNAVAILABLE
-WALK_JUDGE_UNAVAILABLE_LAST_EN = WALK_JUDGE_UNAVAILABLE_EN
+                             "so I am not marking your answer incorrect. To avoid getting stuck, "
+                             "here is this step: {answer}. Let's move on to the next step.")
+WALK_JUDGE_UNAVAILABLE_LAST = ("本輪未取得可靠的語意審閱結果，因此不把你的回答判為錯誤。"
+                               "為避免卡在這裡，先示範這一步：{answer}。")
+WALK_JUDGE_UNAVAILABLE_LAST_EN = ("A reliable semantic review was not available for this turn, "
+                                  "so I am not marking your answer incorrect. To avoid getting stuck, "
+                                  "here is this step: {answer}.")
 
 # 收尾偵測：學生致謝或宣告完成 → 對話自然結束，回問保底整段停用
 # （雙語基準評審一致指出：學生已完成證明後任何形式的追問都是扣分項）。
@@ -1141,7 +1155,30 @@ class TutorDriver:
             return False
         root = str(issue.get("root_cause") or issue.get("description") or "").strip()
         anchor = str(issue.get("location") or issue.get("correction") or "").strip()
-        return bool(root and anchor)
+        if not root or not anchor:
+            return False
+        # Thinking 偶爾聲稱「代數／不等式算錯」，但 location 與 correction 給出
+        # 完全相同的關係式；這種問題沒有任何可執行的修改，要求學生重寫同一句只會誤導。
+        computational = re.search(
+            r"計算|代數|等式|不等式|符號|數值|arithmetic|algebra|equation|inequality|sign",
+            root, re.I)
+        if computational:
+            def math_relations(text: str) -> set[str]:
+                spans = re.findall(r"\$([^$]+)\$|\\\((.*?)\\\)|\\\[(.*?)\\\]", text)
+                out = set()
+                for groups in spans:
+                    span = next((x for x in groups if x), "")
+                    normalized = re.sub(r"\\(?:left|right)", "", span)
+                    normalized = normalized.replace(r"\dfrac", r"\frac")
+                    normalized = re.sub(r"\s+|[，,。.;；]", "", normalized)
+                    if len(normalized) >= 6 and re.search(r"=|<|>|≤|≥|\\le|\\ge", normalized):
+                        out.add(normalized)
+                return out
+            location_math = math_relations(str(issue.get("location") or ""))
+            correction_math = math_relations(str(issue.get("correction") or ""))
+            if location_math and location_math & correction_math:
+                return False
+        return True
 
     def _install_review_issues(self, issues: list[dict]) -> bool:
         """只建立可執行的局部訂正佇列；回傳是否可安全繼續。"""
@@ -1204,9 +1241,15 @@ class TutorDriver:
             if not self._install_review_issues(issues):
                 return (MERGED_REVIEW_UNAVAILABLE_EN if self.lang == "en"
                         else MERGED_REVIEW_UNAVAILABLE)
-            return self._review_issue_reply(
-                "合併草稿重新複核後，還有一項需要處理。" if self.lang != "en"
-                else "The merged draft still has one issue to address after re-review.")
+            issue_count = len(self.state.get("review_issues") or [])
+            lead = (
+                f"合併草稿重新複核後，還有 {issue_count} 項需要處理。"
+                if self.lang != "en"
+                else ("The merged draft still has one issue to address after re-review."
+                      if issue_count == 1
+                      else f"The merged draft still has {issue_count} issues to address after re-review.")
+            )
+            return self._review_issue_reply(lead)
         self._install_review_issues([])
         self._set_review_status("awaiting_clean")
         return REVIEW_CLEAN_REQUEST_EN if self.lang == "en" else REVIEW_CLEAN_REQUEST
@@ -1323,10 +1366,15 @@ class TutorDriver:
                     else WRITEUP_WAIT_REMINDER)
         if not self.backstop:
             return None
+        if self.state.get("review_status") == "correcting":
+            explicitly_resubmitted = bool(
+                _EXPLICIT_REVIEW_RE.search(student_text)
+                or _PROOF_SUBMISSION_START_RE.search(student_text))
+            if intent == "full_proof_submission" and explicitly_resubmitted:
+                return self._start_full_proof_review(student_text)
+            return self._handle_local_revision(student_text)
         if intent == "full_proof_submission":
             return self._start_full_proof_review(student_text)
-        if self.state.get("review_status") == "correcting":
-            return self._handle_local_revision(student_text)
         if self.state.get("review_status") == "awaiting_clean":
             return REVIEW_CLEAN_REQUEST_EN if self.lang == "en" else REVIEW_CLEAN_REQUEST
         if self.state.get("review_status") == "unavailable":
@@ -1430,7 +1478,7 @@ class TutorDriver:
         """以審閱後盾做數學語意判定；絕不退回答案字串比對。
 
         後盾關閉、離線、逾時、輸出無法解析或判定不確定時回傳 None。狀態機會把
-        None 視為「未獲明確 correct」，揭示參考答案並前進，避免學生被系統故障卡住。
+        None 視為「未取得可靠判定」；中性示範參考答案並前進，避免系統故障卡住學生。
         """
         self.state["walkthrough_review"] = None
         if not self.backstop:
@@ -1830,6 +1878,8 @@ class TutorDriver:
                 and self.state.get("phase") == "guide"):
             self.state["proof_progress_revision"] = (
                 int(self.state.get("proof_progress_revision", 0)) + 1)
+            self.state["proof_progress_message_key"] = _normalize(
+                str(self.state.get("student_state_text") or ""))[-400:]
 
     def _judge_writeup_readiness(self, candidate_reply: str = "") -> bool:
         """由 Thinking 判斷一般引導是否已涵蓋完整證明骨架。
@@ -1992,6 +2042,10 @@ class TutorDriver:
                 "先前訊息已正確完成的內容不算累積證明缺漏，所以不能只因預檢列出缺漏就判未完成；"
                 "但最新回答若引入錯誤、矛盾，或把先前正確條件改壞，必須判 latest_student_step_status=incorrect，"
                 "且不得 ready_for_writeup。"
+                "若 payload.student_state.challenge=true，學生正在質疑 Tutor 先前的數學主張："
+                "必須依參考證明與標準定理重新獨立核對雙方說法，不得因該主張由 Tutor 先說就沿用。"
+                "若學生質疑正確而候選仍堅持原錯誤通則，mathematically_correct 必須為 false，"
+                "並在 candidate_math_error 寫出該錯誤通則。"
                 "(1)核對 student_messages 最後一則中的數學步驟狀態 (latest_student_step_status: correct/incorrect/no_step) 與第一個缺少連結 (first_missing_step)。"
                 "(2)核對 Tutor 候選回覆：\n"
                 "   - mathematically_correct 只評 Tutor 候選內的數學敘述，以及 Tutor 對最新學生步驟的處理。最新學生步驟若錯，而 Tutor 稱讚、接受、沿用或跳過它，必須判 false；若 Tutor 不斷言錯誤，只用聚焦問題要求學生重查該步，則可判 true。學生的證明尚未完整，本身絕不能成為 mathematically_correct=false 的理由；候選中若包含符號、常數、正負號、導數階數、不等號或等式推導錯誤，填入 candidate_math_error，否則填空字串。重述題目結論必須與題目數學等價。\n"
@@ -2240,13 +2294,22 @@ class TutorDriver:
         """依學生步驟狀態推進唯一缺口；no_step 不可覆寫既有缺口。"""
         if not review:
             return
+        status = str(review.get("latest_student_step_status") or "no_step")
+        # router 可能把「帶問句但數學正確」的回答分類成 clarification，因而漏掉
+        # readiness 的廉價進度計數。Thinking 已核對為 correct 時補計一次；使用
+        # 最後一則學生訊息作 key，避免同輪候選重審或重生成造成重複累加。
+        progress_key = _normalize(self._last_message("user"))[-400:]
+        if (status == "correct" and progress_key
+                and progress_key != self.state.get("proof_progress_message_key")):
+            self.state["proof_progress_revision"] = (
+                int(self.state.get("proof_progress_revision", 0)) + 1)
+            self.state["proof_progress_message_key"] = progress_key
         if (review.get("ready_for_writeup") is True
-                and review.get("latest_student_step_status") != "incorrect"):
+                and status != "incorrect"):
             self.state["active_gap"] = ""
             return
         current = str(self.state.get("active_gap") or "").strip()
         missing = str(review.get("first_missing_step") or "").strip()
-        status = str(review.get("latest_student_step_status") or "no_step")
         if status == "correct" and missing:
             self.state["active_gap"] = missing
         elif status == "incorrect":
@@ -2285,6 +2348,28 @@ class TutorDriver:
         gap_index = int(self.state.get("guide_gap_fb_idx", 0))
         if first_missing:
             self.state["guide_gap_fb_idx"] = gap_index + 1
+
+        gap_parts = re.split(
+            r",\s*(?:and|then|which)\s+|;\s*|\bthen\s+|\bso\s+that\s+|"
+            r"\bwhich\s+(?:yields|gives|implies|shows)\s+|"
+            r"，\s*(?:並|再|接著|然後)|；\s*|"
+            r"(?:並(?:得出|推出|得到|套用)|以(?:說明|推出|得到)|從而|進而|因此)",
+            first_missing, maxsplit=1, flags=re.I)
+        multi_step_gap = len(gap_parts) > 1 and bool(gap_parts[1].strip())
+        if multi_step_gap and level >= 2:
+            first_missing = gap_parts[0].strip().rstrip(".。")
+        elif multi_step_gap and step_status == "correct":
+            if en:
+                return (
+                    "Good, that step is established. What single intermediate result do you need next?"
+                    if level == 0 else
+                    "That step holds. What one equation, bound, or claim can you establish as the next subgoal?"
+                )
+            return (
+                "很好，這一步是成立的。接下來只需要先建立哪一個中間結果？"
+                if level == 0 else
+                "這一步成立。你能把下一個缺口縮成哪一條等式、界或單一命題？"
+            )
         
         if step_status == "correct" and first_missing:
             pool = ((
@@ -2819,6 +2904,16 @@ class TutorDriver:
         # 一般引導的最終候選只做一次「readiness＋數學／level policy」合併審查；
         # ready 時直接切 review 並回確定性交稿模板，否則才決定候選能否送出。
         reply = self._enforce_guide_reply_policy(reply, level, log)
+        # Reviewer 尚未確認 readiness 時，模型不能同一句一面宣告「整份證明完成」，
+        # 一面又丟出泛用下一步問題。這種候選在語意上自相矛盾；不相信模型的完成宣告，
+        # 也不擅自切 review，而是退回 reviewer／controller 保存的真實 active gap。
+        if (self.state.get("phase") == "guide"
+                and _TUTOR_DONE_RE.search(reply)
+                and _QMARK_RE.search(reply)
+                and not _NOT_DONE_RE.search(reply)
+                and not _STEP_SCOPE_RE.search(reply)):
+            log.guards.append("completion_question_conflict")
+            reply = self._safe_guide_review_fallback(level)
         # 語意政策位於前面的 premature_writeup 防護之後，可能重新產生要求完整
         # 證明的文字。若狀態仍在 guide，最後封住這條狀態／文字不一致的路徑。
         if self.state.get("phase") == "guide" and asks_for_full_writeup(reply):
@@ -2858,8 +2953,8 @@ class TutorDriver:
         """逐步教學狀態機：進入 / 單次作答 / 揭答前進 / 收尾。
 
         每個確認問題只有一次有效作答機會。回答由思考型審閱後盾做數學語意判定，
-        不使用 expected_answer 的字串比對；有效作答未判為 correct 就揭示參考答案並前進，
-        但 unavailable 不消耗作答機會。
+        不使用 expected_answer 的字串比對；有效作答未判為 correct 就揭示參考答案並前進；
+        unavailable 也不判學生錯，但會中性示範後前進，避免同一步死循環。
         評分對象是「上一輪實際呈現的那一步」（walk_presented_step），不是依當下語言
         重新取 steps[walk_idx]——步驟表若因語言切換而換了一套，後者會拿另一題的
         標準答案去評分（Codex 交接文件的問題四，實測會把正確答案判錯）。
@@ -2878,13 +2973,27 @@ class TutorDriver:
             en = self._teach_lang() == "en"
             judged = self._judge_walkthrough_answer(student_text, presented)
             verdict = judged.get("verdict") if judged else "unavailable"
-            if verdict == "unavailable":
-                self.state["walk_feedback"] = (
-                    WALK_JUDGE_UNAVAILABLE_EN if en else WALK_JUDGE_UNAVAILABLE)
-                self.state["stuck_count"] = 0
-                return
+            answer = str(presented.get("expected_answer") or "").strip()
+            if not answer:
+                answer = next((str(x).strip() for x in
+                               (presented.get("accepted_answers") or [])
+                               if str(x).strip()), "")
+            if not answer:
+                answer = str(presented.get("explain") or "").strip()
+            answer = answer.rstrip().rstrip("。.！!；;")
+            last = idx + 1 >= len(steps)
             if verdict == "correct":
                 self.state.pop("walk_feedback", None)
+            elif verdict == "unavailable":
+                tpl = ((WALK_JUDGE_UNAVAILABLE_LAST_EN if en
+                        else WALK_JUDGE_UNAVAILABLE_LAST) if last else
+                       (WALK_JUDGE_UNAVAILABLE_EN if en
+                        else WALK_JUDGE_UNAVAILABLE))
+                self.state["walk_feedback"] = tpl.format(answer=answer)
+            elif verdict == "not_answer":
+                tpl = ((WALK_NOT_ANSWER_LAST_EN if en else WALK_NOT_ANSWER_LAST) if last
+                       else (WALK_NOT_ANSWER_EN if en else WALK_NOT_ANSWER))
+                self.state["walk_feedback"] = tpl.format(answer=answer)
             else:
                 reason = str((judged or {}).get("feedback") or "").strip().rstrip("。.")
                 if not reason:
@@ -2899,21 +3008,10 @@ class TutorDriver:
                     zh_reason, en_reason = fallback_reasons.get(
                         verdict, fallback_reasons["incorrect"])
                     reason = en_reason if en else zh_reason
-                answer = str(presented.get("expected_answer") or "").strip()
-                if not answer:
-                    answer = next((str(x).strip() for x in
-                                   (presented.get("accepted_answers") or [])
-                                   if str(x).strip()), "")
-                if not answer:
-                    answer = str(presented.get("explain") or "").strip()
-                # 模板本身會補句號；先去除答案鍵尾端標點，避免「。。」。
-                answer = answer.rstrip().rstrip("。.！!；;")
-                last = idx + 1 >= len(steps)
                 tpl = ((WALK_REVEAL_LAST_EN if en else WALK_REVEAL_LAST) if last
                        else (WALK_REVEAL_EN if en else WALK_REVEAL))
                 self.state["walk_feedback"] = tpl.format(reason=reason, answer=answer)
-            # correct／incorrect／partial／not_answer 消耗一次作答機會；
-            # unavailable 已在上方保留原 idx 並回傳。
+            # 所有 verdict 都結束目前微步驟；unavailable 只是不把學生判錯。
             self.state["walk_idx"] = idx + 1
             self._clear_presented()
             if self.state["walk_idx"] >= len(steps):  # 教完 → 請學生自己寫證明
@@ -3107,6 +3205,7 @@ class TutorDriver:
                     and self.state.get("phase") == "guide"):
                 self.state["proof_progress_revision"] = (
                     int(self.state.get("proof_progress_revision", 0)) + 1)
+                self.state["proof_progress_message_key"] = _normalize(opener)[-400:]
             review_reply = self._review_workflow_transition(user_opener)
             if review_reply is not None:
                 self.messages = []

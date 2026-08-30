@@ -8,8 +8,11 @@ cd "$ROOT_DIR"
 HOST=${LIMIT_LEVELS_HOST:-daniel@192.168.1.102}
 TARGET=${LIMIT_LEVELS_REMOTE_DIR:-/home/daniel/daniel-limit-levels-sim/project}
 KNOWN_HOSTS=${LIMIT_LEVELS_KNOWN_HOSTS:-.tmp_lab102_known_hosts}
-IDENTITY_FILE=${LIMIT_LEVELS_IDENTITY_FILE:-/c/Users/Danie/.ssh/id_ed25519}
+# 空字串表示沿用 ssh-agent／使用者既有登入設定；這對 WSL 呼叫 Windows
+# workspace 時很重要，因為 `/c/...` 並不是 WSL 可用的私鑰路徑。
+IDENTITY_FILE=${LIMIT_LEVELS_IDENTITY_FILE-/c/Users/Danie/.ssh/id_ed25519}
 PYTHON_BIN=${LIMIT_LEVELS_PYTHON_BIN:-/c/Users/Danie/anaconda3/envs/lora_project/python.exe}
+EVAL_SCRIPT=${LIMIT_LEVELS_EVAL_SCRIPT:-dataset/eval_limit_levels_dual_ai.py}
 TIMEOUT_BIN=${LIMIT_LEVELS_TIMEOUT_BIN:-timeout}
 SSH_BIN=${LIMIT_LEVELS_SSH_BIN:-ssh}
 SCP_BIN=${LIMIT_LEVELS_SCP_BIN:-scp}
@@ -17,13 +20,15 @@ RETRY_INTERVAL=${LIMIT_LEVELS_RETRY_INTERVAL:-6}
 SSH_OPTS=(
   -n -o ConnectTimeout=20 -o BatchMode=yes -o ServerAliveInterval=5
   -o "UserKnownHostsFile=$KNOWN_HOSTS" -o IdentitiesOnly=yes
-  -i "$IDENTITY_FILE"
 )
 SCP_OPTS=(
   -o ConnectTimeout=20 -o BatchMode=yes -o ServerAliveInterval=5
   -o "UserKnownHostsFile=$KNOWN_HOSTS" -o IdentitiesOnly=yes
-  -i "$IDENTITY_FILE"
 )
+if [ -n "$IDENTITY_FILE" ] && [ "$IDENTITY_FILE" != "none" ]; then
+  SSH_OPTS+=(-i "$IDENTITY_FILE")
+  SCP_OPTS+=(-i "$IDENTITY_FILE")
+fi
 
 remote() {
   "$TIMEOUT_BIN" 120 "$SSH_BIN" "${SSH_OPTS[@]}" "$HOST" "$@"
@@ -98,4 +103,4 @@ done
 test "$ready" -eq 1
 
 PYTHONNOUSERSITE=1 PYTHONUTF8=1 "$PYTHON_BIN" \
-  dataset/eval_limit_levels_dual_ai.py "$@"
+  "$EVAL_SCRIPT" "$@"

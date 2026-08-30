@@ -1,0 +1,578 @@
+[
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "statement": "用均值定理證明對所有 $x>0$，$e^x>1+x$。",
+    "reference_proof": "令 $f(t)=e^t$，在 $[0,x]$ 連續、$(0,x)$ 可微，$f'(t)=e^t$。由 Lagrange 均值定理存在 $c\\in(0,x)$ 使 $e^x-e^0=e^c(x-0)$，即 $e^x-1=e^c x$。因 $c>0$ 有 $e^c>1$，且 $x>0$，故 $e^x-1=e^c x>x$，即 $e^x>1+x$。$\\blacksquare$",
+    "history": [
+      [
+        "助教",
+        "先問自己：要證 $e^x$ 在 $x>0$ 時嚴格大於 $1+x$，這條曲線在 $0$ 處與直線相切，那它在右側會如何？"
+      ],
+      [
+        "學生",
+        "右側的話……$e^x$ 應該會一直跑在直線上面吧？但我不太懂相切跟均值定理有什麼關係，這題目不是要設一個函數去套 $f'(c)$ 嗎？"
+      ],
+      [
+        "助教",
+        "「跑在上面」正是要證的不等式，而均值定理正好能給你這個比較的依據。你能先寫出 $e^x-e^0$ 的差商形式嗎？"
+      ],
+      [
+        "學生",
+        "差商是寫成 $\\frac{e^x - e^0}{x - 0}$，也就是 $\\frac{e^x - 1}{x}$ 這樣嗎？\n如果套用均值定理，這會等於 $e^c$，因為 $c > 0$ 所以 $e^c$ 會大於 1……\n啊！這樣把 $x$ 乘過去再移項，不就剛好證明出 $e^x > 1 + x$ 了！"
+      ],
+      [
+        "助教",
+        "完全正確。核心直覺是「均值定理給出斜率 $e^c$ 大於平均斜率 $1$，乘上正長度就得到不等式」。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "蛤？下一步？我們剛剛不是已經把 $e^x > 1 + x$ 證出來了幾嗎？還是助教的意思是要把 $c \\in (0, x)$ 和函數連續可微那些條件完整寫下來才算完工呀？"
+      ],
+      [
+        "助教",
+        "對，你很嚴謹。完整的證明要把「均值定理適用的前提」也明確寫出來，這樣才無懈可擊。你願意把完整的證明寫出來讓我看看嗎？"
+      ],
+      [
+        "學生",
+        "好啊，那我試試看……是先設 $f(t) = e^t$ 在 $[0, x]$ 連續且在 $(0, x)$ 可微嗎？然後根據均值定理存在 $c \\in (0, x)$ 使得 $\\frac{e^x - 1}{x} = f'(c) = e^c$，因為 $c > 0$ 所以 $e^c > 1$，整理一下就好了……這樣寫算無懈可擊了嗎？"
+      ],
+      [
+        "助教",
+        "前提、定理、計算、結論都齊全了，而且「$c>0$ 故 $e^c>1$」這個轉折也寫得清楚。這份證明完全正確，你可以把它當作標準範本背下來。"
+      ],
+      [
+        "學生",
+        "太好了！原本還以為均值定理都很抽象，沒想到直接把差商看成斜率來比較這麼直覺。謝謝助教，這樣我就真的懂這個證法的思路了！"
+      ],
+      [
+        "助教",
+        "不客氣，掌握均值定理的「差商=導數」這個視角，以後很多不等式都能照著這個路線走。祝你繼續順利！"
+      ],
+      [
+        "學生",
+        "好的，謝謝助教！那我再去試試看其他的均值定理題目，希望下次我也能一眼看出差商的設法。"
+      ],
+      [
+        "助教",
+        "加油，你的直覺正在長進。"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 4,
+      "issue": "助教誤將 1 稱為「平均斜率」（差商 e^c 即為區間 [0, x] 上的平均斜率/割線斜率，其值大於 1）。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": false,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "statement": "證明對所有實數 $x$，$\\cos x\\ge1-\\dfrac{x^2}{2}$。",
+    "reference_proof": "令 $g(x)=\\cos x-1+\\dfrac{x^2}{2}$，目標為證 $g(x)\\ge0$。\n\n計算：$g(0)=1-1+0=0$；$g'(x)=-\\sin x+x$，$g'(0)=0$；$g''(x)=-\\cos x+1=1-\\cos x\\ge0$（對所有 $x$，因 $\\cos x\\le1$）。\n\n由 $g''\\ge0$，$g'$ 在 $\\mathbb{R}$ 上遞增（不嚴格）。又 $g'(0)=0$，故：\n- $x<0$ 時 $g'(x)\\le g'(0)=0$；\n- $x>0$ 時 $g'(x)\\ge g'(0)=0$。\n\n即 $g$ 在 $(-\\infty,0]$ 遞減、在 $[0,\\infty)$ 遞增，故 $g$ 在 $x=0$ 取全域最小值 $g(0)=0$。因此對所有 $x$，$g(x)\\ge0$，即 $\\cos x\\ge1-\\dfrac{x^2}{2}$。$\\blacksquare$",
+    "history": [
+      [
+        "助教",
+        "先建立一個方便分析的函數。若把要比較的量移到一邊，會得到什麼形式的函數？"
+      ],
+      [
+        "學生",
+        "移過去就設 $f(x) = \\cos x - 1 + \\frac{x^2}{2}$ 吧？這樣只要證明 $f(x) \\ge 0$ 就好，再來是直接拿去微分看正負嗎？"
+      ],
+      [
+        "助教",
+        "很好，$f(x)\\ge0$ 是目標。先算 $f(0)$，它會是什麼，這對我們有什麼意義？"
+      ],
+      [
+        "學生",
+        "$f(0)$ 代進去就是 0 啊。這代表只要能證明 $x \\ge 0$ 時 $f(x)$ 一直遞增，那 $f(0)$ 就是最小值，這樣 positive 的部分就證成了吧？再來我是不是直接微兩次看看？"
+      ],
+      [
+        "助教",
+        "完全正確。你已經自己把「構造函數、驗證最小值、歸納到所有 $x$」這個證明骨架都理清楚了，接下來你自己完成細節吧。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "就直接微分啊！$f'(x) = -\\sin x + x$，再微一次 $f''(x) = 1 - \\cos x \\ge 0$，所以 $f'(x)$ 遞增且 $f'(0)=0$，這樣 $f(x)$ 就一路遞增啦！至於 $x < 0$ 的部分用偶函數對稱過去就好，這樣算證完成了嗎？"
+      ],
+      [
+        "助教",
+        "完全正確，連偶函數對稱這個補充你都想到了。你的證明骨架非常完整，而且每一步都是你自己推出來的。 依你看，接下來哪個條件最值得先用？"
+      ],
+      [
+        "學生",
+        "等一下，我剛剛不是已經把 $x \\ge 0$ 的遞增跟 $x < 0$ 的偶函數對稱都證完了嗎？你問「接下來哪個條件最值得先用」是意思？難道我剛剛哪裡漏掉嗎？"
+      ],
+      [
+        "助教",
+        "你完全沒漏，只是你把「偶函數對稱」當成一個補充，而我問的是「哪個條件最值得先用」，其實正是要你點出「偶函數對稱」這個工具本身需要先被證成。 你能說說，為什麼不能直接把它當成可用的工具，而必須先確認它的有效性嗎？"
+      ],
+      [
+        "學生",
+        "蛤？$\\cos x$ 和 $x^2$ 是偶函數不是本來就可以直接用的已知性質嗎？你指的是我應該補寫出 $f(-x) = f(x)$ 的代入驗證，還是連 $\\cos(-x) = \\cos x$ 這種基礎定義都要從頭證明？"
+      ],
+      [
+        "助教",
+        "你抓到了核心。偶函數對稱是一種簡化技巧，但要用它，你必須先確認 $f(-x)=f(x)$ 成立，也就是要把「偶函數」這個前提明確寫出來。 你能補一句話，把「偶函數對稱」這個工具的合法性補上嗎？"
+      ],
+      [
+        "學生",
+        "喔了解，你只是要我把驗證步驟寫出來嘛！因為 $\\cos(-x) = \\cos x$ 且 $(-x)^2 = x^2$，代入得 $f(-x) = f(x)$，所以 $f(x)$ 為偶函數，這樣就能把 $x \\ge 0$ 的結果直接對稱到 $x < 0$。補上這句就算完整了吧？"
+      ],
+      [
+        "助教",
+        "完全正確，你自己把「偶函數對稱」的合法性補上了。你的證明現在不僅完整，還知道每個簡化工具都需要先被驗證。這比只寫出骨架要嚴謹得多。 你想先從哪個方向試試看？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 2,
+      "issue": "學生已完成證明，助教仍拋出語意不合且機械重複的提問，導致引導脫節。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": false,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "statement": "設 $A$ 為方陣，$\\lambda_1\\ne\\lambda_2$ 為 $A$ 的兩個相異特徵值，$v_1,v_2$ 為對應的特徵向量。證明 $\\{v_1,v_2\\}$ 線性獨立。",
+    "reference_proof": "設 $c_1v_1+c_2v_2=0$ …… (1)。目標：$c_1=c_2=0$。\n\n對 (1) 左乘 $A$，利用 $Av_i=\\lambda_iv_i$：\n$$c_1\\lambda_1v_1+c_2\\lambda_2v_2=0\\ \\cdots\\ (2)$$\n\n計算 $(2)-\\lambda_1\\times(1)$ 消去 $v_1$：\n$$c_2(\\lambda_2-\\lambda_1)v_2=0.$$\n\n因 $\\lambda_2\\ne\\lambda_1$（相異特徵值）且 $v_2\\ne0$（特徵向量依定義非零），得 $c_2=0$。\n\n代回 (1)：$c_1v_1=0$，而 $v_1\\ne0$，故 $c_1=0$。\n\n兩係數皆為零，$\\{v_1,v_2\\}$ 線性獨立。$\\blacksquare$\n\n（註：「兩向量皆非零」不足以推出線性獨立——例如 $v_2=2v_1$；證明必須用到特徵值相異這個條件。）",
+    "history": [
+      [
+        "助教",
+        "線性獨立要證什麼？"
+      ],
+      [
+        "學生",
+        "就證明 $v_1$ 和 $v_2$ 都不是零向量就好了吧？因為特徵向量定義上不能是零向量，兩個非零向量不就自然線性獨立了嗎？"
+      ],
+      [
+        "助教",
+        "「非零」向量組未必線性獨立，反例是 $v_2=2v_1$。要排除這種情況，你打算怎麼做？"
+      ],
+      [
+        "學生",
+        "啊對耶…如果 $v_2$ 剛好是 $v_1$ 的倍數確實就線性相關了。那我只要證明 $v_2$ 不能寫成 $c v_1$ 就好了嗎？可是要怎麼用到題目給的特徵值相異（$\\lambda_1 \\ne \\lambda_2$）這個條件？"
+      ],
+      [
+        "助教",
+        "你認為題目中哪一個已知條件與下一步最相關？"
+      ],
+      [
+        "學生",
+        "應該是特徵向量的定義 $Av = \\lambda v$ 吧？如果假設 $v_2 = c v_1$，兩邊同時乘上矩陣 $A$，好像就能把特徵值帶進去了。可是乘完會變成 $\\lambda_2 v_2 = c \\lambda_1 v_1$，接下來要怎麼看出矛盾？"
+      ],
+      [
+        "助教",
+        "很好，你自己把線性相關的反例給了反證。現在你會怎麼完成最後一步？"
+      ],
+      [
+        "學生",
+        "把 $v_2 = c v_1$ 代進去變成 $\\lambda_2 c v_1 = c \\lambda_1 v_1$，移項後會得到 $c(\\lambda_2 - \\lambda_1) v_1 = 0$。因為已知 $\\lambda_1 \\ne \\lambda_2$ 且 $v_1$ 不是零向量，所以 $c$ 只能是 0。可是 $c = 0$ 的話 $v_2$ 就變成零向量了，這樣就跟特徵向量非零的定義矛盾了對吧？"
+      ],
+      [
+        "助教",
+        "完全正確。你靠「反證 + 特徵值相異」把線性相關的反例排除了，這才是完整的證明。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "誒？既然已經完整證明完了，這題不就解答完了嗎？還是助教你是想問，如果要推廣到三個以上特徵值的情況該怎麼做？"
+      ],
+      [
+        "助教",
+        "正是。你注意到「相異特徵值對應的特徵向量線性獨立」這個結果其實只在「相異」這個條件下才成立，那它在一般情況下（有重根）是否還成立呢？"
+      ],
+      [
+        "學生",
+        "如果 $\\lambda_1 = \\lambda_2$ 的話，剛才式子裡的 $(\\lambda_2 - \\lambda_1)$ 不就變成 0 了嗎？這樣 $c$ 就可以是任意數字，所以有重根的時候，特徵向量應該就一定會線性相關了吧？"
+      ],
+      [
+        "助教",
+        "正確，你已經自己把「相異特徵值」這個條件的必要性給點出來了。這題你不但寫出證明，還自己發現了它的邊界條件。非常清楚。 依你看，接下來哪個條件最值得先用？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 2,
+      "issue": "助教錯誤認同了學生「有重根時特徵向量必定線性相關」的錯誤概念（同一個特徵值仍可能對應線性獨立的特徵向量，相異特徵值並非線性獨立的必要條件）。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": false,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M1",
+    "persona": "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案",
+    "statement": "設 $f_n(x)=\\dfrac{nx}{1+n^2x^2}$，$x\\in[0,1]$。證明 $\\{f_n\\}$ 在 $[0,1]$ 上逐點收斂於 $0$，但不一致收斂。",
+    "reference_proof": "**逐點收斂**：$x=0$ 時 $f_n(0)=0$。$x\\in(0,1]$ 時，分母 $1+n^2x^2$ 的成長速度快於分子 $nx$，故 $f_n(x)=\\dfrac{nx}{1+n^2x^2}\\to0$（可由 $f_n(x)\\le\\dfrac{1}{nx}\\to0$ 或直接取極限驗證）。故逐點極限函數為 $f\\equiv0$。\n\n**非一致收斂**：對 $\\sup_{x\\in[0,1]}|f_n(x)-0|$ 估計。取 $x_n=\\dfrac1n\\in[0,1]$（$n\\ge1$），則\n$$f_n(x_n)=\\frac{n\\cdot\\frac1n}{1+n^2\\cdot\\frac1{n^2}}=\\frac{1}{1+1}=\\frac12.$$\n故 $\\sup_{x\\in[0,1]}|f_n(x)-0|\\ge\\dfrac12$ 對所有 $n$ 成立，不趨於 $0$。由一致收斂定義（$\\sup$ 誤差須 $\\to0$），$\\{f_n\\}$ 不一致收斂於 $0$。$\\blacksquare$",
+    "history": [
+      [
+        "助教",
+        "先看「逐點收斂」：固定 $x$ 後 $n\\to\\infty$，$f_n(x)$ 趨向什麼常數？"
+      ],
+      [
+        "學生",
+        "毫無頭緒，我不知道它會趨向什麼常數。"
+      ],
+      [
+        "助教",
+        "那我們先回到定義：逐點收斂要求「對每個固定的 $x$，$f_n(x)$ 趨向某個常數」。你能先算出這個常數嗎？"
+      ],
+      [
+        "學生",
+        "完全看不懂，我真的不知道要怎麼算。"
+      ],
+      [
+        "助教",
+        "那我再給你一個可執行的微步驟支架：『要否定一致收斂，試著對每個 $n$ 找一個特別的點（可以依賴 $n$），讓函數值在那裡不變小。』；若該支架本身需要公式可以寫出。提示必須明顯比上一問更深入，但不得繼續代寫後續推導，也不得給出最終結論。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "毫無頭緒，我完全不知道特別的點要怎麼找。"
+      ],
+      [
+        "助教",
+        "目前無法準備可靠的逐步教學內容，我們先維持一般引導，不使用可能錯位的步驟。"
+      ],
+      [
+        "學生",
+        "完全看不懂，我還是不知道下一步要幹嘛。"
+      ],
+      [
+        "助教",
+        "那我們暫停，先確認你對「逐點收斂」的目標還清楚嗎：它要求「對每個固定的 $x$，$f_n(x)$ 趨向什麼？」"
+      ],
+      [
+        "學生",
+        "毫無頭緒，我不知道它會趨向什麼。"
+      ],
+      [
+        "助教",
+        "那我再給你一個可執行的微步驟支架：『要否定一致收斂，試著對每個 $n$ 找一個特別的點（可以依賴 $n$），讓函數值在那裡不變小。』；若該支架本身需要公式可以寫出。提示必須明顯比上一問更深入，但不得繼續代寫後續推導，也不得給出最終結論。 那你覺得，下一步該從哪裡下手？"
+      ],
+      [
+        "學生",
+        "毫無頭緒，我真的不知道該從哪裡下手。"
+      ],
+      [
+        "助教",
+        "第 1/6 步：設 $x=0$，代入 $f_n(x)=\\dfrac{nx}{1+n^2x^2}$，得 $f_n(0)=\\dfrac{n\\cdot0}{1+n^2\\cdot0^2}=\\dfrac{0}{1}=0$。\n\n確認問題：為什麼 $f_n(0)$ 等於 0？"
+      ]
+    ],
+    "lang": "zh",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 1,
+      "issue": "助教發言洩漏內部系統提示詞，且在學生尚未完成逐點收斂時便錯位跳躍至否定一致收斂的提示。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": true,
+      "walk_active": true,
+      "max_level": 2
+    }
+  },
+  {
+    "id": "H5",
+    "persona": "困惑型：常答不出來、需要提示才前進，但被引導到重點時能真的理解並說出來",
+    "statement": "Using the mean value theorem, prove that $e^x>1+x$ for all $x>0$.",
+    "reference_proof": "Let $f(t)=e^t$, continuous on $[0,x]$ and differentiable on $(0,x)$, with $f'(t)=e^t$. By the Lagrange mean value theorem there is $c\\in(0,x)$ with $e^x-e^0=e^c(x-0)$, i.e. $e^x-1=e^c x$. Since $c>0$, $e^c>1$, and $x>0$, so $e^x-1=e^c x>x$, i.e. $e^x>1+x$. $\\blacksquare$",
+    "history": [
+      [
+        "助教",
+        "The MVT connects two function values at endpoints with the derivative at an intermediate point. For $f(t)=e^t$ on $[0,x]$, what equation does it give?"
+      ],
+      [
+        "學生",
+        "Wait, so is it $(e^x - e^0) / (x - 0) = e^c$? That simplifies to $(e^x - 1) / x = e^c$, but I'm not sure how that gets us to $1 + x$."
+      ],
+      [
+        "助教",
+        "Good — you've written the MVT equation yourself. Now look at $c$: where does it lie relative to $0$ and $x$?"
+      ],
+      [
+        "學生",
+        "Well, MVT says $c$ is between $0$ and $x$, so $0 < c < x$. Oh, wait—since $c > 0$, $e^c$ must be greater than $e^0$, which is $1$! So $(e^x - 1)/x > 1$, which means $e^x > 1 + x$!"
+      ],
+      [
+        "助教",
+        "Completely correct. You used the MVT, then the key fact \"$c>0$\" to push $e^c>1$ — both steps were yours. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, isn't the proof already finished? We just showed that $e^x > 1 + x$, which is what the problem asked for. Is there another step I missed?"
+      ],
+      [
+        "助教",
+        "Let's pause at the current gap. What is the last claim you established yourself?"
+      ],
+      [
+        "學生",
+        "Um, the last claim I established was that $e^x > 1 + x$. I thought that finished the whole proof, so I'm confused about what gap you mean—did I miss a step, or was I supposed to explicitly state that $e^t$ is continuous and differentiable first?"
+      ],
+      [
+        "助教",
+        "Which stated condition do you think is most relevant to your next step?"
+      ],
+      [
+        "學生",
+        "Honestly, I'm pretty confused about what you mean by \"next step\" since the proof feels done to me. Are you asking about the condition $x > 0$ so I could multiply by $x$, or the conditions like continuity and differentiability for MVT to hold?"
+      ],
+      [
+        "助教",
+        "Which stated condition do you think is most relevant to your next step?"
+      ],
+      [
+        "學生",
+        "Wait, are you repeating that because I need to pick one? If we're trying to make the proof complete, is it stating that $e^t$ is continuous and differentiable so we're actually allowed to use MVT in the first place?"
+      ],
+      [
+        "助教",
+        "Exactly — that is the most fundamental premise of the whole argument. So what should you add at the very beginning?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 2,
+      "issue": "助教連續重複完全相同的提問，且在學生完成主體證明後以模糊的「下一步」造成學生困惑。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": false,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M2",
+    "persona": "聰明型：反應快、會自己往前推，但偶爾跳步、需要被要求補依據",
+    "statement": "Prove that $\\cos x\\ge1-\\dfrac{x^2}{2}$ for all real $x$.",
+    "reference_proof": "Let $g(x)=\\cos x-1+\\dfrac{x^2}{2}$; the goal is to show $g(x)\\ge0$.\n\nCompute: $g(0)=1-1+0=0$; $g'(x)=-\\sin x+x$, $g'(0)=0$; $g''(x)=-\\cos x+1=1-\\cos x\\ge0$ (for all $x$, since $\\cos x\\le1$).\n\nFrom $g''\\ge0$, $g'$ is increasing (non-strictly) on $\\mathbb{R}$. Also $g'(0)=0$, so:\n- for $x<0$, $g'(x)\\le g'(0)=0$;\n- for $x>0$, $g'(x)\\ge g'(0)=0$.\n\nThus $g$ is decreasing on $(-\\infty,0]$ and increasing on $[0,\\infty)$, so $g$ attains its global minimum at $x=0$, namely $g(0)=0$. Therefore $g(x)\\ge0$ for all $x$, i.e. $\\cos x\\ge1-\\dfrac{x^2}{2}$. $\\blacksquare$",
+    "history": [
+      [
+        "助教",
+        "The inequality is equivalent to showing some function is nonnegative everywhere. Can you define that function?"
+      ],
+      [
+        "學生",
+        "Sure, let $f(x) = \\cos x - 1 + \\frac{x^2}{2}$. Differentiating gives $f'(x) = x - \\sin x$, which is non-negative for $x \\ge 0$, so $f(x)$ has to be non-negative too, right?"
+      ],
+      [
+        "助教",
+        "That's the right idea — but you haven't established the sign of $f'$ for negative $x$. With $f'(0)=0$ and $f''\\ge0$, what can you say about $f'$'s monotonicity?"
+      ],
+      [
+        "學生",
+        "Oh right, since $f''(x) = 1 - \\cos x \\ge 0$, $f'$ is non-decreasing everywhere! That means $f'(x) \\le 0$ for $x < 0$ and $f'(x) \\ge 0$ for $x > 0$, so $f$ decreases then increases, making $f(0) = 0$ the global minimum."
+      ],
+      [
+        "助教",
+        "Completely correct. The key was establishing the sign of $f'$ on both sides of zero via the non-negativity of $f''$ — you caught the \"monotonicity\" part yourself. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, isn't the proof already complete? Since $f(0) = 0$ is the global minimum, $f(x) \\ge 0$ for all $x$, which gives $\\cos x \\ge 1 - \\frac{x^2}{2}$ directly."
+      ],
+      [
+        "助教",
+        "Exactly. You've walked through every step yourself — the core is \"define the difference, use the second derivative to establish the sign of the first derivative, and conclude the minimum at zero\". Well done. Which condition do you think is worth using next?"
+      ],
+      [
+        "學生",
+        "Wait, what do you mean by \"next condition\"? We already showed $f(x) \\ge 0$ everywhere, so the proof is done! Are you asking about moving on to a new problem, or did I miss something?"
+      ],
+      [
+        "助教",
+        "Let's pause at the current gap. What is the last claim you established yourself?"
+      ],
+      [
+        "學生",
+        "The last claim I established was that $f(0) = 0$ is the global minimum, which means $f(x) \\ge 0$ for all real $x$. Honestly, I'm a bit confused—what gap are you referring to? The proof seems completely solid."
+      ],
+      [
+        "助教",
+        "Then let's look back at the very beginning: what is the domain of $x$ in this problem?"
+      ],
+      [
+        "學生",
+        "The domain is all real numbers. But we've already accounted for the entire real line by analyzing $x < 0$, $x = 0$, and $x > 0$. Are you pointing out a subtle edge case, or did we already cover all real $x$?"
+      ],
+      [
+        "助教",
+        "Before moving on, do the assumptions and conclusion of your previous inference match?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": false,
+      "guidance": 1,
+      "issue": "在學生已提出完整且正確的證明後，助教卻盲目質疑並主張存在不存在的漏洞與定義域問題，嚴重干擾與誤導學生。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": false,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "X4",
+    "persona": "犯錯型：會提出似是而非的推理（例如以為非零向量必線性獨立），被糾正才修正",
+    "statement": "Let $A$ be a square matrix with two distinct eigenvalues $\\lambda_1\\ne\\lambda_2$, and let $v_1,v_2$ be corresponding eigenvectors. Prove that $\\{v_1,v_2\\}$ is linearly independent.",
+    "reference_proof": "Suppose $c_1v_1+c_2v_2=0$ ... (1). Goal: $c_1=c_2=0$.\n\nLeft-multiply (1) by $A$, using $Av_i=\\lambda_iv_i$:\n$$c_1\\lambda_1v_1+c_2\\lambda_2v_2=0\\ \\cdots\\ (2)$$\n\nCompute $(2)-\\lambda_1\\times(1)$ to eliminate $v_1$:\n$$c_2(\\lambda_2-\\lambda_1)v_2=0.$$\n\nSince $\\lambda_2\\ne\\lambda_1$ (distinct eigenvalues) and $v_2\\ne0$ (an eigenvector is nonzero by definition), we get $c_2=0$.\n\nSubstituting back into (1): $c_1v_1=0$, and since $v_1\\ne0$, $c_1=0$.\n\nBoth coefficients are zero, so $\\{v_1,v_2\\}$ is linearly independent. $\\blacksquare$\n\n(Note: \"both vectors are nonzero\" does not imply linear independence — e.g. $v_2=2v_1$; the proof must use that the eigenvalues are distinct.)",
+    "history": [
+      [
+        "助教",
+        "Which stated condition do you think is most relevant to your next step?"
+      ],
+      [
+        "學生",
+        "Well, the fact that $v_1$ and $v_2$ are eigenvectors means they're both non-zero. But if two vectors are non-zero, shouldn't they automatically be linearly independent?"
+      ],
+      [
+        "助教",
+        "That's a common trap. Can you produce an example of two non-zero vectors that are still linearly dependent?"
+      ],
+      [
+        "學生",
+        "Oh, wait—like $v_1 = (1, 0)$ and $v_2 = (2, 0)$? They're both non-zero, but $v_2$ is just $2v_1$, so they're linearly dependent. Okay, I see now—so being non-zero isn't enough, we actually need to check if one is a scalar multiple of the other."
+      ],
+      [
+        "助教",
+        "Exactly. So what extra piece of information from the problem can you use to rule out this kind of dependence?"
+      ],
+      [
+        "學生",
+        "I guess we haven't used the fact that the eigenvalues $\\lambda_1$ and $\\lambda_2$ are distinct yet. If $v_2 = c v_1$, maybe applying the matrix $A$ to both sides gives us some kind of contradiction with $\\lambda_1 \\neq \\lambda_2$?"
+      ],
+      [
+        "助教",
+        "Good intuition. You're on the right track — can you finish writing out the complete proof yourself?"
+      ],
+      [
+        "學生",
+        "Let’s see... if $v_2 = c v_1$, applying $A$ to both sides gives $A v_2 = c A v_1$, which means $\\lambda_2 v_2 = c \\lambda_1 v_1$. Replacing $v_2$ with $c v_1$ again gives $\\lambda_2 c v_1 = \\lambda_1 c v_1$, so $\\lambda_2 = \\lambda_1$, which contradicts that the eigenvalues are distinct! That means $v_1$ and $v_2$ can't be scalar multiples, so they must be linearly independent."
+      ],
+      [
+        "助教",
+        "Completely correct. The key was realizing that \"nonzero\" is not sufficient, and then using the distinctness of the eigenvalues to rule out scalar dependence. Well done. So where do you think the next step should start?"
+      ],
+      [
+        "學生",
+        "Wait, next step? Didn't we just finish proving that $\\{v_1, v_2\\}$ is linearly independent? Is there something else we're supposed to do?"
+      ],
+      [
+        "助教",
+        "Which stated condition do you think is most relevant to your next step?"
+      ],
+      [
+        "學生",
+        "Wait, you're asking the exact same question again. As I just said, we already finished the proof—is there actually another step, or are you stuck in a loop?"
+      ],
+      [
+        "助教",
+        "You're right — you've finished the proof yourself. The loop is broken. Keep asking \"which stated condition is most relevant?\" — it's the best way to keep your own thinking on track."
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 2,
+      "issue": "證明完成後仍錯誤要求下一步，並陷入重複提問的死迴圈。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": false,
+      "walk_active": false,
+      "max_level": 0
+    }
+  },
+  {
+    "id": "M1",
+    "persona": "重度卡關型：基礎非常薄弱，抽象定義完全無感。**除非助教明確講出定理或技巧的名稱**（例如「均值定理」「夾擠定理」），否則一律誠實說自己不會——就算助教把問題拆得更小、換個說法再問，你還是答不出來。回覆務必極短（一句、20 字內），用「不知道」「毫無頭緒」「完全看不懂」這類直白說法，絕對不要自己編推導或猜答案",
+    "statement": "Let $f_n(x)=\\dfrac{nx}{1+n^2x^2}$ for $x\\in[0,1]$. Prove that $\\{f_n\\}$ converges pointwise to $0$ on $[0,1]$ but not uniformly.",
+    "reference_proof": "**Pointwise convergence**: At $x=0$, $f_n(0)=0$. For $x\\in(0,1]$, the denominator $1+n^2x^2$ grows faster than the numerator $nx$, so $f_n(x)=\\dfrac{nx}{1+n^2x^2}\\to0$ (verifiable via $f_n(x)\\le\\dfrac{1}{nx}\\to0$ or by taking the limit directly). Hence the pointwise limit function is $f\\equiv0$.\n\n**Non-uniform convergence**: Estimate $\\sup_{x\\in[0,1]}|f_n(x)-0|$. Take $x_n=\\dfrac1n\\in[0,1]$ (for $n\\ge1$); then\n$$f_n(x_n)=\\frac{n\\cdot\\frac1n}{1+n^2\\cdot\\frac1{n^2}}=\\frac{1}{1+1}=\\frac12.$$\nSo $\\sup_{x\\in[0,1]}|f_n(x)-0|\\ge\\dfrac12$ for all $n$, which does not tend to $0$. By the definition of uniform convergence (the sup error must $\\to0$), $\\{f_n\\}$ does not converge uniformly to $0$. $\\blacksquare$",
+    "history": [
+      [
+        "助教",
+        "A first step: fix an arbitrary $x\\in(0,1]$, and compute $\\lim_{n\\to\\infty}f_n(x)$. What happens to the numerator and denominator?"
+      ],
+      [
+        "學生",
+        "I have no idea. I'm completely lost."
+      ],
+      [
+        "助教",
+        "What single intermediate statement can you try to establish next?"
+      ],
+      [
+        "學生",
+        "I still have no idea. I don't even know what statement you're looking for."
+      ],
+      [
+        "助教",
+        "The problem asks you to prove both pointwise and non-uniform convergence. To refute uniform convergence, try finding for each $n$ a special point (allowed to depend on $n$) where the function value does not shrink — can you find such a point?"
+      ],
+      [
+        "學生",
+        "I have no idea how to find a point like that. I'm completely lost."
+      ],
+      [
+        "助教",
+        "Step 1/5: At $x=0$, $f_n(0) = \\dfrac{n \\cdot 0}{1 + n^2 \\cdot 0^2} = 0$ for all $n$.\n\nCheck: Why does $f_n(0)$ equal 0 for all $n$?"
+      ],
+      [
+        "學生",
+        "I don't know, I'm completely lost."
+      ],
+      [
+        "助教",
+        "A reliable semantic review was not available for this turn, so I am not marking your answer incorrect. To avoid getting stuck, here is this step: Because substituting $x=0$ into $f_n(x)$ gives $0$ in the numerator. Let's move on to the next step.\n\nStep 2/5: For $x \\in (0,1]$, $f_n(x) = \\dfrac{nx}{1 + n^2x^2} \\leq \\dfrac{nx}{n^2x^2} = \\dfrac{1}{nx}$, and since $\\dfrac{1}{nx} \\to 0$ as $n \\to \\infty$, $f_n(x) \\to 0$.\n\nCheck: How does the inequality $f_n(x) \\leq \\dfrac{1}{nx}$ help show $f_n(x) \\to 0$?"
+      ],
+      [
+        "學生",
+        "I have no idea. I don't understand how that inequality helps at all."
+      ],
+      [
+        "助教",
+        "A reliable semantic review was not available for this turn, so I am not marking your answer incorrect. To avoid getting stuck, here is this step: Since $\\dfrac{1}{nx} \\to 0$ as $n \\to \\infty$, and $f_n(x)$ is bounded above by this term, it must also tend to 0. Let's move on to the next step.\n\nStep 3/5: To show non-uniform convergence, we need a sequence $x_n$ in $[0,1]$ where $f_n(x_n)$ does not approach 0. Choose $x_n = \\dfrac{1}{n}$ (valid for $n \\geq 1$ since $\\dfrac{1}{n} \\in [0,1]$).\n\nCheck: Why is $x_n = \\dfrac{1}{n}$ a good choice for showing non-uniform convergence?"
+      ],
+      [
+        "學生",
+        "I have no idea. I don't understand why 1/n is a good choice at all."
+      ],
+      [
+        "助教",
+        "A reliable semantic review was not available for this turn, so I am not marking your answer incorrect. To avoid getting stuck, here is this step: It produces a constant value of 1/2, which doesn't approach 0. Let's move on to the next step.\n\nStep 4/5: Compute $f_n(x_n) = f_n\\left(\\dfrac{1}{n}\\right) = \\dfrac{n \\cdot \\dfrac{1}{n}}{1 + n^2 \\cdot \\left(\\dfrac{1}{n}\\right)^2} = \\dfrac{1}{1 + 1} = \\dfrac{1}{2}$.\n\nCheck: How do we know $f_n(x_n) = \\dfrac{1}{2}$ for all $n$?"
+      ]
+    ],
+    "lang": "en",
+    "verdict": {
+      "math_ok": true,
+      "guidance": 1,
+      "issue": "學生多次表示完全不懂時，助教重複出現系統錯誤預設字串（A reliable semantic review...）並直接灌輸步驟答案，完全未能進行有效調適與引導。"
+    },
+    "escalation": {
+      "stuck_count": 0,
+      "level2_reached": true,
+      "walk_active": true,
+      "max_level": 2
+    }
+  }
+]

@@ -129,10 +129,18 @@ def test_evaluation_wrapper_uploads_combined_service_assets():
     assert "server_train/Modelfile.vtg" in text
 
 
+def test_evaluation_wrapper_accepts_an_alternate_local_evaluator():
+    text = (HERE / "run_limit_levels_evaluation.sh").read_text(encoding="utf-8")
+
+    assert "LIMIT_LEVELS_EVAL_SCRIPT" in text
+    assert '"$EVAL_SCRIPT" "$@"' in text
+
+
 if __name__ == "__main__":
     test_runner_is_isolated_to_own_container_and_gpu1()
     test_runner_exposes_start_status_and_stop_actions()
     test_start_timeout_stops_only_the_owned_container()
     test_evaluation_wrapper_stops_remote_container_when_evaluator_fails()
     test_evaluation_wrapper_uploads_combined_service_assets()
+    test_evaluation_wrapper_accepts_an_alternate_local_evaluator()
     print("PASS: limit-levels remote runner contract")

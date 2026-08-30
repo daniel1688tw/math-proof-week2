@@ -346,6 +346,15 @@ def _balanced_arrays(content: str) -> list[str]:
 
 def _parse_issue_list(content: str) -> list[dict] | None:
     """解析全文審閱問題；兼容模型偶爾使用的舊欄位或純字串項目。"""
+    def restore_latex_controls(value: object) -> str:
+        """還原被 JSON 合法控制 escape 吞掉的常見 LaTeX 指令。"""
+        text = str(value or "")
+        return (text.replace("\x0crac", r"\frac")
+                    .replace("\x08ig", r"\big")
+                    .replace("\text", r"\text")
+                    .replace("\right", r"\right")
+                    .replace("\neq", r"\neq"))
+
     for span in _balanced_arrays(content):
         for attempt in (span, span.replace("\\", "\\\\")):
             try:
@@ -360,18 +369,22 @@ def _parse_issue_list(content: str) -> list[dict] | None:
                     raw = {"root_cause": raw.strip(), "description": raw.strip()}
                 if not isinstance(raw, dict):
                     return None
-                root = str(raw.get("root_cause") or raw.get("summary")
-                           or raw.get("problem") or "").strip()
-                desc = str(raw.get("description") or raw.get("problem")
-                           or raw.get("summary") or root).strip()
+                root = restore_latex_controls(
+                    raw.get("root_cause") or raw.get("summary")
+                    or raw.get("problem") or "").strip()
+                desc = restore_latex_controls(
+                    raw.get("description") or raw.get("problem")
+                    or raw.get("summary") or root).strip()
                 if not root or not desc:
                     return None
                 issues.append({
                     "issue_id": str(raw.get("issue_id") or f"issue-{i}"),
                     "root_cause": root[:300],
-                    "location": str(raw.get("location") or "").strip()[:500],
+                    "location": restore_latex_controls(
+                        raw.get("location") or "").strip()[:500],
                     "description": desc[:1000],
-                    "correction": str(raw.get("correction") or "").strip()[:1000],
+                    "correction": restore_latex_controls(
+                        raw.get("correction") or "").strip()[:1000],
                 })
             return issues
     return None
@@ -689,7 +702,16 @@ def merge_proof_revision(statement: str, reference_proof: str, current_draft: st
                         # 還沒完成推理與輸出就被中止。
                         per_attempt_timeout=timeout)
     merged = str((obj or {}).get("merged_draft") or "").strip()
-    if merged and merged != current_draft:
+    compact_current = re.sub(r"\s+", "", current_draft)
+    compact_merged = re.sub(r"\s+", "", merged)
+    compact_revision = re.sub(r"\s+", "", student_revision)
+    preserves_context = bool(
+        compact_current and compact_merged
+        and compact_merged != compact_revision
+        and len(compact_merged) >= 0.65 * len(compact_current)
+        and SequenceMatcher(None, compact_current, compact_merged).ratio() >= 0.45
+    )
+    if merged and merged != current_draft and preserves_context:
         return merged
 
     patch_obj = _retry_parsed(

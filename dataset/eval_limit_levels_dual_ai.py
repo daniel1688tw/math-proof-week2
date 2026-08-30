@@ -490,6 +490,11 @@ def call_student(problem: dict, scenario: str, mode: str,
     raise RuntimeError(f"GPT-OSS 學生未遵守 {mode}：{raw[-500:]}")
 
 
+def fresh_turn_diagnostic(previous: object, current: object):
+    """只回傳本輪新建的診斷物件；沿用舊 state 的同一物件視為不適用。"""
+    return None if current is previous else current
+
+
 def run_scenario(problem: dict, scenario: str, max_turns: int = 24) -> dict:
     """執行一段從提示到全文審閱結案的完整真實 driver 對話。"""
     from tutor_driver import TutorDriver
@@ -519,6 +524,9 @@ def run_scenario(problem: dict, scenario: str, max_turns: int = 24) -> dict:
         if mode == "flawed_full_proof":
             control["flawed_proof_submitted"] = True
 
+        previous_pre_verification = driver.state.get("pre_generation_verification")
+        previous_guide_review = driver.state.get("guide_reply_review")
+        previous_walkthrough_review = driver.state.get("walkthrough_review")
         started = time.time()
         if turn_index == 1:
             tutor_reply = driver.start(opener=student["student_message"])
@@ -538,9 +546,14 @@ def run_scenario(problem: dict, scenario: str, max_turns: int = 24) -> dict:
             "tutor": tutor_reply,
             "tutor_latency_seconds": tutor_latency,
             "state": state,
-            "pre_generation_verification": driver.state.get("pre_generation_verification"),
-            "guide_review": driver.state.get("guide_reply_review"),
-            "walkthrough_review": driver.state.get("walkthrough_review"),
+            "pre_generation_verification": fresh_turn_diagnostic(
+                previous_pre_verification,
+                driver.state.get("pre_generation_verification")),
+            "guide_review": fresh_turn_diagnostic(
+                previous_guide_review, driver.state.get("guide_reply_review")),
+            "walkthrough_review": fresh_turn_diagnostic(
+                previous_walkthrough_review,
+                driver.state.get("walkthrough_review")),
         }
         turns.append(row)
         transcript.extend([

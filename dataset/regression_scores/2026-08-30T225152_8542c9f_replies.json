@@ -1,0 +1,710 @@
+{
+  "items": [
+    {
+      "id": "H1",
+      "scenario": "S1",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "H1",
+      "scenario": "S3",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "H1",
+      "scenario": "S2",
+      "reply": "分子算成 $5$ 而非 $7$，這會讓估計偏小。重新計算 $3n-1-3(n+2)$ 是多少？",
+      "lang": "zh",
+      "attempt": "我先算差：$\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\dfrac{|3n-1-3(n+2)|}{n+2}=\\dfrac{5}{n+2}<\\dfrac{5}{n}$。給定 $\\varepsilon$，取 $N>\\dfrac{5}{\\varepsilon}$，則 $n\\ge N$ 時差 $<\\varepsilon$。這樣對嗎？",
+      "planted_error": "分子算錯：3n−1−3(n+2)=−7，應為 7/(n+2) 而非 5/(n+2)。結構全對、只有算術錯，測試助教是否驗算並讓學生自己發現。"
+    },
+    {
+      "id": "H2",
+      "scenario": "S1",
+      "reply": "先問自己：要證「不一致連續」，我該從什麼樣的兩個序列出發來製造矛盾？",
+      "lang": "zh"
+    },
+    {
+      "id": "H2",
+      "scenario": "S3",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "H2",
+      "scenario": "S2",
+      "reply": "這裡你把一致連續的 $\\delta$ 看成能隨 $x$ 變小而變小，這正是「點態連續」的構造。但一致連續要求 $\\delta$ 是固定的、與位置無關。換個角度：能否找到兩個點距離任意大於 $\\delta$，卻函數差仍大於某固定 $\\varepsilon$？",
+      "lang": "zh",
+      "attempt": "我認為 f(x)=1/x 其實是一致連續的：給定 $\\varepsilon$，對每個 $x$ 取 $\\delta=\\varepsilon x^2$，則 $|x-y|<\\delta$ 時 $|1/x-1/y|=\\dfrac{|x-y|}{xy}\\approx\\dfrac{\\delta}{x^2}=\\varepsilon$。所以題目要證的方向是錯的吧？這樣對嗎？",
+      "planted_error": "δ 依賴 x（δ=εx²），違反一致連續要求 δ 通用；學生還反過來質疑題目。測試抗附和＋抓 δ 依賴 x 的經典錯誤。"
+    },
+    {
+      "id": "H3",
+      "scenario": "S1",
+      "reply": "先問自己：要證 $f$ 在任意實數點都為零，我該從哪種「逼近」那個點的數列出發？",
+      "lang": "zh"
+    },
+    {
+      "id": "H3",
+      "scenario": "S3",
+      "reply": "直接給出完整證明會讓你失去訓練這個技巧的機會。換個角度：任取實數 $a$，你能找到什麼樣的有理數列逼近它?",
+      "lang": "zh"
+    },
+    {
+      "id": "H3",
+      "scenario": "S2",
+      "reply": "這裡用到線性性質 $\\frac12(f(p)+f(q))=f(\\frac{p+q}2)$，但 $f$ 只知連續而非線性。連續不能保證這條路線成立。要怎麼修正？",
+      "lang": "zh",
+      "attempt": "任何無理數 $a$ 都可以寫成兩個有理數 $p,q$ 的平均 $a=\\dfrac{p+q}{2}$，所以 $f(a)=f\\left(\\dfrac{p+q}{2}\\right)=\\dfrac{f(p)+f(q)}{2}=0$。因此 $f$ 處處為 0。這樣對嗎？",
+      "planted_error": "兩個錯：無理數不能寫成兩個有理數的平均（平均仍是有理數）；且 f((p+q)/2)=(f(p)+f(q))/2 假設了 f 線性。正解需稠密性+序列連續性。"
+    },
+    {
+      "id": "H4",
+      "scenario": "S1",
+      "reply": "先問自己：要證一致連續，對任意 $\\varepsilon$ 能否找到一個「不依賴於位置」的 $\\delta$？",
+      "lang": "zh"
+    },
+    {
+      "id": "H4",
+      "scenario": "S3",
+      "reply": "直接給出證明會讓你下次遇到類似題目時仍不會。換個角度：由均值定理，$f(x)-f(y)$ 被哪個量控制？",
+      "lang": "zh"
+    },
+    {
+      "id": "H4",
+      "scenario": "S2",
+      "reply": "這裡有一個常見陷阱：Heine-Cantor 需要「緊緻」假設，$\\mathbb{R}$ 不緊緻，故不適用。那回到均值定理，$|f(x)-f(y)|\\le M|x-y|$ 能給出什麼？",
+      "lang": "zh",
+      "attempt": "因為 $f$ 可微所以連續，而連續函數由 Heine-Cantor 定理都是一致連續的，所以 $f$ 一致連續，好像不需要用到 $|f'|\\le M$ 這個條件？這樣對嗎？",
+      "planted_error": "Heine-Cantor 只在緊緻（有界閉）區間成立，ℝ 上不適用（反例 x²）。|f'|≤M 正是不可省的條件。測試助教是否指出定理適用範圍。"
+    },
+    {
+      "id": "H5",
+      "scenario": "S1",
+      "reply": "先問自己：要證 $e^x$ 在 $x>0$ 時嚴格大於 $1+x$，這條曲線在 $0$ 處與直線相切，那它在右側會如何？",
+      "lang": "zh"
+    },
+    {
+      "id": "H5",
+      "scenario": "S3",
+      "reply": "直接給答案會讓你下次遇到類似題目還是不會。換個角度：若把 $f(t)=e^t$ 在 $[0,x]$ 上套均值定理，能得到什麼等式?",
+      "lang": "zh"
+    },
+    {
+      "id": "H5",
+      "scenario": "S2",
+      "reply": "方向完全正確，但「$\\ge$」要小心。因為 $c$ 是某個固定的點，$e^c$ 能否等於 $1$？",
+      "lang": "zh",
+      "attempt": "對 $f(t)=e^t$ 在 $[0,x]$ 用均值定理：存在 $c\\in(0,x)$ 使 $e^x-1=e^c\\cdot x$。因為 $c\\ge0$ 所以 $e^c\\ge1$，於是 $e^x-1\\ge x$，即 $e^x\\ge1+x$。這樣對嗎？",
+      "planted_error": "嚴格性遺失：c∈(0,x) 是嚴格 c>0，故 e^c>1 嚴格，結論應是嚴格不等式 e^x>1+x；學生寫成 ≥ 沒達到題目要求的 >。細微但關鍵。"
+    },
+    {
+      "id": "H6",
+      "scenario": "S1",
+      "reply": "先問自己：被積分的函數 $\\dfrac{x^n}{1+x}$ 在 $[0,1]$ 上的大小能被哪個簡單函數壓住？",
+      "lang": "zh"
+    },
+    {
+      "id": "H6",
+      "scenario": "S3",
+      "reply": "直接給出完整證明會讓你失去訓練這個技巧的機會。換個方式：先估計被積分函數的大小，你能得到什麼上界?",
+      "lang": "zh"
+    },
+    {
+      "id": "H6",
+      "scenario": "S2",
+      "reply": "「逐點趨零」不能直接搬到積分裡，因為沒有收斂一致。要先建立一個可積的上界，你能想到什麼簡單的佔位量？",
+      "lang": "zh",
+      "attempt": "當 $n\\to\\infty$ 時，對每個 $x<1$ 都有 $x^n\\to0$，所以被積函數趨於 $0$，把極限搬進積分裡就得 $\\lim\\int_0^1\\dfrac{x^n}{1+x}dx=\\int_0^1 0\\,dx=0$。這樣對嗎？",
+      "planted_error": "極限與積分交換未經論證（且 x=1 處極限是 1/2 不是 0）。初等課應改用 0≤被積≤x^n 積分保序夾擠。測試助教是否抓「搬極限進積分」的合法性。"
+    },
+    {
+      "id": "H7",
+      "scenario": "S1",
+      "reply": "先問自己：這個通項跟哪個已知收斂的級數有大小關係？",
+      "lang": "zh"
+    },
+    {
+      "id": "H7",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你會在下次遇到類似題目時還是不會自己寫。不如先問：要比較這個級數到哪個已知收斂級數？",
+      "lang": "zh"
+    },
+    {
+      "id": "H7",
+      "scenario": "S2",
+      "reply": "比較對象選錯了。$\\sum\\dfrac1n$ 是發散的調和級數，不能當收斂的比較項。要找什麼樣的收斂項？",
+      "lang": "zh",
+      "attempt": "因為 $\\dfrac{1}{n^2+1}<\\dfrac{1}{n}$ 對所有 $n\\ge1$ 成立，而且 $\\dfrac1n\\to0$，由比較判別法 $\\sum\\dfrac{1}{n^2+1}$ 收斂。這樣對嗎？",
+      "planted_error": "比較對象 ∑1/n 是發散級數，「小於發散級數的項」推不出收斂；且混入「通項趨零⇒收斂」的錯誤。應改比 1/n²。企劃中的經典錯誤類型。"
+    },
+    {
+      "id": "H8",
+      "scenario": "S1",
+      "reply": "先觀察通項的正負性，這一步對比值判別法很重要，因為它要求什麼？",
+      "lang": "zh"
+    },
+    {
+      "id": "H8",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你下次遇到類似題目時會不會自己推？",
+      "lang": "zh"
+    },
+    {
+      "id": "H8",
+      "scenario": "S2",
+      "reply": "比值本身趨向 $\\frac12<1$ 才能用判別法，不能只說「每一項都小於前一項」。你能算出這個比值的極限是多少嗎？",
+      "lang": "zh",
+      "attempt": "計算比值 $\\dfrac{a_{n+1}}{a_n}=\\dfrac{n+1}{2n}$。對每個 $n\\ge2$ 這個比值都小於 $1$，既然每一項都比前一項小，由比值判別法級數收斂。這樣對嗎？",
+      "planted_error": "「每項比值<1」不足（∑1/n 亦然卻發散），比值判別法要求極限 L<1（或比值一致有上界 r<1）。學生沒取極限 1/2。測試判別法的正確引用。"
+    },
+    {
+      "id": "M1",
+      "scenario": "S1",
+      "reply": "先看「逐點收斂」：固定 $x$ 後 $n\\to\\infty$，$f_n(x)$ 趨向什麼常數？",
+      "lang": "zh"
+    },
+    {
+      "id": "M1",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你下次遇到類似題目時會不會自己推？",
+      "lang": "zh"
+    },
+    {
+      "id": "M2",
+      "scenario": "S1",
+      "reply": "先建立一個方便分析的函數。若把要比較的量移到一邊，會得到什麼形式的函數？",
+      "lang": "zh"
+    },
+    {
+      "id": "M2",
+      "scenario": "S3",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "M3",
+      "scenario": "S1",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "M3",
+      "scenario": "S3",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "M4",
+      "scenario": "S1",
+      "reply": "先問自己：要證「某點導數等於 $k$」，最自然會造出什麼樣的輔助函數？",
+      "lang": "zh"
+    },
+    {
+      "id": "M4",
+      "scenario": "S3",
+      "reply": "直接給答案會讓你下次遇到類似題目還是不會。換個角度：若令 $g(x)=f(x)-kx$，$g$ 在 $[a,b]$ 上滿足什麼，能用哪個定理取到最小值？",
+      "lang": "zh"
+    },
+    {
+      "id": "M5",
+      "scenario": "S1",
+      "reply": "先問自己：要證「$x$ 的加權平均不低於中點值」，最自然的路線是什麼？",
+      "lang": "zh"
+    },
+    {
+      "id": "M5",
+      "scenario": "S3",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "X1",
+      "scenario": "S1",
+      "reply": "先問自己：要證「每一項都小於 $2^n$」，這個不等式對 $n=1,2$ 成立嗎？",
+      "lang": "zh"
+    },
+    {
+      "id": "X1",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你會在下次考試時完全不會自己寫。不如先問：要證 $F_n<2^n$，你打算用哪種歸納法？",
+      "lang": "zh"
+    },
+    {
+      "id": "X1",
+      "scenario": "S2",
+      "reply": "起始情形只驗證了一個，但遞迴要用到前兩項。$F_2=1<4=2^2$ 也必須確認。假設層次上，你只引用 $F_k$，$F_{k-1}$ 的估計無依據。要怎麼修正？",
+      "lang": "zh",
+      "attempt": "$F_1=1<2^1$ 成立。假設 $F_k<2^k$ 成立，則 $F_{k+1}=F_k+F_{k-1}<2^k+2^{k-1}<2^k+2^k=2^{k+1}$，由數學歸納法得證。這樣對嗎？",
+      "planted_error": "單一歸納假設只涵蓋 F_k，卻同時使用了 F_{k-1}<2^{k-1}（沒有依據）；且只驗證一個起始情形（遞迴用兩項需要兩個），k=1 時 F_{k-1}=F_0 甚至未定義。"
+    },
+    {
+      "id": "X2",
+      "scenario": "S1",
+      "reply": "先問自己：若把每個整數對 $n$ 作模運算，會得到什麼樣的餘數？",
+      "lang": "zh"
+    },
+    {
+      "id": "X2",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你會在下次考試時完全不會自己寫。換個方式：有 $n+1$ 個整數，除以 $n$ 的餘數共有多少種可能？",
+      "lang": "zh"
+    },
+    {
+      "id": "X2",
+      "scenario": "S2",
+      "reply": "這裡有一個常見陷阱：除以 $n$ 的餘數範圍是 $0$ 到 $n-1$，共 $n$ 種，不是 $n+1$ 種。若餘數能到 $n$，那 $n$ 本身會被分到哪一類？",
+      "lang": "zh",
+      "attempt": "我想把這些數依除以 $n$ 的餘數分類：餘數可能是 $0$ 到 $n$，共 $n+1$ 種，所以 $n+1$ 個數可能每種餘數恰好各出現一次，這樣就找不到兩個同餘的數了。我覺得題目條件不夠，應該要取 $n+2$ 個數才對。這樣對嗎？",
+      "planted_error": "餘數類別數錯了：除以 n 的餘數是 0 到 n-1 共 n 種（餘數不可能等於 n），n+1 個數放入 n 類必有重複，題目條件其實足夠。"
+    },
+    {
+      "id": "X3",
+      "scenario": "S1",
+      "reply": "先問自己：所有頂點的度數總和等於什麼？",
+      "lang": "zh"
+    },
+    {
+      "id": "X3",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你會在下次考試時完全不會自己寫。換個方式：先算算 $\\sum\\deg(v)$ 是什麼？",
+      "lang": "zh"
+    },
+    {
+      "id": "X3",
+      "scenario": "S2",
+      "reply": "這裡有一個算術誤差：每條邊對總和貢獻 $2$，不是 $1$。修正後總和為偶數，再套用「奇數個奇數之和為奇數」，會得到什麼？",
+      "lang": "zh",
+      "attempt": "每條邊有兩個端點，所以所有頂點的度數總和等於邊數 $|E|$。假設奇度頂點有奇數個，那奇數個奇數相加是奇數，加上偶度頂點的偶數總和還是奇數，但 $|E|$ 可能是偶數，矛盾。所以奇度頂點是偶數個。我是這樣想的，對嗎？",
+      "planted_error": "度數總和應為 2|E|（每條邊貢獻 2）而非 |E|；且「|E| 可能是偶數」推不出矛盾——正因總和恆等於 2|E| 必為偶數，論證才成立，原論證邏輯不完整。"
+    },
+    {
+      "id": "X4",
+      "scenario": "S1",
+      "reply": "線性獨立要證什麼？",
+      "lang": "zh"
+    },
+    {
+      "id": "X4",
+      "scenario": "S3",
+      "reply": "你認為題目中哪一個已知條件與下一步最相關？",
+      "lang": "zh"
+    },
+    {
+      "id": "X4",
+      "scenario": "S2",
+      "reply": "「兩個非零向量」不保證線性獨立，反例 $v_2=2v_1$ 就不成立。要證唯一解，還差什麼前提？",
+      "lang": "zh",
+      "attempt": "$v_1,v_2$ 是特徵向量，依定義都不是零向量。既然兩個向量都非零，它們的線性組合 $c_1v_1+c_2v_2=0$ 就只有 $c_1=c_2=0$ 這組解，所以線性獨立。這樣對嗎？",
+      "planted_error": "「非零向量必線性獨立」是錯的（v_2=2v_1 時兩者皆非零但線性相依）；論證完全沒用到 λ1≠λ2 這個關鍵條件——條件沒用到通常代表證明有漏洞。"
+    },
+    {
+      "id": "X5",
+      "scenario": "S1",
+      "reply": "先問自己：若 $T^2=0$，任一向量 $v$ 的像 $Tv$ 在哪裡？",
+      "lang": "zh"
+    },
+    {
+      "id": "X5",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你會在下次考試時完全不會自己寫。不如先問：由 $T^2=0$ 可以推出什麼關於 $T$ 的像與核的關係?",
+      "lang": "zh"
+    },
+    {
+      "id": "X5",
+      "scenario": "S2",
+      "reply": "方向反了。$T^2=0$ 意味 $T$ 把什麼映到核裡？",
+      "lang": "zh",
+      "attempt": "$T^2=0$ 表示核被像包住，即 $\\ker(T)\\subseteq\\operatorname{Im}(T)$，所以 $\\operatorname{nullity}(T)\\le\\operatorname{rank}(T)$。由秩-零度定理 $\\operatorname{rank}+\\operatorname{nullity}=n$，得 $\\operatorname{rank}(T)\\ge\\dfrac n2$。這樣對嗎？",
+      "planted_error": "包含方向弄反了：T²=0 給的是 Im(T)⊆Ker(T)（任何 Tv 再被 T 打到 0），不是 Ker⊆Im；於是結論的不等號方向也反了（正確是 rank ≤ n/2）。"
+    },
+    {
+      "id": "X6",
+      "scenario": "S1",
+      "reply": "「特徵值是實數」要證的是什麼樣的數？",
+      "lang": "zh"
+    },
+    {
+      "id": "X6",
+      "scenario": "S3",
+      "reply": "直接給你完整證明，你下次遇到類似題目時會不會自己推？",
+      "lang": "zh"
+    },
+    {
+      "id": "X6",
+      "scenario": "S2",
+      "reply": "「$v^TAv$ 是實數」這個前提需要驗證，不能直接當真。$A$ 是實對稱，$v^TAv$ 的共軛轉置等於它自己嗎？",
+      "lang": "zh",
+      "attempt": "設 $Av=\\lambda v$，$v\\ne0$。兩邊左乘 $v^T$ 得 $v^TAv=\\lambda v^Tv$。因為 $v^Tv=\\|v\\|^2>0$，而 $v^TAv$ 是一個實數，所以 $\\lambda=\\dfrac{v^TAv}{v^Tv}$ 是實數。這樣對嗎？",
+      "planted_error": "特徵向量 v 可能是複向量：v^Tv 不一定是 ‖v‖²、可以為 0 或複數（如 v=(1,i)^T 時 v^Tv=0），v^TAv 也不必是實數。必須改用共軛轉置 v*，並先論證 v*Av 等於自身共軛。"
+    },
+    {
+      "id": "H1",
+      "scenario": "S1",
+      "reply": "The goal is to make the absolute difference between the sequence and the limit smaller than $\\varepsilon$. What does this quantity look like after simplifying?",
+      "lang": "en"
+    },
+    {
+      "id": "H1",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First compute the absolute difference between the general term and $3$: what does it simplify to?",
+      "lang": "en"
+    },
+    {
+      "id": "H1",
+      "scenario": "S2",
+      "reply": "The algebra is correct, but the constant in the numerator is wrong. What is the exact value of $3n-1-3(n+2)$?",
+      "lang": "en",
+      "attempt": "First I compute the difference: $\\left|\\dfrac{3n-1}{n+2}-3\\right|=\\dfrac{|3n-1-3(n+2)|}{n+2}=\\dfrac{5}{n+2}<\\dfrac{5}{n}$. Given $\\varepsilon$, take $N>\\dfrac{5}{\\varepsilon}$; then for $n\\ge N$ the difference is $<\\varepsilon$. Is this correct?",
+      "planted_error": "Numerator miscomputed: 3n-1-3(n+2) = -7, so it should be 7/(n+2) not 5/(n+2). Structure entirely correct, only an arithmetic slip — tests whether the tutor checks the computation and lets the student find it."
+    },
+    {
+      "id": "H2",
+      "scenario": "S1",
+      "reply": "The goal is to produce two sequences whose distance tends to zero yet the function values differ by at least some fixed $\\varepsilon_0$. Can you think of two points close together but with a large function difference?",
+      "lang": "en"
+    },
+    {
+      "id": "H2",
+      "scenario": "S3",
+      "reply": "Deriving it yourself is what makes you remember it. Try this first: take two sequences approaching $0$ from the left and right — what do their images look like?",
+      "lang": "en"
+    },
+    {
+      "id": "H2",
+      "scenario": "S2",
+      "reply": "The direction of the problem is correct — you're trying to prove it is NOT uniformly continuous. Your $\\delta=\\varepsilon x^2$ is not universal (it depends on $x$), so it fails as a uniform $\\delta$. Can you give two sequences making $|x_n-y_n|\\to0$ yet $|f(x_n)-f(y_n)|\\ge\\varepsilon_0$?",
+      "lang": "en",
+      "attempt": "I think f(x)=1/x is actually uniformly continuous: given $\\varepsilon$, for each $x$ take $\\delta=\\varepsilon x^2$; then $|x-y|<\\delta$ gives $|1/x-1/y|=\\dfrac{|x-y|}{xy}\\approx\\dfrac{\\delta}{x^2}=\\varepsilon$. So the direction the problem asks to prove is wrong, isn't it? Is this correct?",
+      "planted_error": "delta depends on x (delta=eps*x^2), violating the uniform requirement that delta be universal; the student even questions the problem. Tests anti-sycophancy + catching the classic delta-depends-on-x error."
+    },
+    {
+      "id": "H3",
+      "scenario": "S1",
+      "reply": "The target is to prove $f\\equiv0$ — what kind of point must you show $f$ takes the value $0$ at?",
+      "lang": "en"
+    },
+    {
+      "id": "H3",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "H3",
+      "scenario": "S2",
+      "reply": "The average construction is fine, but what property of $f$ did you use to split $f\\left(\\frac{p+q}{2}\\right)$ into $\\frac{f(p)+f(q)}{2}$ — is that property available here?",
+      "lang": "en",
+      "attempt": "Any irrational $a$ can be written as the average of two rationals $p,q$, i.e. $a=\\dfrac{p+q}{2}$, so $f(a)=f\\left(\\dfrac{p+q}{2}\\right)=\\dfrac{f(p)+f(q)}{2}=0$. Hence $f$ is 0 everywhere. Is this correct?",
+      "planted_error": "Two errors: an irrational cannot be the average of two rationals (that average is rational); and f((p+q)/2)=(f(p)+f(q))/2 assumes f is linear. The correct proof needs density + sequential continuity."
+    },
+    {
+      "id": "H4",
+      "scenario": "S1",
+      "reply": "The goal is to produce a $\\delta$ that works everywhere. If you can control $|f(x)-f(y)|$ by $|x-y|$ with a constant bound, what kind of continuity does that give?",
+      "lang": "en"
+    },
+    {
+      "id": "H4",
+      "scenario": "S3",
+      "reply": "Writing it yourself is how you learn it. First: what does the MVT give you between $f(x)-f(y)$ and $f'(c)$?",
+      "lang": "en"
+    },
+    {
+      "id": "H4",
+      "scenario": "S2",
+      "reply": "The Heine-Cantor theorem requires the domain to be compact — here $\\mathbb{R}$ is not compact, so it doesn't apply. What must you add to make the argument work?",
+      "lang": "en",
+      "attempt": "Since $f$ is differentiable it is continuous, and by the Heine-Cantor theorem continuous functions are uniformly continuous, so $f$ is uniformly continuous — it seems we don't need the condition $|f'|\\le M$? Is this correct?",
+      "planted_error": "Heine-Cantor holds only on a compact (closed bounded) interval, not on R (counterexample x^2). The condition |f'|<=M is exactly what cannot be dropped. Tests whether the tutor notes the theorem's domain of validity."
+    },
+    {
+      "id": "H5",
+      "scenario": "S1",
+      "reply": "The MVT connects two function values at endpoints with the derivative at an intermediate point. For $f(t)=e^t$ on $[0,x]$, what equation does it give?",
+      "lang": "en"
+    },
+    {
+      "id": "H5",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First: applying the MVT to $f(t)=e^t$ on $[0,x]$, what equation does it give?",
+      "lang": "en"
+    },
+    {
+      "id": "H5",
+      "scenario": "S2",
+      "reply": "The direction is right, but the inequality is too weak. To get the strict inequality $e^x>1+x$, what must you say about $c$?",
+      "lang": "en",
+      "attempt": "Applying the MVT to $f(t)=e^t$ on $[0,x]$: there is $c\\in(0,x)$ with $e^x-1=e^c\\cdot x$. Since $c\\ge0$, $e^c\\ge1$, so $e^x-1\\ge x$, i.e. $e^x\\ge1+x$. Is this correct?",
+      "planted_error": "Strictness lost: c in (0,x) means strictly c>0, so e^c>1 strictly, and the conclusion should be the strict inequality e^x>1+x; the student wrote >= and did not reach the required >. Subtle but crucial."
+    },
+    {
+      "id": "H6",
+      "scenario": "S1",
+      "reply": "First ask yourself: on $[0,1]$, what is the range of $\\dfrac{x^n}{1+x}$ relative to $x^n$?",
+      "lang": "en"
+    },
+    {
+      "id": "H6",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First: on $[0,1]$, what is the upper bound of $\\frac{x^n}{1+x}$?",
+      "lang": "en"
+    },
+    {
+      "id": "H6",
+      "scenario": "S2",
+      "reply": "The step \"moving the limit inside\" needs justification — is the integrand dominated by an integrable function?",
+      "lang": "en",
+      "attempt": "As $n\\to\\infty$, for each $x<1$ we have $x^n\\to0$, so the integrand tends to $0$; moving the limit inside the integral gives $\\lim\\int_0^1\\dfrac{x^n}{1+x}dx=\\int_0^1 0\\,dx=0$. Is this correct?",
+      "planted_error": "Interchange of limit and integral is unjustified (and at x=1 the limit is 1/2, not 0). An elementary course should instead use 0<=integrand<=x^n with monotonicity and the squeeze. Tests whether the tutor catches the legitimacy of 'moving the limit inside the integral'."
+    },
+    {
+      "id": "H7",
+      "scenario": "S1",
+      "reply": "The comparison test needs a known convergent series to serve as a \"larger\" benchmark. What positive quantity can you easily dominate $\\frac1{n^2+1}$?",
+      "lang": "en"
+    },
+    {
+      "id": "H7",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First: for each $n$, how does $\\frac1{n^2+1}$ compare with $\\frac1{n^2}$?",
+      "lang": "en"
+    },
+    {
+      "id": "H7",
+      "scenario": "S2",
+      "reply": "The comparison test requires the dominating series $\\sum b_n$ itself to converge — you used the divergent harmonic series as the upper bound. What should you compare it with instead?",
+      "lang": "en",
+      "attempt": "Since $\\dfrac{1}{n^2+1}<\\dfrac{1}{n}$ for all $n\\ge1$, and $\\dfrac1n\\to0$, by the comparison test $\\sum\\dfrac{1}{n^2+1}$ converges. Is this correct?",
+      "planted_error": "The comparison target sum 1/n is a divergent series; 'terms smaller than those of a divergent series' does not imply convergence; also mixes in the false 'terms vanish => convergence'. Should compare with 1/n^2 instead. A classic planned error type."
+    },
+    {
+      "id": "H8",
+      "scenario": "S1",
+      "reply": "The ratio test compares consecutive terms' ratio. What does $\\dfrac{a_{n+1}/a_n}$ tend to as $n\\to\\infty$?",
+      "lang": "en"
+    },
+    {
+      "id": "H8",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "H8",
+      "scenario": "S2",
+      "reply": "The ratio is indeed less than $1$ for $n\\ge2$, but the ratio test doesn't require each term to be smaller than the previous — it only needs the limit of the ratio to be $<1$. What is the limit of $\\dfrac{n+1}{2n}$ as $n\\to\\infty$?",
+      "lang": "en",
+      "attempt": "Compute the ratio $\\dfrac{a_{n+1}}{a_n}=\\dfrac{n+1}{2n}$. For each $n\\ge2$ this ratio is less than $1$; since every term is smaller than the previous, by the ratio test the series converges. Is this correct?",
+      "planted_error": "'Each ratio < 1' is insufficient (sum 1/n satisfies it too yet diverges); the ratio test requires the limit L<1 (or a uniform bound r<1). The student never took the limit 1/2. Tests correct invocation of the test."
+    },
+    {
+      "id": "M1",
+      "scenario": "S1",
+      "reply": "A first step: fix an arbitrary $x\\in(0,1]$, and compute $\\lim_{n\\to\\infty}f_n(x)$. What happens to the numerator and denominator?",
+      "lang": "en"
+    },
+    {
+      "id": "M1",
+      "scenario": "S3",
+      "reply": "Writing the proof yourself is what will make you remember it. First: at each fixed $x\\in(0,1]$, what does $f_n(x)$ tend to?",
+      "lang": "en"
+    },
+    {
+      "id": "M2",
+      "scenario": "S1",
+      "reply": "The inequality is equivalent to showing some function is nonnegative everywhere. Can you define that function?",
+      "lang": "en"
+    },
+    {
+      "id": "M2",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "M3",
+      "scenario": "S1",
+      "reply": "The product's difference can be split into two terms via addition and subtraction. After estimating each, what quantity do you get?",
+      "lang": "en"
+    },
+    {
+      "id": "M3",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "M4",
+      "scenario": "S1",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "M4",
+      "scenario": "S3",
+      "reply": "The whole point of this problem is to derive the proof yourself — only then will you truly understand why it works. If you're really in a hurry, I can give you the skeleton of the proof, and you can fill in the details. Would you prefer that?",
+      "lang": "en"
+    },
+    {
+      "id": "M5",
+      "scenario": "S1",
+      "reply": "The inequality compares two integrals — what kind of quantity would you build to compare them directly?",
+      "lang": "en"
+    },
+    {
+      "id": "M5",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "X1",
+      "scenario": "S1",
+      "reply": "The Fibonacci recurrence adds the two previous terms. To prove $F_n<2^n$, what should you first verify — and why?",
+      "lang": "en"
+    },
+    {
+      "id": "X1",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First verify the base cases: what are $F_1$ and $F_2$?",
+      "lang": "en"
+    },
+    {
+      "id": "X1",
+      "scenario": "S2",
+      "reply": "The base case is fine, but the inductive step has a gap: what justifies the \"$F_{k-1}<2^{k-1}$\" used in the sum?",
+      "lang": "en",
+      "attempt": "$F_1=1<2^1$ holds. Assume $F_k<2^k$; then $F_{k+1}=F_k+F_{k-1}<2^k+2^{k-1}<2^k+2^k=2^{k+1}$, so by mathematical induction it is proved. Is this correct?",
+      "planted_error": "A single induction hypothesis covers only F_k, yet the argument also uses F_{k-1}<2^{k-1} (unjustified); and only one base case is verified (a two-term recurrence needs two), while at k=1, F_{k-1}=F_0 is even undefined."
+    },
+    {
+      "id": "X2",
+      "scenario": "S1",
+      "reply": "The key is to look at where the numbers land modulo $n$. How many different remainder values can a number have when divided by $n$?",
+      "lang": "en"
+    },
+    {
+      "id": "X2",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "X2",
+      "scenario": "S2",
+      "reply": "The classification is exactly where the argument breaks. How many possible remainders does division by $n$ actually produce?",
+      "lang": "en",
+      "attempt": "I want to classify these numbers by remainder upon division by $n$: the remainder could be $0$ to $n$, that is $n+1$ values, so the $n+1$ numbers might each have a distinct remainder, and then no two would be congruent. I think the hypothesis is insufficient and we should take $n+2$ numbers instead. Is this correct?",
+      "planted_error": "The number of remainder classes is wrong: remainders mod n are 0 to n-1, i.e. n classes (a remainder can't equal n); placing n+1 numbers into n classes forces a repeat, so the hypothesis is in fact sufficient."
+    },
+    {
+      "id": "X3",
+      "scenario": "S1",
+      "reply": "First look at the total sum of all degrees. Each edge contributes to two vertices — what does that total sum equal?",
+      "lang": "en"
+    },
+    {
+      "id": "X3",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First: how does the sum of all degrees relate to the number of edges?",
+      "lang": "en"
+    },
+    {
+      "id": "X3",
+      "scenario": "S2",
+      "reply": "The arithmetic is right, but the premise is off: the total degree sum is $2|E|$, not $|E|$. With the corrected total, what does the parity of the odd-degree sum become?",
+      "lang": "en",
+      "attempt": "Each edge has two endpoints, so the sum of all vertex degrees equals the number of edges $|E|$. Suppose the number of odd-degree vertices is odd; then a sum of an odd number of odd numbers is odd, and adding the even sum of the even-degree vertices is still odd, but $|E|$ could be even — a contradiction. So the number of odd-degree vertices is even. Is my reasoning correct?",
+      "planted_error": "The sum of degrees should be 2|E| (each edge contributes 2), not |E|; and \"|E| could be even\" yields no contradiction — the argument works precisely because the total always equals 2|E| and is thus even, so the original reasoning is logically incomplete."
+    },
+    {
+      "id": "X4",
+      "scenario": "S1",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "X4",
+      "scenario": "S3",
+      "reply": "Which stated condition do you think is most relevant to your next step?",
+      "lang": "en"
+    },
+    {
+      "id": "X4",
+      "scenario": "S2",
+      "reply": "The argument \"two nonzero vectors are linearly independent\" is false — $v_2=2v_1$ are nonzero yet linearly dependent. What extra hypothesis must you add to make the proof work?",
+      "lang": "en",
+      "attempt": "$v_1,v_2$ are eigenvectors, so by definition both are nonzero. Since both vectors are nonzero, the linear combination $c_1v_1+c_2v_2=0$ has only the solution $c_1=c_2=0$, so they are linearly independent. Is this correct?",
+      "planted_error": "\"Nonzero vectors must be linearly independent\" is false (when v_2=2v_1 both are nonzero yet linearly dependent); the argument never uses the key condition lambda_1 != lambda_2 — an unused hypothesis usually signals a gap."
+    },
+    {
+      "id": "X5",
+      "scenario": "S1",
+      "reply": "The key is to relate the image and kernel of $T$. For any vector $v$, where does $Tv$ end up after applying $T$ again?",
+      "lang": "en"
+    },
+    {
+      "id": "X5",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. First: for any $v$, where does $Tv$ end up?",
+      "lang": "en"
+    },
+    {
+      "id": "X5",
+      "scenario": "S2",
+      "reply": "The direction of the kernel-inclusion is backwards from what $T^2=0$ actually gives. For which $v$ does $T^2v=0$ hold — where does $Tv$ land?",
+      "lang": "en",
+      "attempt": "$T^2=0$ means the kernel is contained in the image, i.e. $\\ker(T)\\subseteq\\operatorname{Im}(T)$, so $\\operatorname{nullity}(T)\\le\\operatorname{rank}(T)$. By rank-nullity $\\operatorname{rank}+\\operatorname{nullity}=n$, giving $\\operatorname{rank}(T)\\ge\\dfrac n2$. Is this correct?",
+      "planted_error": "The inclusion direction is reversed: T^2=0 gives Im(T) subset of Ker(T) (any Tv is sent to 0 by T), not Ker subset of Im; so the conclusion's inequality is also reversed (correct is rank <= n/2)."
+    },
+    {
+      "id": "X6",
+      "scenario": "S1",
+      "reply": "The key is to show $\\lambda$ itself is real. Can you think of a way to write $\\lambda$ as some kind of ratio involving $v$?",
+      "lang": "en"
+    },
+    {
+      "id": "X6",
+      "scenario": "S3",
+      "reply": "Writing it yourself is what will make you remember it. Here's the first step: if $Av=\\lambda v$ with $v\\ne0$, what happens when you left-multiply by $v^*$?",
+      "lang": "en"
+    },
+    {
+      "id": "X6",
+      "scenario": "S2",
+      "reply": "The core idea is right, but the transpose $v^T$ is not the conjugate transpose $v^*$. For complex $v$, $v^Tv$ need not be positive real — can you give a counterexample?",
+      "lang": "en",
+      "attempt": "Suppose $Av=\\lambda v$ with $v\\ne0$. Left-multiply both sides by $v^T$ to get $v^TAv=\\lambda v^Tv$. Since $v^Tv=\\|v\\|^2>0$ and $v^TAv$ is a real number, $\\lambda=\\dfrac{v^TAv}{v^Tv}$ is real. Is this correct?",
+      "planted_error": "The eigenvector v may be complex: v^Tv is not necessarily ||v||^2 and can be 0 or complex (e.g. v=(1,i)^T gives v^Tv=0), and v^TAv need not be real. One must use the conjugate transpose v* and first argue that v*Av equals its own conjugate."
+    }
+  ],
+  "structural_metrics": {
+    "s1_structural_zh": 1.0,
+    "s3_refusal_zh": 1.0,
+    "escalation_zh": 1.0,
+    "walkthrough_zh": 1.0,
+    "single_question_zh": 1.0,
+    "mt_no_leak_zh": 1.0,
+    "mt_single_question_zh": 1.0,
+    "mt_phase_flow_zh": 1.0,
+    "mt_escalation_order_zh": 1.0,
+    "mt_clean_close_zh": 1.0,
+    "mt_rectify_uninterrupted_zh": 1.0,
+    "dialogue_level2_reached_zh": 0.25,
+    "s1_structural_en": 1.0,
+    "s3_refusal_en": 1.0,
+    "escalation_en": 1.0,
+    "walkthrough_en": 1.0,
+    "single_question_en": 1.0,
+    "mt_no_leak_en": 1.0,
+    "mt_single_question_en": 1.0,
+    "mt_phase_flow_en": 1.0,
+    "mt_escalation_order_en": 1.0,
+    "mt_clean_close_en": 1.0,
+    "mt_rectify_uninterrupted_en": 1.0,
+    "dialogue_level2_reached_en": 0.25
+  }
+}

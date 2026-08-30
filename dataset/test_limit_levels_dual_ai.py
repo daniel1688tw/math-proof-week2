@@ -2,6 +2,7 @@
 """CPU-only contracts for the GPT-OSS 120B level dialogue evaluator."""
 from pathlib import Path
 
+import eval_limit_levels_dual_ai as evaluator
 from eval_limit_levels_dual_ai import (
     assess_scenario,
     build_limit_problem,
@@ -290,6 +291,15 @@ def test_resume_merge_preserves_passed_scenarios_and_replaces_retried_one():
     assert merged[-1]["assessment"]["passed"] is True
 
 
+def test_turn_report_omits_stale_diagnostic_from_an_earlier_phase():
+    """非本輪新建的審閱物件不能抄進 review／closed 輪報告。"""
+    stale = {"status": "passed", "initial": {"feedback": "舊 Level 2 審閱"}}
+    fresh = {"status": "passed", "initial": {"feedback": "本輪審閱"}}
+
+    assert evaluator.fresh_turn_diagnostic(stale, stale) is None
+    assert evaluator.fresh_turn_diagnostic(stale, fresh) is fresh
+
+
 if __name__ == "__main__":
     test_source_log_contains_one_unique_problem_repeated_three_times()
     test_stuck_scenario_forces_four_stuck_turns_before_learning()
@@ -307,4 +317,5 @@ if __name__ == "__main__":
     test_markdown_report_shows_scenario_checks_and_each_turn_level()
     test_controlled_student_outputs_must_match_the_requested_mode()
     test_resume_merge_preserves_passed_scenarios_and_replaces_retried_one()
+    test_turn_report_omits_stale_diagnostic_from_an_earlier_phase()
     print("PASS: GPT-OSS level dialogue evaluator contracts")

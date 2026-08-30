@@ -544,6 +544,10 @@ check("教學輪記下本輪實際呈現的步驟（下一輪據此評分）",
 r_next = w.step("聽不懂，不明白。")               # 唯一一次機會：揭答並前進
 check("答不出來 → 揭示參考答案並直接前進到步驟 2",
       w.state["walk_idx"] == 1 and "中值定理" in r_next and "第 2/2 步" in r_next)
+check("未回答確認題不等同宣告學生的相關數學說法錯誤",
+      "還沒有回答目前的確認問題" in r_next
+      and "不表示你提到的其他數學說法是錯的" in r_next
+      and "這個回答尚未正確" not in r_next)
 check("逐步回答交給語意後盾，且審閱的是上一輪實際呈現的步驟",
       len(w.judged_steps) == 1 and w.judged_steps[0][2] == "甲的關鍵定理是什麼？")
 r_done = w.step("這一步得到的是有界。")             # 後盾判對 → 步驟用盡
@@ -552,10 +556,11 @@ check("步驟教完 → review/awaiting_submission 且教學結束",
       and w.state["review_status"] == "awaiting_submission"
       and "參考答案" not in r_done)
 
-# incorrect／partial 不得退回字串比對；後盾不可用時留在原步驟。
+# incorrect／partial 不得退回字串比對；後盾已用盡內部重試仍不可用時，
+# 不把學生判錯，但必須示範目前微步驟並前進，避免同一題無上限死循環。
 wS = _SemanticWalkStub(tok=None, model=_StubModel(), problem=dict(_walk_prob))
 wS.generated_levels = []
-wS.walk_verdicts = ["incorrect", "unavailable", "correct"]
+wS.walk_verdicts = ["incorrect", "unavailable"]
 wS.judged_steps = []
 wS.messages = [{"role": "user", "content": "題目…開始"}]
 wS.state.update(walk_active=True, walk_idx=0, phase="walkthrough",
@@ -569,16 +574,13 @@ check("逐步教學答錯時先說明原因，再提供正確答案",
       and r_rev.index("stub:incorrect") < r_rev.index("正確答案")
       and "正確依據" not in r_rev and "。。" not in r_rev)
 r_unavailable = wS.step("還是不知道。")
-check("後盾不可用時不消耗步驟、不揭答、不切 phase",
-      wS.state["phase"] == "walkthrough" and wS.state["walk_idx"] == 1
-      and "保留在目前步驟" in r_unavailable and "正確答案" not in r_unavailable)
+check("後盾不可用時以中性示範前進，不在同一步死循環",
+      wS.state["phase"] == "review"
+      and wS.state["review_status"] == "awaiting_submission"
+      and "有界" in r_unavailable and "現在請把完整證明" in r_unavailable)
 check("後盾不可用時不把學生回答誤宣告為錯誤",
       "不把你的回答判為錯誤" in r_unavailable
       and "這個回答尚未正確" not in r_unavailable)
-r_last = wS.step("這一步得到有界。")
-check("服務恢復且同步回答正確後才轉交稿",
-      wS.state["phase"] == "review"
-      and wS.state["review_status"] == "awaiting_submission")
 
 # 最後一題答錯時，不可讓自由生成模型在「錯因＋正解」後又說「完全正確」。
 w_last = _SemanticWalkStub(tok=None, model=_StubModel(), problem=dict(_walk_prob))
@@ -1049,6 +1051,27 @@ check("→ 同時記下 writeup_asked（下一則草稿才進得了 review）",
 check("log.guards 記為 writeup_readiness",
       "writeup_readiness" in x4.state["turns"][-1].guards)
 
+# reviewer 尚未確認 readiness 時，模型不能在同一句一面宣告整份證明完成、
+# 一面又丟出泛用「下一步」問題；這會讓學生無法判斷究竟是否已完成。
+completion_conflict = _GuardStub(
+    tok=None, model=_StubModel(), problem=probs["A6"], backstop=False)
+completion_conflict.first = completion_conflict.regen = (
+    "你的證明已經完成了。那你覺得，下一步該從哪裡下手？")
+completion_conflict.messages = [
+    {"role": "user", "content": "我推出最後的結論了。"},
+]
+completion_conflict.state.update(
+    phase="guide", turn_action="respond_attempt", active_gap="補上最後一個必要依據")
+completion_conflict._tutor_turn()
+conflict_out = completion_conflict.messages[-1]["content"]
+check("未確認 readiness 時攔截『證明完成＋下一步』矛盾回覆",
+      "證明已經完成" not in conflict_out
+      and "completion_question_conflict" in completion_conflict.state["turns"][-1].guards)
+check("矛盾回覆退回安全引導，不臆測已可交稿或重問泛用下一步",
+      "下一步該從哪裡下手" not in conflict_out
+      and ("？" in conflict_out or "?" in conflict_out)
+      and completion_conflict.state["phase"] == "guide")
+
 # 一般引導的完成偵測不能藏在「沒有問句」保底裡：即使 Tutor 候選本身已有問句，
 # 只要學生本輪帶入的新數學內容已讓 Thinking 判定骨架完整，也要由系統主動請交稿。
 auto = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"], backstop=True)
@@ -1068,6 +1091,32 @@ check("一般引導有新進展時主動檢查 readiness，不依賴 Tutor 缺�
       and auto.state.get("review_status") == "awaiting_submission"
       and auto.state.get("writeup_asked") is True
       and "完整證明" in auto.messages[-1]["content"])
+
+# router 可能把「帶問句的正確數學步驟」分類為 clarification，沒有增加廉價進度計數。
+# Thinking 已逐字核對並判 correct 時，Controller 必須以不同學生訊息補計一次；同一輪
+# 候選重審不得重複累加，否則 readiness 永遠被 revision < 2 的前置閘擋住。
+confirmed_progress = _GuardStub(
+    tok=None, model=_StubModel(), problem=probs["A6"], backstop=True)
+confirmed_progress.state["proof_progress_revision"] = 0
+confirmed_progress.messages = [{
+    "role": "user", "content": "我套用均值定理得到第一個正確等式，但下一步呢？"}]
+_correct_step = dict(_COMBINED_READY)
+_correct_step.update(ready_for_writeup=False, readiness_confidence=0.4,
+                     missing_core_step="還缺最後一步",
+                     latest_student_step_status="correct",
+                     first_missing_step="完成最後一步")
+confirmed_progress._update_guide_context_from_review(_correct_step)
+confirmed_progress._update_guide_context_from_review(_correct_step)
+check("同一則 reviewer-confirmed correct 學生步驟只補計一次進度",
+      confirmed_progress.state.get("proof_progress_revision") == 1)
+confirmed_progress.messages.append({
+    "role": "user", "content": "我再完成最後推導並得到題目結論，這樣對嗎？"})
+_ready_step = dict(_COMBINED_READY)
+_ready_step["latest_student_step_status"] = "correct"
+confirmed_progress._update_guide_context_from_review(_ready_step)
+check("第二則 reviewer-confirmed correct 步驟達到 readiness 寬度門檻",
+      confirmed_progress.state.get("proof_progress_revision") == 2
+      and confirmed_progress._combined_readiness_ready(_ready_step))
 
 # 「請要求我寫」的書寫者是學生，不是 Tutor；本地角色訊號須在 Thinking 前就可用。
 role_probe = _GuardStub(tok=None, model=_StubModel(), problem=probs["A6"])
@@ -2835,6 +2884,67 @@ check("P1-3: Level 1 不逐字展開可能含多步驟的 active gap",
       "|b_n|" not in fb_broad_l1 and "comparison test" not in fb_broad_l1)
 check("P1-3: 只有 Level 2 明示可執行支架",
       "|b_n| <= M" in fb_broad_l2 and "Use this step directly" in fb_broad_l2)
+
+# Reviewer 偶爾把「第一個缺口」寫成完整的多步驟推導鏈。respond_attempt 的
+# deterministic fallback 不得在 L0/L1 原樣洩漏；L2 也只能給第一個微步驟。
+p03_driver.state["guide_reply_review"] = {
+    "initial": {
+        "latest_student_step_status": "correct",
+        "first_missing_step": (
+            r"Use the convergence of \(\sum |a_n|\) to show that "
+            r"\(\sum M|a_n|\) converges, and apply the comparison test "
+            r"to conclude that \(\sum |a_n b_n|\) converges."
+        ),
+    }
+}
+p03_driver.state["active_gap"] = p03_driver.state["guide_reply_review"]["initial"]["first_missing_step"]
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_chain_l0 = p03_driver._safe_guide_review_fallback(level=0)
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_chain_l1 = p03_driver._safe_guide_review_fallback(level=1)
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_chain_l2 = p03_driver._safe_guide_review_fallback(level=2)
+check("P1-4: Level 0 不洩漏 reviewer 的多步驟缺口",
+      "comparison test" not in fb_chain_l0 and r"\sum M|a_n|" not in fb_chain_l0)
+check("P1-4: Level 1 不洩漏 reviewer 的多步驟缺口",
+      "comparison test" not in fb_chain_l1 and r"\sum M|a_n|" not in fb_chain_l1)
+check("P1-4: Level 2 只保留多步驟缺口的第一個微步驟",
+      r"\sum M|a_n|" in fb_chain_l2 and "comparison test" not in fb_chain_l2)
+
+# 真實全題評估：Reviewer 用 "which yields" 串起定理、零點與最終結論。
+# 這同樣是多步驟缺口，L0 不得逐字包進問題而洩漏後續答案。
+p03_driver.state["guide_reply_review"] = {
+    "initial": {
+        "latest_student_step_status": "correct",
+        "first_missing_step": (
+            "Apply the Intermediate Value Theorem to g(x) on [0,1] to show "
+            "g(c)=0 for some c, which yields f(c)=f(c+1)."
+        ),
+    }
+}
+p03_driver.state["active_gap"] = p03_driver.state["guide_reply_review"]["initial"]["first_missing_step"]
+p03_driver.state["lang"] = "en"
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_which_chain = p03_driver._safe_guide_review_fallback(level=0)
+check("P1-5: Level 0 不洩漏 which-yields 串接的完整後續鏈",
+      "Intermediate Value Theorem" not in fb_which_chain
+      and "g(c)=0" not in fb_which_chain
+      and "f(c)=f(c+1)" not in fb_which_chain)
+
+p03_driver.state["guide_reply_review"] = {
+    "initial": {
+        "latest_student_step_status": "correct",
+        "first_missing_step": (
+            "具體計算並得出 g(1) = -g(0)，以說明兩者符號相反並套用中間值定理"
+        ),
+    }
+}
+p03_driver.state["active_gap"] = p03_driver.state["guide_reply_review"]["initial"]["first_missing_step"]
+p03_driver.state["lang"] = "zh"
+p03_driver.state["guide_gap_fb_idx"] = 0
+fb_zh_chain = p03_driver._safe_guide_review_fallback(level=0)
+check("P1-5: Level 0 不洩漏中文連接詞串成的完整後續鏈",
+      "g(1)" not in fb_zh_chain and "中間值定理" not in fb_zh_chain)
 p03_driver.state["lang"] = "zh"
 
 print("[35] verify-then-generate generation controller")

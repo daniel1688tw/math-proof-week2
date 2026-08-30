@@ -44,7 +44,8 @@ def _fake_chat_pass(system, user, temperature, timeout=600, **kwargs):
     if system is auto_reference.TEACH_STEPS_TRANSLATOR_SYSTEM:
         import json
         return json.dumps({"steps": _STEPS}, ensure_ascii=False)
-    if system is auto_reference.TEACH_STEPS_VERIFIER_SYSTEM:
+    if system in (auto_reference.TEACH_STEPS_VERIFIER_SYSTEM,
+                  auto_reference.TRANSLATED_STEPS_VERIFIER_SYSTEM):
         return '{"verdict": "pass", "issues": []}'
     return None
 
