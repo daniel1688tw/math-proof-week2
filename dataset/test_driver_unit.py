@@ -557,7 +557,7 @@ check("步驟教完 → review/awaiting_submission 且教學結束",
       and "參考答案" not in r_done)
 
 # incorrect／partial 不得退回字串比對；後盾已用盡內部重試仍不可用時，
-# 不把學生判錯，但必須示範目前微步驟並前進，避免同一題無上限死循環。
+# 不把學生判錯，也不可把「服務失敗」當成學生已完成該步而推進 phase。
 wS = _SemanticWalkStub(tok=None, model=_StubModel(), problem=dict(_walk_prob))
 wS.generated_levels = []
 wS.walk_verdicts = ["incorrect", "unavailable"]
@@ -574,10 +574,11 @@ check("逐步教學答錯時先說明原因，再提供正確答案",
       and r_rev.index("stub:incorrect") < r_rev.index("正確答案")
       and "正確依據" not in r_rev and "。。" not in r_rev)
 r_unavailable = wS.step("還是不知道。")
-check("後盾不可用時以中性示範前進，不在同一步死循環",
-      wS.state["phase"] == "review"
-      and wS.state["review_status"] == "awaiting_submission"
-      and "有界" in r_unavailable and "現在請把完整證明" in r_unavailable)
+check("後盾不可用時停留原 walkthrough 步驟，不虛構學習進度",
+      wS.state["phase"] == "walkthrough"
+      and wS.state["walk_idx"] == 1
+      and "有界" not in r_unavailable
+      and "完整證明" not in r_unavailable)
 check("後盾不可用時不把學生回答誤宣告為錯誤",
       "不把你的回答判為錯誤" in r_unavailable
       and "這個回答尚未正確" not in r_unavailable)
@@ -1346,9 +1347,23 @@ idea_policy.regen_calls = 0
 idea_log = TurnLog(level=0, stuck_count=0)
 idea_reply = idea_policy._enforce_guide_reply_policy(
     "先構造一個新的輔助函數，你會怎麼選？", 0, idea_log)
-check("L0/L1 即使 level_policy_pass 誤判 true，新證明構造欄位仍會攔截",
+check("Level 0 即使 level_policy_pass 誤判 true，新證明構造欄位仍會攔截",
       idea_reply == idea_policy.regen_reply and idea_policy.regen_calls == 1
       and "guide_policy" in idea_log.guards)
+
+# Level 1 的職責是把同一缺口縮成具體子問題。若語意審查已明確判定
+# level_policy_pass=true、沒有替學生完成步驟且沒有洩漏，就不能因為另一個
+# 粗粒度欄位把「提出子問題方向」也一律視為禁用的新想法。
+l1_subgoal_review = dict(idea_only_fail)
+l1_subgoal_review.update(
+    level_policy_pass=True,
+    completes_any_unfinished_step=False,
+    advances_beyond_one_scaffold=False,
+    leaks_final_conclusion=False,
+)
+idea_policy.state.update(turn_action="normal_guide", last_guide_question="哪個條件相關？")
+check("Level 1 可提出同一缺口的具體子問題方向，但不可完成該步",
+      idea_policy._guide_reply_review_passes(l1_subgoal_review, 1))
 
 respond_idea_policy = _GuidePolicyStub(
     tok=None, model=_StubModel(), problem=probs["A6"], backstop=True)
@@ -3052,6 +3067,50 @@ check("actionable mathematical progress in a supplied opener is counted",
 check("supplied opener still does not increase stuck_count",
       opener_progress.state.get("stuck_count") == 0)
 
+# start() 儲存的對話會在 opener 前加上 Problem: 題幹；進度去重必須使用原始
+# 學生訊息，而不能把「帶題幹版本」誤認為第二則數學進展。
+opener_semantic = _GuidePolicyStub(
+    tok=None, model=_StubModel(), problem=probs["H4"],
+    backstop=True, verify_then_generate=False)
+opener_semantic.first = "Good. Which consequence of continuity will you use next?"
+opener_semantic.reviews = [dict(
+    _review_pass,
+    latest_student_step_status="correct",
+    first_missing_step="identify the next consequence of continuity",
+)]
+opener_semantic.regen_reply = ""
+opener_semantic.regen_calls = 0
+opener_semantic.start(
+    opener=("I define h(x)=f(x)-f(x+2). Since f is continuous, "
+            "h is continuous."))
+check("同一則 supplied opener 經 router 與語意審查後仍只計一次進度",
+      opener_semantic.state.get("proof_progress_revision") == 1)
+
+
+class _ModelWriteupRequestStub(_StubDriver):
+    def _generate(self, level):
+        return "The structure is complete. Please write out the full proof."
+
+    def _regen(self, level, note):
+        return "Which unresolved mathematical link should you establish next?"
+
+
+model_writeup = _ModelWriteupRequestStub(
+    tok=None, model=_StubModel(), problem=probs["H4"], backstop=False)
+model_writeup.generated_levels = []
+model_writeup.messages = [{"role": "user", "content": "I am still working on one local step."}]
+model_writeup.state.update(
+    phase="guide", turn_action="normal_guide", stuck_count=0,
+    turns=[TurnLog(0, 0), TurnLog(0, 0), TurnLog(0, 0)],
+)
+model_writeup_reply = model_writeup._tutor_turn()
+check("模型文字即使出現在第三輪後也不得自行觸發 READINESS_PASSED",
+      model_writeup.state.get("phase") == "guide"
+      and not asks_for_full_writeup(model_writeup_reply)
+      and not any(event.get("event") == "READINESS_PASSED"
+                  and event.get("accepted")
+                  for event in model_writeup.state.get("phase_events", [])))
+
 late_writeup = _PostPolicyWriteupStub(
     tok=None, model=_StubModel(), problem=probs["H4"], backstop=False)
 late_writeup.messages = [{"role": "user", "content": "I have another partial step."}]
@@ -3104,6 +3163,58 @@ _bad_closed[-1] = {"phase": "closed", "guards": ["fallback"]}
 _, _bad_close = _regression_suite._assess_multiturn_phase_and_close(_bad_closed)
 check("multiturn gate still rejects fallback after a real closed completion",
       not _bad_close)
+
+print("[37] 未見高等數學領域的 grounded Level 泛化")
+_unseen_level_problems = [
+    {
+        "id": "UNSEEN_TOPOLOGY_COMPACT_CLOSED",
+        "statement": "Prove that every compact subset of a Hausdorff space is closed.",
+        "reference_proof": "Separate each exterior point from every point of the compact set and use a finite subcover.",
+        "hint_ladder_en": [
+            "TOPOLOGY_SUBGOAL: fix a point outside the compact set and identify the local separation goal",
+            "TOPOLOGY_SCAFFOLD: form the open neighborhoods supplied by the Hausdorff condition before using compactness",
+        ],
+    },
+    {
+        "id": "UNSEEN_ALGEBRA_KERNEL_NORMAL",
+        "statement": "Prove that the kernel of a group homomorphism is a normal subgroup.",
+        "reference_proof": "Check the subgroup conditions and conjugate a kernel element by an arbitrary group element.",
+        "hint_ladder_en": [
+            "ALGEBRA_SUBGOAL: express normality as a conjugation statement for an arbitrary kernel element",
+            "ALGEBRA_SCAFFOLD: apply the homomorphism to a conjugate and simplify the resulting product",
+        ],
+    },
+    {
+        "id": "UNSEEN_FUNCTIONAL_CONTINUITY_ZERO",
+        "statement": "For a linear map between normed spaces, prove continuity at zero implies continuity everywhere.",
+        "reference_proof": "Translate x toward a fixed point and use linearity to reduce the norm difference to continuity at zero.",
+        "hint_ladder_en": [
+            "FUNCTIONAL_SUBGOAL: rewrite the difference of the two output values using linearity",
+            "FUNCTIONAL_SCAFFOLD: reduce the desired estimate at an arbitrary point to an input tending to zero",
+        ],
+    },
+]
+_unseen_level_ok = True
+for _problem in _unseen_level_problems:
+    _driver = _StubDriver(
+        tok=None, model=_StubModel(), problem=_problem, backstop=False)
+    _driver.generated_levels = []
+    _driver.state.update(
+        phase="guide", turn_action="normal_guide", lang="en", stuck_count=0)
+    _l0 = _driver._system(0)
+    _l1 = _driver._system(1)
+    _l2 = _driver._system(2)
+    _subgoal_marker = _problem["hint_ladder_en"][0]
+    _scaffold_marker = _problem["hint_ladder_en"][1]
+    _unseen_level_ok = _unseen_level_ok and (
+        _subgoal_marker not in _l0
+        and _scaffold_marker not in _l0
+        and _subgoal_marker in _l1
+        and _scaffold_marker not in _l1
+        and _scaffold_marker in _l2
+    )
+check("拓撲、抽象代數、泛函分析皆由備課資料驅動 L0/L1/L2，而非題號分支",
+      _unseen_level_ok)
 
 print()
 if FAIL:

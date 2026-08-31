@@ -522,15 +522,12 @@ WALK_NOT_ANSWER_LAST_EN = ("That response does not answer the current check; thi
                            "other mathematical point you raised is wrong. The answer to this step is: "
                            "{answer}.")
 WALK_JUDGE_UNAVAILABLE = ("本輪未取得可靠的語意審閱結果，因此不把你的回答判為錯誤。"
-                          "為避免卡在這裡，先示範這一步：{answer}。我們接著看下一步。")
+                          "我們保留在目前步驟，請再回答一次同一個確認問題。")
 WALK_JUDGE_UNAVAILABLE_EN = ("A reliable semantic review was not available for this turn, "
-                             "so I am not marking your answer incorrect. To avoid getting stuck, "
-                             "here is this step: {answer}. Let's move on to the next step.")
-WALK_JUDGE_UNAVAILABLE_LAST = ("本輪未取得可靠的語意審閱結果，因此不把你的回答判為錯誤。"
-                               "為避免卡在這裡，先示範這一步：{answer}。")
-WALK_JUDGE_UNAVAILABLE_LAST_EN = ("A reliable semantic review was not available for this turn, "
-                                  "so I am not marking your answer incorrect. To avoid getting stuck, "
-                                  "here is this step: {answer}.")
+                             "so I am not marking your answer incorrect. We will remain on the "
+                             "current step; please answer the same check once more.")
+WALK_JUDGE_UNAVAILABLE_LAST = WALK_JUDGE_UNAVAILABLE
+WALK_JUDGE_UNAVAILABLE_LAST_EN = WALK_JUDGE_UNAVAILABLE_EN
 
 # 收尾偵測：學生致謝或宣告完成 → 對話自然結束，回問保底整段停用
 # （雙語基準評審一致指出：學生已完成證明後任何形式的追問都是扣分項）。
@@ -2192,10 +2189,24 @@ class TutorDriver:
             self.state["_last_guide_review_call"] = call_diagnostics
             return None
 
-    def _guide_action_forbids_new_idea(self, level: int) -> bool:
-        """L0/L1 與 respond_attempt 都必須把下一個新想法留給學生。"""
+    def _guide_action_forbids_new_idea(self, level: int,
+                                       review: dict | None = None) -> bool:
+        """限制 Tutor 主動帶入新想法，同時保留 Level 1 的子問題職責。
+
+        L0 與 respond_attempt 嚴格禁止新構造；L1 只有在語意審查明確確認
+        level policy 合格時，才可提出同一缺口的子問題方向。是否直接完成
+        中間步驟仍由 completes_any_unfinished_step 的獨立硬閘控制。
+        """
         action = self.state.get("turn_action")
-        return action == "respond_attempt" or (action == "normal_guide" and level < 2)
+        if action == "respond_attempt":
+            return True
+        if action != "normal_guide":
+            return False
+        if level <= 0:
+            return True
+        if level == 1:
+            return not (review and review.get("level_policy_pass") is True)
+        return False
 
     def _allows_level2_micro_scaffold(self, review: dict, level: int) -> bool:
         """Level 2 可直接給一個微步驟，但不可藉此繼續代寫後續推導。"""
@@ -2239,7 +2250,7 @@ class TutorDriver:
             
         # 想法控制（L0/L1 與 respond_attempt 不得帶入學生未提出的新想法）
         level_idea_ok = not (
-            self._guide_action_forbids_new_idea(level)
+            self._guide_action_forbids_new_idea(level, review)
             and review.get("introduces_new_proof_idea") is True)
         if not level_idea_ok:
             return False
@@ -2298,7 +2309,12 @@ class TutorDriver:
         # router 可能把「帶問句但數學正確」的回答分類成 clarification，因而漏掉
         # readiness 的廉價進度計數。Thinking 已核對為 correct 時補計一次；使用
         # 最後一則學生訊息作 key，避免同輪候選重審或重生成造成重複累加。
-        progress_key = _normalize(self._last_message("user"))[-400:]
+        # start() 會把題幹與 opener 合併後放進 messages；若以該包裝字串去重，
+        # 同一則 opener 會和 router 保存的原始文字形成兩個 key，導致進度加兩次。
+        # student_state_text 是本輪唯一的原始學生訊息，step()/start() 皆一致。
+        current_student_text = str(
+            self.state.get("student_state_text") or self._last_message("user"))
+        progress_key = _normalize(current_student_text)[-400:]
         if (status == "correct" and progress_key
                 and progress_key != self.state.get("proof_progress_message_key")):
             self.state["proof_progress_revision"] = (
@@ -2523,7 +2539,7 @@ class TutorDriver:
         if (level >= 1 and self.state.get("last_guide_question")
                 and first.get("deeper_than_last_question") is False):
             feedback_parts.append("不可只換句話重問；L1 要縮成子目標，L2 要直接給一個可執行的微步驟支架")
-        if (self._guide_action_forbids_new_idea(level)
+        if (self._guide_action_forbids_new_idea(level, first)
                 and first.get("introduces_new_proof_idea") is True):
             feedback_parts.append("本輪不得提出學生尚未提出的新定理、輔助物件、構造或證明策略")
         if (first.get("completes_any_unfinished_step") is True
@@ -2740,9 +2756,6 @@ class TutorDriver:
         peer = self.is_peer()
         walkthrough = phase == "walkthrough" and not peer
         self.state["_regens"] = 0          # 本輪重生成配額歸零（見 _MAX_REGEN_PER_TURN）
-        last_user = next((m["content"] for m in reversed(self.messages)
-                          if m["role"] == "user"), "")
-
         # 逐步教學：確定性輸出，完全不經生成模型與各道重生成守衛
         # （內容是預寫的教學步驟，本來就允許寫式子；問句就是該步的確認問題）。
         if walkthrough:
@@ -2789,35 +2802,27 @@ class TutorDriver:
 
         reply = self._content_guards(reply, level, log)
 
-        # 一般引導中，Tutor 候選若自行要求完整交稿：
-        # 如果學生並非處於剛卡住狀態（stuck_count == 0 且非 explicit_stuck），
-        # 且已有實質對話推導（對話輪數 >= 3 或已有實質數學進展），
-        # 助教主動請學生寫出完整證明是合理的教學轉折，合法進入 review / awaiting_submission。
-        # 只有在學生首輪或學生剛卡住時，才視為 premature_writeup 進行重生成。
+        # Tutor 候選文字沒有 phase 轉移權。即使已對話多輪，只要 Controller 的
+        # 合併 readiness 審查尚未通過，就必須攔下自行要求全文的候選；後面的
+        # _enforce_guide_reply_policy 仍可依累積學生內容合法產生 READINESS_PASSED。
         if not peer and phase == "guide" and asks_for_full_writeup(reply):
-            recent_stuck = bool(self.state.get("stuck_count", 0) > 0 or self._is_stuck_now(last_user))
-            turn_count = len(self.state.get("turns") or [])
-            if not recent_stuck and turn_count >= 3:
-                log.guards.append("tutor_writeup_requested")
-                self._enter_awaiting_submission(
-                    event="READINESS_PASSED", source="tutor_model_readiness")
+            log.guards.append("premature_writeup")
+            note = (
+                "The proof skeleton has not yet passed the controller's readiness review. Do not "
+                "ask for a full proof. Ask one focused question about the next missing mathematical "
+                "link." if en else
+                "目前證明骨架尚未通過 Controller 的準備度審查。不要要求提交完整證明；"
+                "請針對下一個尚未完成的數學連結問一個聚焦問題。")
+            regenerated = (self._content_guards(self._regen(level, note), level, log)
+                           if self._regen_budget_left() else "")
+            if regenerated and not asks_for_full_writeup(regenerated):
+                reply = regenerated
+                log.regenerated = True
             else:
-                log.guards.append("premature_writeup")
-                note = (
-                    "The proof skeleton is not yet verified as complete. Do not ask for a full proof. "
-                    "Ask one focused question about the next missing mathematical link." if en else
-                    "目前尚未確認證明骨架完整。不要要求提交完整證明；請針對下一個尚未完成的"
-                    "數學連結問一個聚焦問題。")
-                regenerated = (self._content_guards(self._regen(level, note), level, log)
-                               if self._regen_budget_left() else "")
-                if regenerated and not asks_for_full_writeup(regenerated):
-                    reply = regenerated
-                    log.regenerated = True
-                else:
-                    pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
-                    i = self.state.get("fb_idx", 0)
-                    reply = pool[i % len(pool)]
-                    self.state["fb_idx"] = i + 1
+                pool = _FALLBACK_QS_EN if en else _FALLBACK_QS
+                i = self.state.get("fb_idx", 0)
+                reply = pool[i % len(pool)]
+                self.state["fb_idx"] = i + 1
 
         # 同學模式的權威背書守衛：沒有參考解可對照，任何「整份論證」等級的總評式背書
         # 都是不該有的口吻（v11 端對端：首輪誠實聲明有效，之後卻大量「完全正確／
@@ -2954,7 +2959,7 @@ class TutorDriver:
 
         每個確認問題只有一次有效作答機會。回答由思考型審閱後盾做數學語意判定，
         不使用 expected_answer 的字串比對；有效作答未判為 correct 就揭示參考答案並前進；
-        unavailable 也不判學生錯，但會中性示範後前進，避免同一步死循環。
+        unavailable 不判學生錯、也不消耗該步作答機會。
         評分對象是「上一輪實際呈現的那一步」（walk_presented_step），不是依當下語言
         重新取 steps[walk_idx]——步驟表若因語言切換而換了一套，後者會拿另一題的
         標準答案去評分（Codex 交接文件的問題四，實測會把正確答案判錯）。
@@ -2985,11 +2990,12 @@ class TutorDriver:
             if verdict == "correct":
                 self.state.pop("walk_feedback", None)
             elif verdict == "unavailable":
-                tpl = ((WALK_JUDGE_UNAVAILABLE_LAST_EN if en
-                        else WALK_JUDGE_UNAVAILABLE_LAST) if last else
-                       (WALK_JUDGE_UNAVAILABLE_EN if en
-                        else WALK_JUDGE_UNAVAILABLE))
-                self.state["walk_feedback"] = tpl.format(answer=answer)
+                # 外部審閱失敗不是學生完成這一步的證據。保留 presented step 與 idx，
+                # 下一輪重新呈現同一確認題；不得揭答或切換到 review。
+                self.state["walk_feedback"] = (
+                    WALK_JUDGE_UNAVAILABLE_EN if en else WALK_JUDGE_UNAVAILABLE)
+                self.state["stuck_count"] = 0
+                return
             elif verdict == "not_answer":
                 tpl = ((WALK_NOT_ANSWER_LAST_EN if en else WALK_NOT_ANSWER_LAST) if last
                        else (WALK_NOT_ANSWER_EN if en else WALK_NOT_ANSWER))
