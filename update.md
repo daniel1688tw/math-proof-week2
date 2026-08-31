@@ -1,5 +1,8 @@
 # 2026-08-11：改用 stuck_count 控制引導深度
 
+> 本檔依日期累積變更紀錄；較早段落描述的是當時行為。最新 level／phase 定義請以
+> 2026-08-31 段落與 `docs/code-review-level-phase-2026-08-31.md` 為準。
+
 ## 要解決的問題
 
 原本的教學深度同時依賴題目外掛資料、索引與連續卡住次數，造成內建題／自訂題行為不一致，
@@ -78,3 +81,23 @@ prompt、自動備課、測試與 notebook 路徑。只有未來改動 SFT 對�
 
 不需要。本次只修改推論時的審閱後盾、狀態機、測試與 notebook 路徑；沒有改動
 `train.jsonl`、`val.jsonl` 或 adapter 權重。
+
+---
+
+# 2026-08-31：Level／Phase code review 與文件同步
+
+## 已確認
+
+- 持久 phase 僅 `guide / walkthrough / review / closed`，只接受 Controller event 轉移。
+- `turn_action` 與 level 不具 phase 轉移權；優先序為 phase 工作流鎖定後，再處理 action 與 level。
+- opener 不計 stuck；第一次、第二次、第三次連續卡住依序為 Level 1、Level 2、walkthrough。
+- 三個無 GPU 核心測試全數通過：`test_phase_routing.py`、`test_driver_unit.py`、`test_review_workflow.py`。
+
+## 待修改
+
+1. Level 2 提示索引目前在 `_system()` 組 prompt 時就前進；M4／ADV1 的三條梯會在同輪重生成時換 scaffold。
+2. Level 1 prompt 禁止點名定理，但現有第一階提示至少 9 題直接含定理／判別法名稱，需統一產品契約。
+3. closed 重審的 event 接受 `review_last_full_proof`，router／workflow 卻只認 `current_proof_draft`。
+4. 後盾 unavailable 是 fail-closed：walkthrough 保留原步、review 不結案；文件不再稱為「自動降級後繼續」。
+
+完整證據與建議測試見 `docs/code-review-level-phase-2026-08-31.md`。

@@ -6,6 +6,10 @@
 
 本文件只提出修正方案，不代表已修改任何 Python、Notebook、資料集或模型檔案。
 
+> **狀態更新（2026-08-31）：核心方案已落地。** 運行時 phase 已精簡為
+> `guide / walkthrough / review / closed`，並由 event 白名單控制；當輪意圖改由
+> `turn_action` 表示。現況與剩餘缺口見 `docs/code-review-level-phase-2026-08-31.md`。
+
 ## 1. 目標
 
 保留 `phase`，但只讓它表示「目前由哪一個持久工作流負責下一輪」，不再拿 phase

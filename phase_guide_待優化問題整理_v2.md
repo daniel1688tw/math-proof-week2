@@ -1,5 +1,10 @@
 # `phase=guide` 待優化問題整理
 
+> **狀態更新（2026-08-31）：歷史問題盤點。** `active_gap`、`last_guide_question`、
+> `stays_on_active_gap`、student-only ownership 與合併 guide review 已進入現行實作；
+> 本次重新審查後仍待處理的是提示梯消耗時機、Level 1 契約矛盾與 legacy closed reopen，
+> 詳見 `docs/code-review-level-phase-2026-08-31.md`。
+
 ## 1. 分析範圍
 
 - 測試來源：`D:\專案備份\math-proof-week2-full-project\math-proof-week2-full-project - 複製 問題.txt`

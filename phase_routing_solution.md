@@ -2,6 +2,10 @@
 
 適用資料夾：`D:\math-proof-week2-main (main的前一版) - 複製 - 進行修改10`
 
+> **狀態更新（2026-08-31）：本方案的混合路由已實作。** Thinking 只描述語意事實，
+> phase 只由 Controller event 轉移。現行事件矩陣與 code review 見
+> `PHASE_架構測試說明.md`、`docs/code-review-level-phase-2026-08-31.md`。
+
 ## 1. 結論
 
 建議採用「**狀態機硬規則 + Thinking 模型只判斷模糊意圖 + 轉換白名單**」的混合方案。

@@ -2,6 +2,9 @@
 
 本文件用於驗收「四種持久 phase＋事件轉移」架構，並特別確認下列產品行為：
 
+> 2026-08-31 code review：主事件矩陣與測試均通過；尚待修的 Level 2 提示消耗、
+> Level 1 契約與 legacy closed reopen 見 `docs/code-review-level-phase-2026-08-31.md`。
+
 > 學生不需要先要求 Tutor 「請我寫完整證明」。引導過程有新的實質數學進度時，Controller 會自動檢查 readiness；判定引導已完成後，Tutor 必須主動要求學生提交自己的完整證明。
 
 ## 1. 測試環境

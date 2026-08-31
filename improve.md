@@ -2,6 +2,10 @@
 
 這份文件對比前一版的專案內容
 
+> **文件定位更新（2026-08-31）：歷史改進摘要。** 其中「Level 2 禁算式」已被後續
+> 「一個可執行微支架可含必要公式」取代；四 phase 現況見
+> `docs/code-review-level-phase-2026-08-31.md`。
+
 ---
 
 ## 1. 核心改進：混合式審閱後盾架構 (Hybrid Review Backstop Architecture)

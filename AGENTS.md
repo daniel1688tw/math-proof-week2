@@ -1,6 +1,6 @@
 # week3 — 蘇格拉底式高等數學證明引導助教
 
-本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v8`，雙語）
+本 repo 只保留**一個方法**：手寫 grounded 資料集 QLoRA 微調 Qwen3-4B（`qlora_adapter_v9`，雙語）
 ＋ 對話驅動程式（`tutor_driver.py`）。這是經過 v2→v6 六輪迭代與三路線正面對決後判定的
 最佳部署形態（判定依據：`dataset/eval_out_final/FINAL_VERDICT.md`）。
 
@@ -43,19 +43,21 @@ PYTHONNOUSERSITE=1 PYTHONUTF8=1 "/d/Danie/anaconda3/envs/lora_project/python.exe
 
 學生訊息 ──► TutorDriver（dataset/tutor_driver.py）
               │  確定性決策層：
-              │  · stuck counter（連續卡住 0/1/2 次 → 提示等級 0/1/2）
-              │  · 階段偵測（交草稿→審閱、逼問→拒絕、嘗試→糾錯、說懂了→請寫證明）
-              │  · 等級 2 注入 hint_ladders.json 的預寫提示內容
-              │  · 提示梯用盡仍連卡兩次 → walkthrough 逐步教學（一步一確認，教完仍要學生自寫證明）
+              │  · 三條正交控制線：phase（guide/walkthrough/review/closed）＞ turn_action ＞ level
+              │  · stuck counter（0/1/2 → Level 0/1/2；第三次連續卡住進 walkthrough）
+              │  · Level 2 只給一個可執行微支架，可含必要公式但不代寫後續推導
+              │  · walkthrough 逐步教學（一步一確認，教完仍要學生自寫證明）
               │  · 審閱/糾錯輪 ──► 審閱後盾（review_backstop.py，Ollama 思考型找碴）
-              │                    缺漏清單注入 system；不在線自動降級（REVIEW_BACKSTOP=0 關）
+              │                    缺漏清單注入 system；不可用時保守停留、不假裝通過（REVIEW_BACKSTOP=0 關）
               ▼
-         qlora_adapter_v8 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
+         qlora_adapter_v9 + Qwen3-4B（4-bit nf4）＋ grounded system（含 <REFERENCE_PROOF>）
               │
               ▼
          後處理：單問句截斷、洩漏 15-gram 檢查、on-track 防奉送、
-         等級 2 禁算式、回問保底（命中→加強指示重生成）
+         Level 2 單一微支架限制、回問保底（命中→加強指示重生成）
 ```
+
+2026-08-31 的 level／phase 審查與待修項目見 `docs/code-review-level-phase-2026-08-31.md`。
 
 **設計鐵律**（v4→v6 三次驗證的教訓）：離散決策（何時升級、何時換階段）交給程式碼；
 內容拿捏（提示深度、審閱重點）交給預寫內容（參考解、hint ladder）；模型只負責數學與語氣。

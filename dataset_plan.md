@@ -1,5 +1,9 @@
 # 高等數學蘇格拉底引導資料集企劃
 
+> **文件定位更新（2026-08-31）：立項時的資料集企劃，保留作歷史設計依據。**
+> 現行部署與 level／phase 行為不以本文為準，請看 `README.md`、`dataset/README.md`
+> 與 `docs/code-review-level-phase-2026-08-31.md`。
+
 > 目標：建立一套**域內（on-domain）、grounded、繁體中文**的蘇格拉底式對話訓練資料集，
 > 用於 QLoRA 微調 Qwen3-4B，使其成為可靠的高等數學證明引導助教。
 

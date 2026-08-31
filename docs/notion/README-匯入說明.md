@@ -1,5 +1,8 @@
 # 如何把這份整理匯入 Notion
 
+> 2026-08-31：匯入後請把 `00-專案總覽` 與 `01-系統架構` 的 level／phase code review
+> 連結一併保留；舊頁內的歷史 phase 名稱不可當成現行 runtime schema。
+
 ## 內容
 
 | 檔案 | 頁面 |
